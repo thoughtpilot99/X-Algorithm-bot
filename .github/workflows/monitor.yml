@@ -13,6 +13,10 @@ on:
         default: daily
         type: choice
         options: [daily, weekly, monthly, dry-run]
+  # On-demand runs without the Actions UI: push a change to this file whose first word is the mode.
+  push:
+    branches: [claude/charming-hawking-pqaz1d]
+    paths: [.github/run-request]
 
 permissions:
   contents: write
@@ -35,6 +39,16 @@ jobs:
         working-directory: backend
     steps:
       - uses: actions/checkout@v4
+
+      - name: Resolve mode
+        id: mode
+        working-directory: .
+        run: |
+          MODE="${{ inputs.mode }}"
+          if [ "${{ github.event_name }}" = "push" ]; then MODE=$(awk 'NR==1{print $1}' .github/run-request); fi
+          case "$MODE" in daily|weekly|monthly|dry-run) ;; *) MODE=daily ;; esac
+          echo "mode=$MODE" >> "$GITHUB_OUTPUT"
+          echo "Mode: $MODE (${{ github.event_name }})"
 
       - uses: astral-sh/setup-uv@v6
         with:
@@ -59,7 +73,7 @@ jobs:
         run: uv run xaudit sync-repo --commits 20
 
       - name: Check console API contract
-        if: inputs.mode != 'dry-run'
+        if: steps.mode.outputs.mode != 'dry-run'
         run: uv run xaudit doctor
 
       # Decide from the data, not from file existence: sync-repo writes parameter history
@@ -69,7 +83,7 @@ jobs:
         run: echo "backfill=$(uv run --quiet xaudit status --needs-backfill)" >> "$GITHUB_OUTPUT"
 
       - name: Backfill (180 days)
-        if: steps.state.outputs.backfill == 'true' && inputs.mode != 'dry-run'
+        if: steps.state.outputs.backfill == 'true' && steps.mode.outputs.mode != 'dry-run'
         run: uv run xaudit ingest --live --days 180
 
       - name: Seed reviewed labels and rewrites (idempotent)
@@ -80,7 +94,7 @@ jobs:
       - name: Monitor
         run: |
           ARGS=""
-          case "${{ inputs.mode }}" in
+          case "${{ steps.mode.outputs.mode }}" in
             dry-run) ARGS="--dry-run" ;;
             weekly)  ARGS="--weekly --peers" ;;
             monthly) ARGS="--monthly --weekly --peers" ;;
@@ -88,7 +102,7 @@ jobs:
           uv run xaudit monitor $ARGS
 
       - name: Post Slack digest
-        if: success() && env.SLACK_WEBHOOK_URL != '' && inputs.mode != 'dry-run'
+        if: success() && env.SLACK_WEBHOOK_URL != '' && steps.mode.outputs.mode != 'dry-run'
         run: uv run xaudit notify-slack
 
       - name: Tell Slack the run failed
@@ -115,10 +129,10 @@ jobs:
           if-no-files-found: warn
 
       - name: Commit reports (Mondays, 1st of month, or manual weekly/monthly)
-        if: success() && inputs.mode != 'dry-run'
+        if: success() && steps.mode.outputs.mode != 'dry-run'
         working-directory: .
         run: |
-          MODE="${{ inputs.mode }}"
+          MODE="${{ steps.mode.outputs.mode }}"
           DOW=$(date -u +%u); DOM=$(date -u +%d)
           if [ "$MODE" != "weekly" ] && [ "$MODE" != "monthly" ] && [ "$DOW" != "1" ] && [ "$DOM" != "01" ]; then
             echo "Not a report day; nothing committed."; exit 0
