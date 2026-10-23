@@ -2,21 +2,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { api, STATIC } from "../api";
-import { ClassBadge, fmt, Loading, Panel } from "../components/ui";
+import { fmt, Loading, Panel } from "../components/ui";
 
 const AREAS: Record<string, string> = {
   A: "Content candidate retrieval",
   B: "Ranking and engagement prediction",
   C: "Account and content quality",
   D: "Feed-level ranking behaviour",
-};
-
-const VERDICT: Record<string, string> = {
-  supported: "account_observed",
-  partially_supported: "hypothesis",
-  contradicted: "unsupported",
-  not_found_in_repo: "unsupported",
-  unverifiable: "insufficient",
 };
 
 export default function AlgorithmPage() {
@@ -77,7 +69,7 @@ export default function AlgorithmPage() {
           <div className="space-y-3">{findings.data.filter((f) => f.area === area).map((f) => (
             <article key={f.id} className="rounded-lg border border-slate-200 p-3 text-xs dark:border-slate-800">
               <div className="flex flex-wrap items-center gap-2 text-sm font-semibold">
-                {f.id} · {f.title}<ClassBadge c={f.status === "verified" ? "repo_verified" : f.status === "inferred" ? "hypothesis" : "insufficient"} />
+                {f.id} · {f.title}
               </div>
               <a className="text-blue-600 hover:underline dark:text-blue-400" href={f.permalink} target="_blank" rel="noreferrer">{f.path}:{f.lines[0]}-{f.lines[1]}</a> <span className="muted">· {f.symbol}</span>
               <p className="mt-1">{f.mechanism}</p>
@@ -95,7 +87,7 @@ export default function AlgorithmPage() {
             <tbody>{claims.data.map((c) => (
               <tr key={c.id}>
                 <td className="max-w-xs">{c.claim}</td>
-                <td><ClassBadge c={VERDICT[c.verdict] ?? "hypothesis"} /> <div className="mt-1">{fmt.label(c.verdict)}</div></td>
+                <td>{fmt.label(c.verdict)}</td>
                 <td>{c.explanation}{(c.evidence ?? []).map((e: any, i: number) => (
                   <div key={i}><a className="text-blue-600 hover:underline dark:text-blue-400" href={e.permalink} target="_blank" rel="noreferrer">{e.path}:{e.lines[0]}-{e.lines[1]}</a></div>
                 ))}</td>

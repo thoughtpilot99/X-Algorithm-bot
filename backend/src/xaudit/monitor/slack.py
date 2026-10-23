@@ -83,8 +83,7 @@ def account_section(handle: str, df: pd.DataFrame, now: datetime) -> list[dict]:
     brief = load_artifact("brief", handle) or {}
 
     def items(key: str) -> str:
-        return "; ".join(f"{x['headline']} ({x['proof']['verdict_label']})" if x.get("proof") else x["headline"]
-                         for x in brief.get(key, [])[:3])
+        return "; ".join(x["headline"] for x in brief.get(key, [])[:3])
 
     if brief.get("working") or brief.get("not_working"):
         blocks.append({"type": "context", "elements": [{"type": "mrkdwn", "text":

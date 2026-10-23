@@ -35,5 +35,5 @@ Algorithm repository <a href="{{ repo_url }}/tree/{{ sha }}">xai-org/x-algorithm
 <p class="note">Transfer is proposed only where the receiving account's own data already shows the mechanism working (e.g. its own articles outperform). Copying a successful post from the other account is not expected to reproduce its performance.</p>
 
 <h2>7. Top barriers side by side</h2>
-<div class="cols">{% for h in handles %}<div><h3>@{{ h }}</h3><ol>{% for r in roots[h] %}<li>{{ r.issue }} <span class="badge">{{ r.confidence }}</span></li>{% endfor %}</ol></div>{% endfor %}</div>
+<div class="cols">{% for h in handles %}<div><h3>@{{ h }}</h3><ol>{% for r in roots[h] %}<li>{{ r.issue }}</li>{% endfor %}</ol></div>{% endfor %}</div>
 </main></body></html>

@@ -7,7 +7,7 @@ import {
 } from "recharts";
 import { api, STATIC, type Diagnostic, type Post } from "../api";
 import EvidenceDrawer from "../components/EvidenceDrawer";
-import { ClassBadge, Completeness, ErrorBox, fmt, Loading, Panel, Stat } from "../components/ui";
+import { Completeness, ErrorBox, fmt, Loading, Panel, Stat } from "../components/ui";
 
 export const SECTIONS: [string, string][] = [
   ["summary", "Summary"],
@@ -219,7 +219,7 @@ function AlertsPanel({ handle }: { handle: string }) {
         <ul className="space-y-2 text-sm">
           {active.map((a) => (
             <li key={a.key} className="rounded-lg border border-amber-300 p-2 dark:border-amber-700">
-              <div className="font-medium">{a.title} <span className="chip border-amber-500 text-amber-700">{a.severity}</span> <ClassBadge c={a.evidence_class} /></div>
+              <div className="font-medium">{a.title}</div>
               <p className="text-xs muted">{a.detail} · first seen {a.first_seen?.slice(0, 10)}</p>
             </li>
           ))}
@@ -251,7 +251,7 @@ function Overview({ o, handle, open }: { o: any; handle: string; open: (d: Diagn
                 <div className="flex flex-wrap items-center gap-2 text-sm font-medium">
                   <span className="tabular-nums muted">{r.rank}.</span>
                   {r.issue}
-                  <ClassBadge c={r.evidence_class} />
+                 
                 </div>
                 <p className="mt-1 text-xs muted">{r.observation}</p>
                 <p className="mt-1 text-[11px] muted"><b>Published X algorithm:</b> {r.algo_findings?.length ? r.algo_findings.map((f) => `${f.id} ${f.title}`).join("; ") : "no direct mechanism in the published code; account data only"}</p>
@@ -267,7 +267,7 @@ function Overview({ o, handle, open }: { o: any; handle: string; open: (d: Diagn
               {(o.actions[k] ?? []).map((x: any, i: number) => (
                 <li key={i} className="flex flex-col gap-0.5">
                   <span>{x.action}</span>
-                  <span><ClassBadge c={x.evidence_class} /></span>
+                  
                 </li>
               ))}
             </ul>
@@ -279,7 +279,7 @@ function Overview({ o, handle, open }: { o: any; handle: string; open: (d: Diagn
           <ol className="space-y-3 text-sm">
             {answers.data.map((q, i) => (
               <li key={i}>
-                <div className="font-medium">{i + 1}. {q.q} <ClassBadge c={q.class} /></div>
+                <div className="font-medium">{i + 1}. {q.q}</div>
                 <p className="text-xs muted">{q.a}</p>
               </li>
             ))}
@@ -314,7 +314,7 @@ function FollowerTrend({ handle }: { handle: string }) {
   const q = useQuery({ queryKey: ["followers", handle], queryFn: () => api.followers(handle) });
   const pts = (q.data ?? []).map((p) => ({ t: Date.parse(p.day), followers: p.followers }));
   return (
-    <Panel title="Followers over time" right={<ClassBadge c="account_observed" />}>
+    <Panel title="Followers over time">
       {pts.length < 2 ? (
         <p className="text-xs muted">{pts.length} snapshot so far ({fmt.n(pts[0]?.followers)} followers). Daily monitoring builds this series; historical follower growth is not available.</p>
       ) : (
@@ -377,7 +377,7 @@ function Trends({ handle, posts }: { handle: string; posts: Post[] }) {
           </ResponsiveContainer>
         </div>
       </Panel>
-      <Panel title="Engagement efficiency (per 1,000 views, all mature posts)" right={<ClassBadge c="account_observed" />}>
+      <Panel title="Engagement efficiency (per 1,000 views, all mature posts)">
         {eng.data ? (
           <>
             <table className="tbl">
@@ -474,7 +474,7 @@ function OriginalPosts({ handle, posts }: { handle: string; posts: Post[] }) {
   authored.forEach((p) => p.quadrant && (quad[p.quadrant] = (quad[p.quadrant] ?? 0) + 1));
   return (
     <>
-      <Panel title="Characteristics associated with higher / lower reach" right={<ClassBadge c="statistical_association" />}>
+      <Panel title="Characteristics associated with higher / lower reach">
         <p className="mb-2 text-xs muted">Each level vs all other authored posts (180 days). Ratio of medians, 90% bootstrap CI, Benjamini–Hochberg q. Associations, not causes.</p>
         <div className="overflow-x-auto">
           <table className="tbl">
@@ -492,7 +492,7 @@ function OriginalPosts({ handle, posts }: { handle: string; posts: Post[] }) {
         </div>
       </Panel>
       {mv.data?.fitted && (
-        <Panel title={`Multivariable model (n=${mv.data.n}, R² ${fmt.r(mv.data.r2)})`} right={<ClassBadge c="statistical_association" />}>
+        <Panel title={`Multivariable model (n=${mv.data.n}, R² ${fmt.r(mv.data.r2)})`}>
           <p className="mb-2 text-xs muted">{mv.data.controls}. Multipliers relative to the reference level.</p>
           <table className="tbl">
             <thead><tr><th>Term</th><th className="num">Multiplier</th><th className="num">90% CI</th><th className="num">p</th></tr></thead>
@@ -536,7 +536,7 @@ function Replies({ handle, posts }: { handle: string; posts: Post[] }) {
         <p className="mt-2 text-xs muted">Score weights (user-editable in accounts.yaml): {Object.entries(d.score_weights).map(([k, v]) => `${k} ${v}`).join(", ")}; timing is unavailable and redistributed.</p>
       </Panel>
       {d.thread_sample && (
-        <Panel title={`Thread-context sample (n=${d.thread_sample.n})`} right={<ClassBadge c="account_observed" />}>
+        <Panel title={`Thread-context sample (n=${d.thread_sample.n})`}>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
             <Stat k="Median delay after parent" v={`${fmt.n(d.thread_sample.latency_minutes.median)} min`} />
             <Stat k="Within first hour" v={fmt.pct(d.thread_sample.share_within_60min)} />
@@ -548,7 +548,7 @@ function Replies({ handle, posts }: { handle: string; posts: Post[] }) {
       )}
       <Panel title="Commenting questions">
         <ul className="space-y-2 text-sm">{d.questions.map((q: any, i: number) => (
-          <li key={i}><div className="font-medium">{q.q} <ClassBadge c={q.evidence_class} /></div><p className="text-xs muted">{q.answer}</p></li>
+          <li key={i}><div className="font-medium">{q.q}</div><p className="text-xs muted">{q.answer}</p></li>
         ))}</ul>
       </Panel>
       <Panel title="Replies (filtered)"><PostTable posts={replies} cols={["parent", "category"]} /></Panel>
@@ -581,7 +581,7 @@ function Topics({ handle, posts }: { handle: string; posts: Post[] }) {
         </table>
         <p className="mt-2 text-xs muted">Topics are model labels (method shown per post in CSV export); small groups are noisy.</p>
       </Panel>
-      <Panel title="Topic comparisons with significance (180 days)" right={<ClassBadge c="statistical_association" />}>
+      <Panel title="Topic comparisons with significance (180 days)">
         <table className="tbl">
           <thead><tr><th>Topic</th><th className="num">n</th><th className="num">Ratio</th><th className="num">90% CI</th><th className="num">q</th><th>Signal</th></tr></thead>
           <tbody>{topicSegs.map((s) => (
@@ -614,7 +614,7 @@ function Network({ handle }: { handle: string }) {
         </table>
       </Panel>
       {c.data.engagers?.available && (
-        <Panel title="Who engages with the account (public replies/quotes)" right={<ClassBadge c="account_observed" />}>
+        <Panel title="Who engages with the account (public replies/quotes)">
           <div className="mb-3 grid grid-cols-2 gap-3 md:grid-cols-4">
             <Stat k="Engagements" v={fmt.n(c.data.engagers.n_engagements)} n={`${c.data.engagers.window[0]} → ${c.data.engagers.window[1]}`} />
             <Stat k="Distinct engagers" v={fmt.n(c.data.engagers.distinct_engagers)} n={`one-time: ${fmt.pct(c.data.engagers.one_time_share)}`} />
@@ -652,7 +652,7 @@ function AlgoFindings({ handle, open }: { handle: string; open: (d: Diagnostic) 
         <thead><tr><th>Finding</th><th>Location (pinned commit)</th><th>Used by</th></tr></thead>
         <tbody>{[...used.values()].map(({ f, ds }) => (
           <tr key={f.id}>
-            <td><b>{f.id}</b> {f.title} <ClassBadge c={f.status === "verified" ? "repo_verified" : "hypothesis"} /></td>
+            <td><b>{f.id}</b> {f.title}</td>
             <td><a className="text-blue-600 hover:underline dark:text-blue-400" href={f.permalink} target="_blank" rel="noreferrer">{f.path}:{f.lines[0]}-{f.lines[1]}</a></td>
             <td>{ds.map((d) => <button key={d.id} className="mr-1 underline decoration-dotted" onClick={() => open(d)}>{d.issue}</button>)}</td>
           </tr>
@@ -671,7 +671,7 @@ function Blockers({ handle, open }: { handle: string; open: (d: Diagnostic) => v
       {diags.data.items.map((d: Diagnostic) => (
         <button key={d.id} onClick={() => open(d)} className="panel block w-full text-left hover:border-slate-400">
           <div className="flex flex-wrap items-center gap-2 text-sm font-semibold">
-            {d.issue}<ClassBadge c={d.evidence_class} /><span className="chip border-slate-400">{d.status}</span>
+            {d.issue}
             <span className="ml-auto text-xs muted tabular-nums">priority {fmt.r(d.priority)}</span>
           </div>
           <p className="mt-1 text-xs">{d.observation}</p>
@@ -688,7 +688,7 @@ function Benchmarks({ handle }: { handle: string }) {
   if (!b.data) return <Loading />;
   return (
     <>
-      <Panel title={`Peers — authored posts, last ${b.data.window_days} days`} right={<ClassBadge c="statistical_association" />}>
+      <Panel title={`Peers — authored posts, last ${b.data.window_days} days`}>
         <div className="overflow-x-auto">
           <table className="tbl">
             <thead><tr><th>Account</th><th className="num">Followers</th><th className="num">Posts/wk</th><th className="num">Median views</th><th className="num">Views/1k followers</th><th className="num">Eng/1k</th><th className="num">Replies/1k</th><th className="num">Bookmarks/1k</th><th className="num">Articles</th></tr></thead>
@@ -781,7 +781,7 @@ function Results({ handle }: { handle: string }) {
   const q = useQuery({ queryKey: ["experiments", handle], queryFn: () => api.experiments(handle) });
   if (!q.data) return <Loading what="experiment results" />;
   return (
-    <Panel title="Experiment results" right={<ClassBadge c="statistical_association" />}>
+    <Panel title="Experiment results">
       <table className="tbl">
         <thead><tr><th>Experiment</th><th>Status</th><th>Window</th><th>Metric</th><th className="num">n (T / C)</th><th className="num">Median T / C</th><th className="num">Ratio</th><th className="num">90% CI</th><th>Decision rule</th></tr></thead>
         <tbody>{q.data.map((e) => (
@@ -840,16 +840,6 @@ function Example({ e }: { e: any }) {
       <span className="muted tabular-nums"><b className="text-slate-900 dark:text-slate-100">{fmt.n(e.views)} views</b> · {e.date}</span>
     </a>
   );
-}
-
-const VERDICT_STYLE: Record<string, string> = {
-  backed: "border-emerald-600 bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300",
-  partly: "border-amber-500 bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300",
-  not_enough: "border-slate-400 text-slate-600 dark:text-slate-300",
-};
-
-function Verdict({ code, label }: { code: string; label: string }) {
-  return <span className={`chip ${VERDICT_STYLE[code] ?? VERDICT_STYLE.not_enough}`}>{label}</span>;
 }
 
 function ProofTable({ t }: { t: { columns: string[]; rows: any[][] } }) {
@@ -915,12 +905,9 @@ function Proof({ p, note }: { p: any; note?: string }) {
 function PlainItem({ w, tone, note }: { w: any; tone: "good" | "bad"; note?: string }) {
   return (
     <div className={`rounded-lg border border-l-4 border-slate-200 p-3 dark:border-slate-800 ${tone === "good" ? "border-l-emerald-600" : "border-l-rose-600"}`}>
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <div className="text-sm font-semibold">{w.headline}</div>
-        {w.proof && <Verdict code={w.proof.verdict} label={w.proof.verdict_label} />}
-      </div>
+      <div className="text-sm font-semibold">{w.headline}</div>
       <p className="mt-0.5 text-sm">{w.detail}</p>
-      <p className="mt-0.5 text-xs muted">{w.based_on} · {w.label}</p>
+      <p className="mt-0.5 text-xs muted">{w.based_on}</p>
       {w.examples.map((e: any) => <Example key={e.url} e={e} />)}
       <Proof p={w.proof} note={note} />
     </div>
@@ -940,9 +927,8 @@ function Summary({ handle }: { handle: string }) {
       </Panel>
       <div className="rounded-lg border border-slate-200 bg-white p-3 text-xs dark:border-slate-800 dark:bg-slate-950">
         <b>How each item is checked against X's algorithm.</b> X's published ranking weights replies 5, quotes 5, reposts 1 and likes 0.66.
-        For every item we compare how many of these reactions its posts get per 1,000 views with the account's other posts.{" "}
-        <Verdict code="backed" label="Backed by X's code" /> = it also earns more (or fewer, for what's not working) of the reactions X rewards.{" "}
-        <Verdict code="partly" label="Not explained by public reactions" /> = the reach difference must come from things X also counts but nobody outside X can see (shares, follows, time spent).
+        For every item we compare how many of these reactions its posts get per 1,000 views with the account's other posts.
+        When the extra reach doesn't line up with these reactions, it must come from things X also counts but nobody outside X can see (shares, follows, time spent).
         Open "Show proof" on any item for the numbers, the real posts and the code lines.
       </div>
       <div className="grid gap-4 md:grid-cols-2">
@@ -958,9 +944,9 @@ function Summary({ handle }: { handle: string }) {
           <li key={w.title} className="rounded-lg border border-slate-200 p-3 text-sm dark:border-slate-800">
             <div className="flex flex-wrap items-center gap-2 font-semibold"><span className="muted tabular-nums">{i + 1}.</span>{w.title}</div>
             <dl className="mt-2 grid gap-x-4 gap-y-1.5 sm:grid-cols-[170px_1fr]">
-              <dt className="text-xs muted">What we see</dt><dd>{w.we_see} <span className="text-xs muted">({w.we_see_label})</span></dd>
+              <dt className="text-xs muted">What we see</dt><dd>{w.we_see}</dd>
               <dt className="text-xs muted">What X's algorithm does</dt>
-              <dd>{w.x_code} <span className="text-xs muted">({w.x_code_label})</span></dd>
+              <dd>{w.x_code}</dd>
               <dt className="text-xs muted">What to do</dt><dd className="font-medium">{w.do}</dd>
               <dt className="text-xs muted">How we'll know it worked</dt><dd>{w.check}</dd>
             </dl>

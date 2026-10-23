@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import type { Diagnostic } from "../api";
-import { ClassBadge, fmt } from "./ui";
+import { fmt } from "./ui";
 
 export default function EvidenceDrawer({ d, onClose }: { d: Diagnostic | null; onClose: () => void }) {
   useEffect(() => {
@@ -21,8 +21,8 @@ export default function EvidenceDrawer({ d, onClose }: { d: Diagnostic | null; o
           <button className="btn" onClick={onClose}>Close</button>
         </div>
         <div className="mt-2 flex flex-wrap gap-2">
-          <ClassBadge c={d.evidence_class} />
-          <span className="chip border-slate-400">{d.status}</span>
+         
+          
           <span className="chip border-slate-300">priority {fmt.r(d.priority)}</span>
         </div>
         <Field t="Observation">{d.observation}</Field>
@@ -30,7 +30,7 @@ export default function EvidenceDrawer({ d, onClose }: { d: Diagnostic | null; o
           <ul className="space-y-1">
             {d.evidence.map((e, i) => (
               <li key={i} className="flex flex-wrap items-baseline gap-2">
-                <ClassBadge c={e.evidence_class} />
+               
                 {e.url ? (
                   <a className="text-blue-600 hover:underline dark:text-blue-400" href={e.url} target="_blank" rel="noreferrer">
                     {e.label}

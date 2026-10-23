@@ -27,35 +27,32 @@ the middle post (half got more views, half fewer); "usual" means what the accoun
 <div class="cols"><div>
 <h3 class="good">What's working</h3>
 {% for w in brief.working %}<div class="plain good">
-<b>{{ w.headline }}</b><br>{{ w.detail }} <span class="meta">{{ w.based_on }} · {{ w.label }}</span>
+<b>{{ w.headline }}</b><br>{{ w.detail }} <span class="meta">{{ w.based_on }}</span>
 {% for e in w.examples %}<div class="ex"><a href="{{ e.url }}">{{ e.text }}</a> — <b>{{ e.views|num }} views</b> · {{ e.date }}</div>{% endfor %}
-{% if w.proof %}<div class="verdict v-{{ w.proof.verdict }}">{{ w.proof.verdict_label }}</div>{% endif %}
 </div>{% else %}<p class="meta">No clear pattern yet.</p>{% endfor %}
 </div><div>
 <h3 class="bad">What's not working</h3>
 {% for w in brief.not_working %}<div class="plain bad">
-<b>{{ w.headline }}</b><br>{{ w.detail }} <span class="meta">{{ w.based_on }} · {{ w.label }}</span>
+<b>{{ w.headline }}</b><br>{{ w.detail }} <span class="meta">{{ w.based_on }}</span>
 {% for e in w.examples %}<div class="ex"><a href="{{ e.url }}">{{ e.text }}</a> — <b>{{ e.views|num }} views</b> · {{ e.date }}</div>{% endfor %}
-{% if w.proof %}<div class="verdict v-{{ w.proof.verdict }}">{{ w.proof.verdict_label }}</div>{% endif %}
 </div>{% else %}<p class="meta">No clear pattern yet.</p>{% endfor %}
 </div></div>
 
 <div class="note"><b>How each item is checked against X's algorithm.</b> X's published ranking weights replies 5, quotes 5,
 reposts 1 and likes 0.66. For each item we compare these reactions per 1,000 views with the account's other posts.
-"Backed by X's code" = the posts also earn more (or fewer, for what's not working) of the reactions X rewards. "Not explained by
-public reactions" = the reach difference must come from things X also counts but nobody outside X can see (shares, follows,
-time spent). {{ brief.check_note }} {{ brief.bookmark_note }}</div>
+When the extra reach doesn't line up with these reactions, it must come from things X also counts but nobody outside X can
+see (shares, follows, time spent). {{ brief.check_note }} {{ brief.bookmark_note }}</div>
 
 <h3>Proof for each item</h3>
-{% for w in brief.working + brief.not_working %}<div class="diag proofcard"><h3>{{ w.headline }}{% if w.proof %} <span class="verdict v-{{ w.proof.verdict }}">{{ w.proof.verdict_label }}</span>{% endif %}</h3>
+{% for w in brief.working + brief.not_working %}<div class="diag proofcard"><h3>{{ w.headline }}</h3>
 {{ proof_block(w.proof) }}</div>{% endfor %}
 
 <h3>Why reach isn't coming</h3>
 {% for w in brief.why %}<div class="diag">
 <h3>{{ loop.index }}. {{ w.title }}</h3>
 <dl>
-<dt>What we see</dt><dd>{{ w.we_see }} <span class="meta">({{ w.we_see_label }})</span></dd>
-<dt>What X's algorithm does</dt><dd>{{ w.x_code }} <span class="meta">({{ w.x_code_label }}{% for f in w.x_code_refs %}{% if loop.first %}: {% endif %}<a href="{{ f.url }}">{{ f.id }}</a>{% if not loop.last %}, {% endif %}{% endfor %})</span></dd>
+<dt>What we see</dt><dd>{{ w.we_see }}</dd>
+<dt>What X's algorithm does</dt><dd>{{ w.x_code }} <span class="meta">({% for f in w.x_code_refs %}<a href="{{ f.url }}">{{ f.id }}</a>{% if not loop.last %}, {% endif %}{% endfor %})</span></dd>
 <dt>What to do</dt><dd>{{ w.do }}</dd>
 <dt>How we'll know it worked</dt><dd>{{ w.check }}</dd>
 </dl>{{ proof_block(w.proof) }}</div>{% endfor %}
@@ -78,9 +75,7 @@ time spent). {{ brief.check_note }} {{ brief.bookmark_note }}</div>
 <p class="meta">The full evidence behind the short version: statistics, confidence intervals, every diagnostic and
 its citations into X's published code.</p>
 {% endif %}
-<div class="note">How to read this report: every finding carries an evidence class —
-{% for c in ["repo_verified","account_observed","statistical_association","hypothesis","unsupported","insufficient"] %}<span class="badge b-{{c}}">{{ c|replace('_',' ') }}</span> {% endfor %}.
-Associations are not causes; the published repository does not describe every live production system; no metric here is an X algorithm score.</div>
+<div class="note">How to read this report: associations are not causes; the published repository does not describe every live production system; no metric here is an X algorithm score.</div>
 
 <h2>1. Executive summary</h2>
 <div class="cards">
@@ -90,8 +85,8 @@ Associations are not causes; the published repository does not describe every li
   <div class="card"><div class="k">Typical views per comment (median)</div><div class="v">{{ comments.conversation.views.median|num }}</div><div class="n">n={{ comments.conversation.n }} conversational</div></div>
 </div>
 <h3>Top 5 potential barriers to organic growth</h3>
-<table><tr><th>#</th><th>Issue</th><th>Status</th><th>Confidence</th><th>Evidence class</th><th class="num">Priority</th></tr>
-{% for r in rec.root_causes %}<tr><td>{{ r.rank }}</td><td><a href="#{{ r.id }}">{{ r.issue }}</a></td><td>{{ r.status }}</td><td>{{ r.confidence }}</td><td><span class="badge b-{{ r.evidence_class }}">{{ r.evidence_class|replace('_',' ') }}</span></td><td class="num">{{ r.priority|r2 }}</td></tr>{% endfor %}</table>
+<table><tr><th>#</th><th>Issue</th><th class="num">Priority</th></tr>
+{% for r in rec.root_causes %}<tr><td>{{ r.rank }}</td><td><a href="#{{ r.id }}">{{ r.issue }}</a></td><td class="num">{{ r.priority|r2 }}</td></tr>{% endfor %}</table>
 <p class="meta">Priority = 0.30·evidence strength + 0.25·likely impact + 0.20·business relevance + 0.15·confidence + 0.10·ease of testing (transparent internal weighting).</p>
 
 <h3>Stop / continue / start</h3>
@@ -144,7 +139,7 @@ Relative to each post's trailing 28-day baseline: {{ reach.vs_baseline.share_abo
 <p class="meta">{{ comments.score_label }}. Weights: {% for k, v in comments.score_weights.items() %}{{ k }} {{ v }}{% if not loop.last %}, {% endif %}{% endfor %} (timing unavailable → redistributed).</p>
 {% if comments.thread_sample %}<p>Thread-context sample (n={{ comments.thread_sample.n }}): median delay after the parent post {{ comments.thread_sample.latency_minutes.median|num }} min; {{ comments.thread_sample.share_within_60min|pct }} within the first hour; parent author replied to {{ comments.thread_sample.parent_author_responded_share|pct }}.</p>{% endif %}
 <h3>Commenting questions</h3>
-{% for q in comments.questions %}<div class="qa"><b>{{ q.q }}</b>{{ q.answer }} <span class="badge b-{{ q.evidence_class }}">{{ q.evidence_class }}</span></div>{% endfor %}
+{% for q in comments.questions %}<div class="qa"><b>{{ q.q }}</b>{{ q.answer }}</div>{% endfor %}
 <h3>Most-viewed comments</h3>
 <table><tr><th>Date</th><th>To</th><th>Comment</th><th>Category</th><th class="num">Views</th></tr>
 {% for r in comments.examples.most_viewed[:8] %}<tr><td>{{ r.created_at }}</td><td>@{{ r.parent_author }}</td><td><a href="{{ r.url }}">{{ r.text[:160] }}</a></td><td>{{ (r.category or '')|replace('_',' ') }}</td><td class="num">{{ r.views|num }}</td></tr>{% endfor %}</table>
@@ -159,7 +154,7 @@ Relative to each post's trailing 28-day baseline: {{ reach.vs_baseline.share_abo
 <p class="note">Private social-graph relationships (who follows whom, mutual follows) are not inferred from public replies.</p>
 
 <h2>7. Potential reach barriers — full diagnostics</h2>
-{% for d in diagnostics %}<div class="diag" id="{{ d.id }}"><h3>{{ d.issue }} <span class="badge b-{{ d.evidence_class }}">{{ d.evidence_class|replace('_',' ') }}</span> <span class="badge">{{ d.status }}</span> <span class="badge">confidence: {{ d.confidence }}</span></h3>
+{% for d in diagnostics %}<div class="diag" id="{{ d.id }}"><h3>{{ d.issue }}</h3>
 <dl><dt>Observation</dt><dd>{{ d.observation }}</dd>
 <dt>Evidence</dt><dd>{% for e in d.evidence %}{% if e.url %}<a href="{{ e.url }}">{{ e.label }}</a>{% else %}{{ e.label }}{% if e.value is not none %}: <b>{{ e.value|ev }}</b>{% endif %}{% endif %}{% if not loop.last %} · {% endif %}{% endfor %}</dd>
 <dt>Algorithm connection</dt><dd>{{ d.algo_connection }}{% for f in d.algo_findings %}<br><a href="{{ f.permalink }}">{{ f.id }} · {{ f.title }} ({{ f.path }}:{{ f.lines[0] }}-{{ f.lines[1] }})</a>{% endfor %}</dd>
@@ -198,7 +193,7 @@ Relative to each post's trailing 28-day baseline: {{ reach.vs_baseline.share_abo
 <td>{% if e.required_n_per_arm %}{{ e.required_n_per_arm }} posts/arm{% if e.underpowered_in_30_days %}<br><b style="color:var(--bad)">underpowered in 30 days (~{{ e.weeks_needed_at_current_rate }} wks)</b> — read as directional{% endif %}{% else %}n/a{% endif %}</td></tr>{% endfor %}</table>
 
 <h2>12. The fourteen questions</h2>
-{% for q in answers %}<div class="qa"><b>{{ loop.index }}. {{ q.q }}</b>{{ q.a }} <span class="badge b-{{ q.class }}">{{ q.class|replace('_',' ') }}</span></div>{% endfor %}
+{% for q in answers %}<div class="qa"><b>{{ loop.index }}. {{ q.q }}</b>{{ q.a }}</div>{% endfor %}
 
 <h2>Appendix — common algorithm claims checked against the repository</h2>
 <table><tr><th>Claim</th><th>Verdict</th><th>Explanation</th></tr>

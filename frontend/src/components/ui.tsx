@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import type { EvidenceClass } from "../api";
 
 export const fmt = {
   n: (v: number | null | undefined) => (v == null || Number.isNaN(v) ? "–" : Math.round(v).toLocaleString("en-US")),
@@ -8,28 +7,6 @@ export const fmt = {
   pct: (v: number | null | undefined, d = 0) => (v == null || Number.isNaN(v) ? "–" : `${(v * 100).toFixed(d)}%`),
   label: (s: string | null | undefined) => (s ?? "").replace(/_/g, " "),
 };
-
-const CLASS_STYLE: Record<string, string> = {
-  repo_verified: "border-blue-500 text-blue-700 dark:text-blue-300",
-  account_observed: "border-emerald-600 text-emerald-700 dark:text-emerald-300",
-  statistical_association: "border-violet-500 text-violet-700 dark:text-violet-300",
-  hypothesis: "border-amber-500 text-amber-700 dark:text-amber-300",
-  unsupported: "border-rose-500 text-rose-700 dark:text-rose-300",
-  insufficient: "border-rose-500 text-rose-700 dark:text-rose-300",
-};
-
-export const CLASS_PLAIN: Record<string, string> = {
-  repo_verified: "Proven in X's published code",
-  account_observed: "Seen in your data",
-  statistical_association: "Pattern in your data (not proof of cause)",
-  hypothesis: "Idea to test",
-  unsupported: "Not supported",
-  insufficient: "Not enough data",
-};
-
-export function ClassBadge({ c }: { c: EvidenceClass | string }) {
-  return <span title={`Evidence class: ${fmt.label(c)}`} className={`chip ${CLASS_STYLE[c] ?? "border-slate-400"}`}>{CLASS_PLAIN[c] ?? fmt.label(c)}</span>;
-}
 
 export function Panel({ title, right, children, className = "" }: {
   title: ReactNode; right?: ReactNode; children: ReactNode; className?: string;
