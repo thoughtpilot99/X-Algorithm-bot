@@ -58,11 +58,39 @@ backend/src/xaudit/
   recommend/    Module 6  root-cause ranking, stop/continue/start, rewrites, 30-day plan with power analysis
   reports/      Module 7  Reports A/B/C (Jinja2 -> HTML -> PDF via Chromium), CSV, algorithm doc
   benchmark/              peer selection and size-normalised comparison
+  monitor/      Module 8  daily runner, metric time series, control-limit alerts, experiment tracking
+  benchmark/              peer selection and size-normalised comparison
   api/                    FastAPI (read-only) serving the dashboard
 frontend/                 React + Vite + Tailwind + Recharts dashboard
+.github/workflows/monitor.yml   daily monitoring in GitHub Actions
 ```
 
-Module 8 (continuous monitoring) is Phase 2. Collectors already write timestamped metric observations, so re-running `ingest --live` on a schedule builds the time series it needs.
+## Monitoring (Module 8)
+
+`xaudit monitor` runs once a day, in GitHub Actions. Each run does the following.
+
+**Collection**
+- `xaudit doctor` first checks the console API contract (health, auth, record shape, filters). If anything fails, the run stops instead of quietly collecting nothing.
+- It then collects the last 14 days of posts and replies, a follower snapshot, new replies that mention each account, and thread context for new conversational comments (up to 40 per account per day). Peers are refreshed on Mondays.
+- Every collection appends a new metric observation rather than overwriting. Posts therefore build 24h, 72h and 7-day view curves, and followers build a daily series.
+
+**Analysis and alerts**
+- The full audit is re-run on the updated data.
+- Alerts use robust control limits: the trailing 8-week median of weekly median log views, ± 3 robust SD. They fire per account and per format, and only after 6 complete weeks of history.
+- Other alerts cover follower-change outliers, failed or partial collection, changed published parameters in `xai-org/x-algorithm`, and citations that no longer match the repository.
+
+**Experiments and reports**
+- Experiments are registered in `backend/src/xaudit/config/experiments.yaml`. Setting a `start` date begins tracking; each is judged against its decision rule and is never called before its minimum sample is reached.
+- A weekly report is written to `reports/weekly/` on Mondays. A monthly growth audit (Reports A/B/C plus month-over-month changes) is written to `reports/monthly/YYYY-MM/` on the 1st.
+
+### Turning it on
+1. **Add the repository secret.** Under Settings → Secrets and variables → Actions, add `XP_API_KEY`. `ANTHROPIC_API_KEY` is optional; it labels new posts with Claude, and heuristics are used otherwise. Never commit keys.
+2. **Merge to the default branch.** GitHub only runs scheduled workflows from the default branch.
+3. **Start it manually once.** Run the `monitor` workflow with *Run workflow* (mode `weekly`).
+   - The first run has no saved state. It collects 180 days, imports the reviewed labels in `backend/seed/`, and builds the database.
+   - Later runs restore the database from the previous run's `xaudit-state` artifact. Keep at least one run every 90 days so it does not expire.
+
+Locally: `uv run xaudit monitor --dry-run` re-analyses stored data without collecting.
 
 ## Quick start
 
@@ -77,12 +105,14 @@ uv run xaudit import-labels         # optional: reviewed labels from data/labels
 uv run xaudit run                   # analyze -> diagnose -> report (HTML, PDF, CSV)
 uv run xaudit algo-docs             # regenerate docs/algorithm-research.md
 uv run xaudit verify-citations      # re-check every repo citation
+uv run xaudit doctor                # check the console API contract (needs XP_API_KEY)
+uv run xaudit monitor --dry-run     # alerts, experiments, weekly report from stored data
 
 cd ../frontend && npm install && npm run build
 cd ../backend && uv run xaudit serve   # http://127.0.0.1:8000
 ```
 
-Tests: `cd backend && uv run pytest`. They cover the parameter parser, normaliser, features, robust statistics, the evidence guard (including negative cases), the registry schema and citations, and an end-to-end synthetic run through the API.
+Tests: `cd backend && uv run pytest`. They cover the parameter parser, normaliser, features, robust statistics, the evidence guard (including negative cases), the registry schema and citations, an end-to-end synthetic run through the API, control-limit alerts, experiment evaluation, and the doctor and console client against a mocked API.
 
 ## Data sources
 

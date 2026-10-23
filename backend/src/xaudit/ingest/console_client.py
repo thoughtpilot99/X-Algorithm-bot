@@ -23,7 +23,9 @@ USER_AGENT = "x-algorithm-bot/0.1 (+https://github.com/thoughtpilot99/x-algorith
 
 
 class ConsoleError(RuntimeError):
-    pass
+    def __init__(self, msg: str, status: int | None = None) -> None:
+        super().__init__(msg)
+        self.status = status
 
 
 @dataclass
@@ -37,12 +39,13 @@ class JobResult:
 
 class ConsoleClient:
     def __init__(self, base: str | None = None, key: str | None = None, *,
-                 poll_every: float = 5.0, max_retries: int = 4) -> None:
+                 poll_every: float = 5.0, max_retries: int = 4,
+                 transport: httpx.BaseTransport | None = None) -> None:
         self.base = (base or os.environ.get("XP_BASE") or DEFAULT_BASE).rstrip("/")
         self.key = key or os.environ.get("XP_API_KEY", "")
         self.poll_every = poll_every
         self.max_retries = max_retries
-        self._http = httpx.Client(timeout=60, headers={"User-Agent": USER_AGENT})
+        self._http = httpx.Client(timeout=60, headers={"User-Agent": USER_AGENT}, transport=transport)
 
     def available(self) -> bool:
         return bool(self.key)
@@ -61,17 +64,29 @@ class ConsoleClient:
             else:
                 if r.status_code == 429 or r.status_code >= 500:
                     if attempt == self.max_retries:
-                        raise ConsoleError(f"{method} {path} -> HTTP {r.status_code}: {r.text[:300]}")
+                        raise ConsoleError(f"{method} {path} -> HTTP {r.status_code}: {r.text[:300]}",
+                                           r.status_code)
                     retry_after = r.headers.get("Retry-After")
                     time.sleep(float(retry_after) if retry_after else delay)
                     delay *= 2
                     continue
                 if r.status_code >= 400:
-                    raise ConsoleError(f"{method} {path} -> HTTP {r.status_code}: {r.text[:300]}")
+                    raise ConsoleError(f"{method} {path} -> HTTP {r.status_code}: {r.text[:300]}", r.status_code)
                 return r.json() if r.content else {}
             time.sleep(delay)
             delay *= 2
         raise ConsoleError(f"{method} {path}: retries exhausted")
+
+    def health(self) -> dict:
+        """Unauthenticated liveness check."""
+        r = self._http.get(f"{self.base}/health")
+        r.raise_for_status()
+        return r.json() if r.content else {}
+
+    def page(self, kind: str = "tweets", **params) -> dict:  # noqa: ANN003
+        """One raw page of the dataset store, with its ``page`` metadata (used by the doctor)."""
+        out = self._request("GET", f"/datasets/{kind}", params=params)
+        return out if isinstance(out, dict) else {"items": out, "page": None}
 
     def submit(self, actor: str, payload: dict) -> int:
         job = self._request("POST", "/jobs", json={"actor": actor, "input": payload})
@@ -112,6 +127,37 @@ class ConsoleClient:
             if not fresh or nxt is None:
                 return out
             offset = nxt
+
+    # Where a job's own items can be read. The MCP tool exposes "get_job_results(job_id, kind)";
+    # its REST path is not documented in content-agent, so the known shapes are tried in order
+    # and the one that answered is remembered for the rest of the run.
+    RESULT_PATHS = ("/jobs/{id}/results", "/jobs/{id}/items", "/jobs/{id}/{kind}")
+    _result_path: str | None = None
+
+    def job_items(self, job_id: int, kind: str = "tweets", limit: int = 100) -> list[dict]:
+        paths = [self._result_path] if self._result_path else list(self.RESULT_PATHS)
+        last: Exception | None = None
+        for tmpl in paths:
+            path = tmpl.format(id=job_id, kind=kind)
+            out: list[dict] = []
+            offset = 0
+            try:
+                while True:
+                    page = self._request("GET", path, params={"kind": kind, "limit": limit, "offset": offset})
+                    items = page if isinstance(page, list) else page.get("items", [])
+                    out.extend(items)
+                    meta = page.get("page") if isinstance(page, dict) else None
+                    if not items or not meta or not meta.get("truncated"):
+                        break
+                    offset = meta.get("next_offset", offset + len(items))
+            except ConsoleError as e:
+                if e.status == 404:
+                    last = e
+                    continue
+                raise
+            self._result_path = tmpl
+            return out
+        raise ConsoleError(f"no job-results endpoint answered for job {job_id}: {last}", 404)
 
     def run(self, actor: str, payload: dict, *, timeout: float = 600) -> JobResult:
         """Submit a job and wait. Items are read separately via :meth:`dataset`."""

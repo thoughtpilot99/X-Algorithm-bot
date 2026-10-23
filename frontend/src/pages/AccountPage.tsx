@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { NavLink, useParams } from "react-router-dom";
 import {
   CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis,
@@ -111,7 +111,7 @@ export default function AccountPage() {
         {section === "blockers" && <Blockers handle={handle} open={setDrawer} />}
         {section === "benchmarks" && <Benchmarks handle={handle} />}
         {section === "experiments" && <Experiments handle={handle} />}
-        {section === "results" && <Results />}
+        {section === "results" && <Results handle={handle} />}
         {section === "data" && <DataSection completeness={o.completeness} />}
       </div>
       <EvidenceDrawer d={drawer} onClose={() => setDrawer(null)} />
@@ -174,6 +174,27 @@ function FilterBar({ filters, setFilters, topics, count, handle }: {
   );
 }
 
+function AlertsPanel({ handle }: { handle: string }) {
+  const q = useQuery({ queryKey: ["alerts", handle], queryFn: () => api.alerts(handle) });
+  const active = (q.data ?? []).filter((a) => a.status === "active");
+  return (
+    <Panel title="Monitoring alerts" right={<span className="text-xs muted">control limits: trailing 8-week median ± 3 robust SD</span>}>
+      {active.length === 0 ? (
+        <p className="text-xs muted">No active alerts. Limits need at least 6 complete weeks of history per series; collection or repository changes also appear here.</p>
+      ) : (
+        <ul className="space-y-2 text-sm">
+          {active.map((a) => (
+            <li key={a.key} className="rounded-lg border border-amber-300 p-2 dark:border-amber-700">
+              <div className="font-medium">{a.title} <span className="chip border-amber-500 text-amber-700">{a.severity}</span> <ClassBadge c={a.evidence_class} /></div>
+              <p className="text-xs muted">{a.detail} · first seen {a.first_seen?.slice(0, 10)}</p>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Panel>
+  );
+}
+
 function Overview({ o, handle, open }: { o: any; handle: string; open: (d: Diagnostic) => void }) {
   const answers = useQuery({ queryKey: ["answers", handle], queryFn: () => api.answers(handle) });
   const a = o.reach.segments["authored (original + quote)"] ?? {};
@@ -187,6 +208,7 @@ function Overview({ o, handle, open }: { o: any; handle: string; open: (d: Diagn
         <Stat k="Posts above 2x baseline" v={fmt.pct(o.reach.vs_baseline?.share_above_2x)} n={`below 0.5x: ${fmt.pct(o.reach.vs_baseline?.share_below_half)}`} />
         <Stat k="Median views / comment" v={fmt.n(c.views?.median)} n={`n=${c.n} conversational`} />
       </div>
+      <AlertsPanel handle={handle} />
       <Panel title="Top 5 potential barriers to organic growth" right={<span className="text-xs muted">click for evidence</span>}>
         <ol className="space-y-2">
           {o.root_causes.map((r: Diagnostic) => (
@@ -254,6 +276,30 @@ function weekly(posts: Post[]) {
     });
 }
 
+function FollowerTrend({ handle }: { handle: string }) {
+  const q = useQuery({ queryKey: ["followers", handle], queryFn: () => api.followers(handle) });
+  const pts = (q.data ?? []).map((p) => ({ t: Date.parse(p.day), followers: p.followers }));
+  return (
+    <Panel title="Followers over time" right={<ClassBadge c="account_observed" />}>
+      {pts.length < 2 ? (
+        <p className="text-xs muted">{pts.length} snapshot so far ({fmt.n(pts[0]?.followers)} followers). Daily monitoring builds this series; historical follower growth is not available.</p>
+      ) : (
+        <div className="h-56">
+          <ResponsiveContainer>
+            <LineChart data={pts}>
+              <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+              <XAxis dataKey="t" type="number" scale="time" domain={["dataMin", "dataMax"]} tickFormatter={(t) => new Date(t).toISOString().slice(0, 10)} tick={{ fontSize: 10 }} />
+              <YAxis domain={["auto", "auto"]} tick={{ fontSize: 10 }} />
+              <Tooltip labelFormatter={(t) => new Date(t as number).toISOString().slice(0, 10)} formatter={(v: any) => fmt.n(v)} />
+              <Line type="linear" dataKey="followers" stroke="#0f766e" dot={false} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+    </Panel>
+  );
+}
+
 function Trends({ handle, posts }: { handle: string; posts: Post[] }) {
   const eng = useQuery({ queryKey: ["engagement", handle], queryFn: () => api.artifact(handle, "engagement") });
   const w = useMemo(() => weekly(posts), [posts]);
@@ -279,6 +325,7 @@ function Trends({ handle, posts }: { handle: string; posts: Post[] }) {
           </ResponsiveContainer>
         </div>
       </Panel>
+      <FollowerTrend handle={handle} />
       <Panel title="Every post: views over time (log scale)">
         <div className="h-72">
           <ResponsiveContainer>
@@ -315,8 +362,24 @@ function Trends({ handle, posts }: { handle: string; posts: Post[] }) {
   );
 }
 
+function Curve({ id }: { id: string }) {
+  const q = useQuery({ queryKey: ["curve", id], queryFn: () => api.curve(id) });
+  if (!q.data) return <span className="muted">loading…</span>;
+  return (
+    <span className="muted">
+      {q.data.map((o, i) => (
+        <span key={i} className="mr-3 tabular-nums">
+          {o.import_time ? "imported" : `${fmt.r(o.age_hours, 0)}h`}: {fmt.n(o.views)} views
+        </span>
+      ))}
+      {q.data.length < 2 && " · one observation so far (monitoring adds 24h/72h/7d points)"}
+    </span>
+  );
+}
+
 function PostTable({ posts, cols }: { posts: Post[]; cols: ("vs_baseline" | "topic" | "category" | "parent")[] }) {
   const [sort, setSort] = useState<"views" | "vs_baseline" | "created_at">("created_at");
+  const [openId, setOpenId] = useState<string | null>(null);
   const rows = [...posts].sort((a, b) =>
     sort === "created_at" ? b.created_at.localeCompare(a.created_at) : ((b as any)[sort] ?? -1) - ((a as any)[sort] ?? -1),
   ).slice(0, 300);
@@ -340,17 +403,26 @@ function PostTable({ posts, cols }: { posts: Post[]; cols: ("vs_baseline" | "top
         </thead>
         <tbody>
           {rows.map((p) => (
-            <tr key={p.tweet_id} className={p.mature ? "" : "opacity-60"}>
+            <Fragment key={p.tweet_id}>
+            <tr className={p.mature ? "" : "opacity-60"}>
               <td className="whitespace-nowrap">{p.created_at.slice(0, 10)}</td>
               <td>{p.post_type}<div className="muted">{fmt.label(p.format)}</div></td>
               {cols.includes("parent") && <td>@{p.parent_author}</td>}
               <td className="max-w-md"><a className="hover:underline" href={p.url} target="_blank" rel="noreferrer">{p.text.slice(0, 180)}</a></td>
               {cols.includes("topic") && <td>{p.topic}</td>}
               {cols.includes("category") && <td>{fmt.label(p.category)}</td>}
-              <td className="num">{fmt.n(p.views)}</td>
+              <td className="num">
+                <button className="underline decoration-dotted" title="Show metric observations over time" onClick={() => setOpenId(openId === p.tweet_id ? null : p.tweet_id)}>
+                  {fmt.n(p.views)}
+                </button>
+              </td>
               {cols.includes("vs_baseline") && <td className="num">{fmt.x(p.vs_baseline)}</td>}
               <td className="num">{fmt.n(p.likes)}</td><td className="num">{fmt.n(p.replies)}</td><td className="num">{fmt.n(p.bookmarks)}</td>
             </tr>
+            {openId === p.tweet_id && (
+              <tr><td colSpan={12} className="text-xs"><Curve id={p.tweet_id} /></td></tr>
+            )}
+            </Fragment>
           ))}
         </tbody>
       </table>
@@ -670,18 +742,42 @@ function Experiments({ handle }: { handle: string }) {
   );
 }
 
-function Results() {
+function Results({ handle }: { handle: string }) {
+  const q = useQuery({ queryKey: ["experiments", handle], queryFn: () => api.experiments(handle) });
+  if (!q.data) return <Loading what="experiment results" />;
   return (
-    <Panel title="Experiment results">
-      <p className="text-sm">No experiment has run yet. Results appear here once Phase 2 monitoring records post-level metric snapshots
-        and each experiment's arm assignment; every result will be judged against the decision rule set in the plan.</p>
+    <Panel title="Experiment results" right={<ClassBadge c="statistical_association" />}>
+      <table className="tbl">
+        <thead><tr><th>Experiment</th><th>Status</th><th>Window</th><th>Metric</th><th className="num">n (T / C)</th><th className="num">Median T / C</th><th className="num">Ratio</th><th className="num">90% CI</th><th>Decision rule</th></tr></thead>
+        <tbody>{q.data.map((e) => (
+          <tr key={e.id}>
+            <td>{e.title}</td>
+            <td><span className={`chip ${e.status?.startsWith("met") ? "border-emerald-500 text-emerald-700" : e.status === "not_met" ? "border-rose-500 text-rose-700" : "border-slate-400"}`}>{fmt.label(e.status)}</span></td>
+            <td className="whitespace-nowrap">{e.start || "–"} → {e.end || "open"}</td>
+            <td>{fmt.label(e.metric)}</td>
+            <td className="num">{e.n_treatment ?? "–"} / {e.n_control ?? "–"}</td>
+            <td className="num">{fmt.r(e.median_treatment)} / {fmt.r(e.median_control)}</td>
+            <td className="num">{fmt.x(e.ratio)}</td>
+            <td className="num">{e.lo != null ? `${fmt.r(e.lo)}–${fmt.r(e.hi)}` : "–"}</td>
+            <td className="text-xs muted">{e.decision_rule ?? e.note}</td>
+          </tr>
+        ))}</tbody>
+      </table>
+      <p className="mt-2 text-xs muted">Experiments are registered in backend/src/xaudit/config/experiments.yaml; setting a start date begins tracking. “Running” means the minimum sample has not been reached; results are never called early.</p>
     </Panel>
   );
 }
 
 function DataSection({ completeness }: { completeness: any }) {
+  const m = useQuery({ queryKey: ["monitor"], queryFn: api.monitor });
+  const last = m.data?.last_run;
   return (
     <>
+      <Panel title="Monitoring">
+        {last ? (
+          <p className="text-xs">Last monitoring run {last.date}{last.dry_run ? " (dry run, no collection)" : ""} · {last.alerts} alert records · experiments: {Object.entries(last.experiments ?? {}).map(([h, v]: any) => `${h} ${v.join(", ")}`).join(" | ")}</p>
+        ) : <p className="text-xs muted">No monitoring run yet. The daily GitHub Actions workflow runs `xaudit monitor`.</p>}
+      </Panel>
       <Panel title="Data completeness and confidence">
         <table className="tbl">
           <thead><tr><th>Data</th><th>Status</th><th>Detail</th></tr></thead>

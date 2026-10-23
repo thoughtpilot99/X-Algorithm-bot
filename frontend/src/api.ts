@@ -102,5 +102,10 @@ export const api = {
   claims: () => get<any[]>("/api/algo/claims"),
   params: (name?: string) => get<any>(`/api/algo/params${name ? `?name=${encodeURIComponent(name)}` : ""}`),
   search: (q: string) => get<any[]>(`/api/algo/search?q=${encodeURIComponent(q)}`),
+  alerts: (h: string) => get<any[]>(`/api/accounts/${h}/alerts`),
+  experiments: (h: string) => get<any[]>(`/api/accounts/${h}/experiments`),
+  followers: (h: string) => get<{ day: string; followers: number }[]>(`/api/accounts/${h}/timeseries/followers`),
+  curve: (id: string) => get<any[]>(`/api/posts/${id}/curve`),
+  monitor: () => get<any>("/api/monitor"),
   reports: () => get<{ name: string; url: string; bytes: number }[]>("/api/reports"),
 };

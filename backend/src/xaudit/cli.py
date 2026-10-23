@@ -36,6 +36,38 @@ def verify_citations() -> None:
 
 
 @app.command()
+def doctor(handle: str = "nifinet", as_json: bool = False) -> None:
+    """Check the console API contract (health, auth, record shape, filters). Exit 1 if collection would fail."""
+    from xaudit.db.session import session
+    from xaudit.ingest import doctor as dr
+    from xaudit.ingest.store import finish_run, log_run
+
+    rep = dr.run(handle=handle)
+    with session() as s:
+        run = log_run(s, source="console_live", actor="doctor", params=rep.as_dict())
+        finish_run(run, status="succeeded" if rep.ok else "failed", items=len(rep.checks),
+                   error=None if rep.ok else "; ".join(c.name for c in rep.checks if not c.ok))
+    if as_json:
+        _print(rep.as_dict())
+    else:
+        for c in rep.checks:
+            typer.echo(f"[{'ok' if c.ok else ('FAIL' if c.blocking else 'warn')}] {c.name}: {c.detail}")
+    raise typer.Exit(0 if rep.ok else 1)
+
+
+@app.command()
+def monitor(dry_run: bool = typer.Option(False, help="Skip collection; re-analyse stored data only"),
+            peers: bool | None = typer.Option(None, "--peers/--no-peers", help="Default: Mondays"),
+            weekly: bool | None = typer.Option(None, "--weekly/--no-weekly", help="Default: Mondays"),
+            monthly: bool | None = typer.Option(None, "--monthly/--no-monthly", help="Default: 1st of month"),
+            threads_cap: int = 40, pdf: bool = True) -> None:
+    """Daily monitoring: collect, re-analyse, alerts, experiments, weekly/monthly reports."""
+    from xaudit.monitor.snapshot import run as mrun
+
+    _print(mrun(dry_run=dry_run, peers=peers, weekly=weekly, monthly=monthly, threads_cap=threads_cap, pdf=pdf))
+
+
+@app.command()
 def ingest(from_seed: bool = typer.Option(True, "--from-seed/--live"), days: int | None = None) -> None:
     """Load data: from console JSON exports under data/raw/console (default) or live via XP_API_KEY."""
     if from_seed:
@@ -49,7 +81,7 @@ def ingest(from_seed: bool = typer.Option(True, "--from-seed/--live"), days: int
 
 
 @app.command("import-labels")
-def import_labels(folder: Path = Path("../data/labels/out"),
+def import_labels(folder: Path = typer.Option(Path("../data/labels/out"), help="Folder of content_*/reply_*.jsonl"),
                   method: str = "llm:claude-sonnet-session-review") -> None:
     """Import JSONL labels (content_*.jsonl / reply_*.jsonl) produced by a reviewer or LLM run."""
     from xaudit.analysis.classify import import_labels as imp

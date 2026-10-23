@@ -39,6 +39,15 @@ comment_score_weights:
   conversation: 0.15     # reply drew replies (public reply_count > 0)
   timing: 0.15           # reply posted while parent is fresh (when parent time is known)
 
+# Monitoring alerts: robust control limits on weekly median log views.
+alerts:
+  k: 3.0                 # band width in robust standard deviations (1.4826 * MAD)
+  window_weeks: 8        # trailing weeks forming the band
+  min_history_weeks: 6   # no alert until this many complete weeks exist
+  mad_floor_log: 0.15    # minimum band half-width unit on log scale (avoids alerts on unusually calm history)
+  abrupt_drop: 0.5       # cross-format drop vs prior 4 weeks that triggers an investigation alert
+  min_posts_per_week: 3
+
 llm:
   # Used for topic / hook / reply classification and rewrite drafting.
   # Every LLM output is cached and labelled; numbers in prose are validated.

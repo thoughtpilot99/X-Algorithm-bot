@@ -1,0 +1,186 @@
+[
+  {
+    "tweet_id": "2108972078485414197",
+    "observed_issue": "Reached 0.07x of the trailing baseline (181 views vs a 2670 median for the account's previous 28 days). It drew 0 like(s), 1 reply, 0 reposts and 0 bookmark(s) (5.5 engagements and 5.5 replies per 1k views).",
+    "can_conclude": "It underperformed this account's own baseline on views. Its engagement rate (5.5/1k) was below the median of the 12 posts in this rewrite set (12.5/1k); the input does not include the full-account engagement median. Quadrant label: 'neither'.",
+    "cannot_conclude": "Why it underperformed. Timing (posted Saturday 17:25 UTC, post 2 of 3 from this sample that day; other posts that day are not in the input), audience mix, competing posts and ranking internals are unobserved, and one post is not evidence of a pattern. With view counts this small, the engagement rate rests on very few actions.",
+    "rewrite": "The scariest competitor for a SaaS in 2026 is your own customer opening Claude Code on a Saturday.\n\nIf your price isn't tied to value, someone will vibe code the gap.\n\nCheck your pricing:\n1. Does it move when the customer's outcome moves?\n2. Could they rebuild it in a weekend?",
+    "editorial_changes": [
+      "Turned the quote post into a standalone post so it does not depend on the quoted tweet for context",
+      "Kept the original hook and both of Nicolas's claims word for word in substance",
+      "Added a two-question self-check so the reader leaves with a concrete step, matching the audit's finding that how-to posts do better on this account",
+      "Capitalised the opening for readability; no new numbers or claims added"
+    ],
+    "test": "Publish as a standalone post (not a quote post) as the first post of the day on a weekday between 12:00 and 17:00 UTC, with no other post within the prior few hours. After 7 days compare views/baseline and replies per 1k against the original (0.07x, 5.5 replies/1k), plus bookmarks per 1k. Text, format and timing all change at once, so a single rerun cannot attribute any difference to the copy alone; treat it as one data point.",
+    "drafted_by": "claude-sonnet (session reviewer)"
+  },
+  {
+    "tweet_id": "2074984375100285100",
+    "observed_issue": "Reached 0.07x of the trailing baseline (202 views vs a 2942 median for the account's previous 28 days). It drew 4 like(s), 0 replies, 0 reposts and 1 bookmark(s) (24.8 engagements and 0.0 replies per 1k views).",
+    "can_conclude": "It underperformed this account's own baseline on views. Its engagement rate (24.8/1k) was above the median of the 12 posts in this rewrite set (12.5/1k); the input does not include the full-account engagement median. Quadrant label: 'resonance without reach'.",
+    "cannot_conclude": "Why it underperformed. Timing (posted Wednesday 22:30 UTC), audience mix, competing posts and ranking internals are unobserved, and one post is not evidence of a pattern. With view counts this small, the engagement rate rests on very few actions.",
+    "rewrite": "Automating a sequence that never booked meetings by hand just sends the same thing to more people, faster.\n\nThe agent can't add judgment you don't have. It won't notice that your offer is weak, or that you're reaching out three months too late. It assumes you already got those calls right.\n\nSo here's the order I'd run it in:\n\n1. Send the sequence by hand first.\n2. Find the angle that gets replies.\n3. Find the timing that converts.\n4. Only then hand it to the agent.\n\nWhatever you hand the agent is what it scales. Hand it something that already works.",
+    "editorial_changes": [
+      "Replaced the opinion-only opener ('Most AI outbound is just bad outbound...') with the concrete consequence, since opinion-led openers underperform on this account",
+      "Converted the closing advice into four numbered steps so the post reads as a how-to (the format the audit found strongest here)",
+      "Kept every original fact and phrase that carries the argument (weak offer, three months too late, 'whatever you hand the agent is what it scales')",
+      "Shortened slightly and removed repetition; no numbers or results added"
+    ],
+    "test": "Publish as a long post as the first post of the day on a weekday between 12:00 and 17:00 UTC, with no other post within the prior few hours. After 7 days compare views/baseline and replies per 1k against the original (0.07x, 0.0 replies/1k), plus bookmarks per 1k. Text, format and timing all change at once, so a single rerun cannot attribute any difference to the copy alone; treat it as one data point.",
+    "drafted_by": "claude-sonnet (session reviewer)"
+  },
+  {
+    "tweet_id": "2074176554104742297",
+    "observed_issue": "Reached 0.08x of the trailing baseline (239 views vs a 2956.5 median for the account's previous 28 days). It drew 4 like(s), 0 replies, 0 reposts and 1 bookmark(s) (20.9 engagements and 0.0 replies per 1k views).",
+    "can_conclude": "It underperformed this account's own baseline on views. Its engagement rate (20.9/1k) was above the median of the 12 posts in this rewrite set (12.5/1k); the input does not include the full-account engagement median. Quadrant label: 'resonance without reach'.",
+    "cannot_conclude": "Why it underperformed. Timing (posted Monday 17:00 UTC), audience mix, competing posts and ranking internals are unobserved, and one post is not evidence of a pattern. With view counts this small, the engagement rate rests on very few actions.",
+    "rewrite": "A bought lead list makes you send 1,000 emails to reach the 20 people who happen to be ready. You burn the other 980 to get there.\n\nThe data is fine the day you buy it. It goes stale right after, and you keep working it like it's still live. A list is a name, a title, a company, and a timestamp from whenever someone scraped it. It tells you who a person was, and nothing about what's happening in their market this week.\n\nAnd this week is what matters. Someone who looked perfect six months ago might have just signed with your competitor. Someone who ghosted you last quarter might have raised a round on Tuesday and is buying everything in sight.\n\nHere's how to build from the motion instead of the list:\n\n1. Pick the moments that come right before a purchase. Someone opens a role they only open right before they buy. Someone drops the tool you replace. Someone closes a round.\n\n2. Watch for those moments. Demand never sits still, and companies start looking for a vendor well before they land on anyone's radar.\n\n3. Score the why-now on every account that moves.\n\n4. Pick the handful that matter and let the rest be. This is where most of the work is: restraint.\n\n5. Only then send an email, written off the real trigger.\n\nTL;DR: A bought lead list tells you who people were. The market tells you who is ready now. Build from the second one.",
+    "editorial_changes": [
+      "Moved the most concrete line (1,000 emails to reach 20, burning 980) from mid-body to the opening",
+      "Restructured the signal-based half into five numbered steps, turning an opinion essay into a how-to",
+      "Kept the original examples (role opened, tool dropped, round closed, signed with competitor, raised on Tuesday) and the TL;DR",
+      "Cut the 'most overrated asset' framing, an opinion-led opener of the type that underperforms on this account",
+      "Kept similar long-form length; no new numbers, clients or results"
+    ],
+    "test": "Publish as a long post as the first post of the day on a weekday between 12:00 and 17:00 UTC, with no other post within the prior few hours. After 7 days compare views/baseline and replies per 1k against the original (0.08x, 0.0 replies/1k), plus bookmarks per 1k. Text, format and timing all change at once, so a single rerun cannot attribute any difference to the copy alone; treat it as one data point.",
+    "drafted_by": "claude-sonnet (session reviewer)"
+  },
+  {
+    "tweet_id": "2108859340836790603",
+    "observed_issue": "Reached 0.12x of the trailing baseline (330 views vs a 2671.5 median for the account's previous 28 days). It drew 1 like(s), 1 reply, 0 reposts and 0 bookmark(s) (6.1 engagements and 3.0 replies per 1k views).",
+    "can_conclude": "It underperformed this account's own baseline on views. Its engagement rate (6.1/1k) was below the median of the 12 posts in this rewrite set (12.5/1k); the input does not include the full-account engagement median. Quadrant label: 'neither'.",
+    "cannot_conclude": "Why it underperformed. Timing (posted Saturday 09:57 UTC, post 1 of 3 from this sample that day; other posts that day are not in the input), audience mix, competing posts and ranking internals are unobserved, and one post is not evidence of a pattern. With view counts this small, the engagement rate rests on very few actions.",
+    "rewrite": "Tu passes combien de temps à économiser 99€/mois (3€/jour)?\n\nCe temps ne va ni à la vente ni au produit, alors que c'est ça qui fait le MRR.\n\nL'économie est plafonnée à 99€/mois. Le MRR, non.\n\nTon dernier abonnement sur lequel tu as perdu une heure, c'était lequel?",
+    "editorial_changes": [
+      "Kept the post in French, as in the original",
+      "Made it standalone instead of a quote post, so the trade-off is readable without the quoted tweet",
+      "Stated the implied answer (selling and building beat cutting a 99€ cost) instead of leaving a bare poll-style question; Nicolas should confirm this is the answer he meant",
+      "Ended on a specific, easy-to-answer question to invite replies, since replies per 1k are below peers; no generic 'what do you think' closer",
+      "Kept only the original numbers (99€/mois, 3€/jour)"
+    ],
+    "test": "Publish as a standalone post (not a quote post) as the first post of the day on a weekday between 12:00 and 17:00 UTC, with no other post within the prior few hours. After 7 days compare views/baseline and replies per 1k against the original (0.12x, 3.0 replies/1k), plus bookmarks per 1k. Text, format and timing all change at once, so a single rerun cannot attribute any difference to the copy alone; treat it as one data point.",
+    "drafted_by": "claude-sonnet (session reviewer)"
+  },
+  {
+    "tweet_id": "2109007886424895852",
+    "observed_issue": "Reached 0.14x of the trailing baseline (278 views vs a 2059 median for the account's previous 28 days). It drew 0 like(s), 1 reply, 0 reposts and 0 bookmark(s) (3.6 engagements and 3.6 replies per 1k views).",
+    "can_conclude": "It underperformed this account's own baseline on views. Its engagement rate (3.6/1k) was below the median of the 12 posts in this rewrite set (12.5/1k); the input does not include the full-account engagement median. Quadrant label: 'neither'.",
+    "cannot_conclude": "Why it underperformed. Timing (posted Saturday 19:47 UTC, post 3 of 3 from this sample that day; other posts that day are not in the input), audience mix, competing posts and ranking internals are unobserved, and one post is not evidence of a pattern. With view counts this small, the engagement rate rests on very few actions. The claim that agent visits are a readable signal is Nicolas's opinion, not something this data tests.",
+    "rewrite": "A buying signal most teams aren't reading yet: a buyer's agent comparing you to 4 competitors at 2am.\n\nWhoever learns to read agent visits first eats everyone's outbound lunch.\n\nWhere I'd start: check which of your pages get read by agents, and when.",
+    "editorial_changes": [
+      "Removed the 'isn't a human... it's their agent' construction, which the voice rules ban as an AI tell",
+      "Opened with the concrete scene (agent, 4 competitors, 2am) instead of the contrarian setup",
+      "Added one concrete first step so the post ends with an action, in line with the how-to finding",
+      "Standalone instead of a quote post; no new numbers or capability claims (it does not claim any tool detects agent visits)"
+    ],
+    "test": "Publish as a standalone post (not a quote post) as the first post of the day on a weekday between 12:00 and 17:00 UTC, with no other post within the prior few hours. After 7 days compare views/baseline and replies per 1k against the original (0.14x, 3.6 replies/1k), plus bookmarks per 1k. Text, format and timing all change at once, so a single rerun cannot attribute any difference to the copy alone; treat it as one data point.",
+    "drafted_by": "claude-sonnet (session reviewer)"
+  },
+  {
+    "tweet_id": "2069884019647590653",
+    "observed_issue": "Reached 0.14x of the trailing baseline (315 views vs a 2261 median for the account's previous 28 days). It drew 2 like(s), 3 replies, 0 reposts and 1 bookmark(s) (19.0 engagements and 9.5 replies per 1k views).",
+    "can_conclude": "It underperformed this account's own baseline on views. Its engagement rate (19.0/1k) was above the median of the 12 posts in this rewrite set (12.5/1k); the input does not include the full-account engagement median. Quadrant label: 'resonance without reach'.",
+    "cannot_conclude": "Why it underperformed. Timing (posted Wednesday 20:43 UTC), audience mix, competing posts and ranking internals are unobserved, and one post is not evidence of a pattern. With view counts this small, the engagement rate rests on very few actions. It was a thread; whether the 'check the next tweet' hand-off affected views of the first tweet is not observable from these fields.",
+    "rewrite": "Not every buying signal deserves a human. Here's a routing rule to decide who responds to each one.\n\nScore each account by readiness, then send it to one of four responders:\n\n1. Human, today. The pricing page hit repeatedly this week, a competitor or review-site comparison, or an inbound reply. High intent and time-sensitive. A person sends a short, specific note.\n\n2. Agent. A role opened that maps to a pain you solve, or a tech or integration change. Real but early. An agent runs a value-first touch, no pitch.\n\n3. Nurture. A single download or a newsletter open. Curiosity, without intent yet. It goes on an educational drip until something stronger shows up.\n\n4. Ignore. No fit, or every signal is stale. Suppress it so it stops eating attention.\n\nTwo rules keep it honest. When signals conflict, route to the higher tier and say why. And never act on a signal that isn't actually there.\n\nWithout a rule, a content download and a week of pricing-page visits land in the same queue, and the hot accounts go cold while someone writes a careful note to a tire-kicker.\n\nThe prompt to run this rubric is in the reply below.",
+    "editorial_changes": [
+      "Promised the routing rule in the opening so the reader knows a usable framework follows",
+      "Numbered the four tiers so the post scans as a step-by-step rubric",
+      "Moved the 'everything in one queue' problem after the rubric so the useful part comes first",
+      "Kept the original tiers, examples and the two honesty rules unchanged in substance",
+      "Kept the prompt as a reply but made the main post self-contained, so it reads fine even if the reply is not opened; the prompt text itself is not in the input and must come from the original thread"
+    ],
+    "test": "Publish as a long post as the first post of the day on a weekday between 12:00 and 17:00 UTC, with no other post within the prior few hours. After 7 days compare views/baseline and replies per 1k against the original (0.14x, 9.5 replies/1k), plus bookmarks per 1k. Text, format and timing all change at once, so a single rerun cannot attribute any difference to the copy alone; treat it as one data point.",
+    "drafted_by": "claude-sonnet (session reviewer)"
+  },
+  {
+    "tweet_id": "2051574229456306379",
+    "observed_issue": "Reached 0.14x of the trailing baseline (157 views vs a 1123 median for the account's previous 28 days). It drew 0 like(s), 0 replies, 0 reposts and 0 bookmark(s) (0.0 engagements and 0.0 replies per 1k views).",
+    "can_conclude": "It underperformed this account's own baseline on views and drew no engagement at all (0.0/1k), the lowest in this rewrite set. Quadrant label: 'neither'.",
+    "cannot_conclude": "Why it underperformed. Timing (posted Tuesday 08:06 UTC), audience mix, competing posts and ranking internals are unobserved, and one post is not evidence of a pattern. With view counts this small, the engagement rate rests on very few actions. The original relied on the quoted post for context; how much that limited reach is not observable here.",
+    "rewrite": "Prompt or .md file, the packaging is not the point.\n\nThe substance: uncover blind spots, guide the LLM to the best outcome.\n\nBefore formatting, write down what you want, what you're likely missing, and what a great answer looks like. Any AI will figure out the rest.",
+    "editorial_changes": [
+      "Made it standalone so the insight does not depend on the quoted @pmarca post (if kept as a quote post, fix the 'post if more' typo to 'post is more')",
+      "Led with the claim instead of the observation-style reaction, a format that underperforms on this account",
+      "Turned 'blind spots' and 'best outcomes' into a short, concrete pre-prompt checklist",
+      "No numbers, names or results added"
+    ],
+    "test": "Publish as a standalone post (not a quote post) as the first post of the day on a weekday between 12:00 and 17:00 UTC, with no other post within the prior few hours. After 7 days compare views/baseline and replies per 1k against the original (0.14x, 0.0 replies/1k), plus bookmarks per 1k. Text, format and timing all change at once, so a single rerun cannot attribute any difference to the copy alone; treat it as one data point.",
+    "drafted_by": "claude-sonnet (session reviewer)"
+  },
+  {
+    "tweet_id": "2088333249453949416",
+    "observed_issue": "Reached 0.15x of the trailing baseline (422 views vs a 2874.5 median for the account's previous 28 days). It drew 4 like(s), 1 reply, 0 reposts and 3 bookmark(s) (19.0 engagements and 2.4 replies per 1k views).",
+    "can_conclude": "It underperformed this account's own baseline on views. Its engagement rate (19.0/1k) was above the median of the 12 posts in this rewrite set (12.5/1k); the input does not include the full-account engagement median. Quadrant label: 'resonance without reach'.",
+    "cannot_conclude": "Why it underperformed. Timing (posted Friday 18:33 UTC), audience mix, competing posts and ranking internals are unobserved, and one post is not evidence of a pattern. With view counts this small, the engagement rate rests on very few actions.",
+    "rewrite": "How to find the signal pairs worth acting on, using your own closed deals:\n\n1. Take your last ten closed deals.\n2. Go back thirty days before the first real conversation at each account.\n3. Write down everything that was happening there.\n4. Mark the signals that showed up together.\n5. For each pair, ask: do these two answer different questions, or the same question louder?\n\nStep 5 is the one that matters. Two signals at the same account beat any single signal, but only when they are different kinds.\n\nSay someone at a target account starts engaging your competitor's posts. On its own, mild. Then a role opens on that team to own the exact problem you solve. Also mild. Together, one says they are shopping and the other says somebody is now accountable for fixing it. Two different questions, both answered in the same month.\n\nTwo social signals work differently. One person likes a post, someone else comments a week later. It feels like momentum, and it is the same fact twice. Most setups reward this kind, because social fires constantly and a pair is easy to find.\n\nKeep the pairs that answer different questions, and watch for those combinations going forward.",
+    "editorial_changes": [
+      "Opened with the method (the audit's best-performing format here) instead of an observation-style opener",
+      "Moved the closed-deals exercise from the end to the top and split it into five numbered steps",
+      "Kept the competitor-engagement + new-role example and the 'same fact twice' contrast as the explanation for step 5",
+      "Replaced the hedged ending ('maybe try watching out') with one direct instruction",
+      "Kept similar long-form length; only the original quantities (ten deals, thirty days, a week, same month) are used"
+    ],
+    "test": "Publish as a long post as the first post of the day on a weekday between 12:00 and 17:00 UTC, with no other post within the prior few hours. After 7 days compare views/baseline and replies per 1k against the original (0.15x, 2.4 replies/1k), plus bookmarks per 1k. Text, format and timing all change at once, so a single rerun cannot attribute any difference to the copy alone; treat it as one data point.",
+    "drafted_by": "claude-sonnet (session reviewer)"
+  },
+  {
+    "tweet_id": "2061915551371538799",
+    "observed_issue": "Reached 0.15x of the trailing baseline (193 views vs a 1302 median for the account's previous 28 days). It drew 2 like(s), 0 replies, 0 reposts and 2 bookmark(s) (20.7 engagements and 0.0 replies per 1k views).",
+    "can_conclude": "It underperformed this account's own baseline on views. Its engagement rate (20.7/1k) was above the median of the 12 posts in this rewrite set (12.5/1k); the input does not include the full-account engagement median. Quadrant label: 'resonance without reach'.",
+    "cannot_conclude": "Why it underperformed. Timing (posted Tuesday 20:59 UTC), audience mix, competing posts and ranking internals are unobserved, and one post is not evidence of a pattern. With view counts this small, the engagement rate rests on very few actions. This post was already a how-to with steps, so format alone does not explain the gap here.",
+    "rewrite": "Build your AI outbound stack in this order. If reply rates are flat, check whether you started at the wrong end.\n\n1. Signals first.\nPick four triggers and wire them in before you touch anything else. Options: reposted jobs, fundraising rounds, M&A filings, tenders and RFPs, competitor engagement. Each one marks a different buying moment.\n\n2. Scoring next.\nICP fit x signal recency x buying-stage weight. A job reposted in the last seven days at an ICP-fit account beats a job posting from six weeks ago at a non-ICP account. Decide who you act on this week, and who falls into next month.\n\n3. Message context last.\nPass the exact role being reposted, the exact funding amount, the exact tender description into whatever writes the first line. Generic \"fits your ICP\" filler tells the model nothing useful.\n\nEach layer feeds the next: the signal triggers scoring, scoring filters who matters this week, context shapes the message.\n\nRun this loop.",
+    "editorial_changes": [
+      "Opening now states the instruction first; the conditional 'if you're running... you're probably...' setup moved to a short second sentence",
+      "Put the action ('pick four and wire them in') at the start of step 1 instead of the end",
+      "Kept the three-step structure, the scoring formula and the seven-days vs six-weeks example unchanged in substance",
+      "Tightened the closing loop line; no new numbers or claims"
+    ],
+    "test": "Publish as a long post as the first post of the day on a weekday between 12:00 and 17:00 UTC, with no other post within the prior few hours. After 7 days compare views/baseline and replies per 1k against the original (0.15x, 0.0 replies/1k), plus bookmarks per 1k. Text, format and timing all change at once, so a single rerun cannot attribute any difference to the copy alone; treat it as one data point.",
+    "drafted_by": "claude-sonnet (session reviewer)"
+  },
+  {
+    "tweet_id": "2088667827515359722",
+    "observed_issue": "Reached 0.15x of the trailing baseline (443 views vs a 2873 median for the account's previous 28 days). It drew 0 like(s), 0 replies, 0 reposts and 0 bookmark(s) (0.0 engagements and 0.0 replies per 1k views).",
+    "can_conclude": "It underperformed this account's own baseline on views and drew no engagement at all (0.0/1k), the lowest in this rewrite set. Quadrant label: 'neither'.",
+    "cannot_conclude": "Why it underperformed. Timing (posted Saturday 16:43 UTC), audience mix, competing posts and ranking internals are unobserved, and one post is not evidence of a pattern. With view counts this small, the engagement rate rests on very few actions. With zero engagements, there is no signal at all about how readers received the content.",
+    "rewrite": "It doesn't matter where you start.\n\nWhat matters is that you keep showing up and shipping for the customers.\n\nWhat did you ship for a customer this week?",
+    "editorial_changes": [
+      "Standalone instead of a quote post, so it reads without the quoted tweet",
+      "Dropped the 'good reminder' preamble so the first line carries the idea",
+      "Added a specific question to give readers an easy reason to reply",
+      "Editor note: this stays an opinion-only short post, the format that underperforms here; it is stronger if Nicolas adds one real thing Sortlist shipped this week (not invented in this draft)"
+    ],
+    "test": "Publish as a standalone post (not a quote post) as the first post of the day on a weekday between 12:00 and 17:00 UTC, with no other post within the prior few hours. After 7 days compare views/baseline and replies per 1k against the original (0.15x, 0.0 replies/1k), plus bookmarks per 1k. Text, format and timing all change at once, so a single rerun cannot attribute any difference to the copy alone; treat it as one data point.",
+    "drafted_by": "claude-sonnet (session reviewer)"
+  },
+  {
+    "tweet_id": "2109672162353123682",
+    "observed_issue": "Reached 0.18x of the trailing baseline (209 views vs a 1133.5 median for the account's previous 28 days). It drew 3 like(s), 0 replies, 0 reposts and 1 bookmark(s) (19.1 engagements and 0.0 replies per 1k views).",
+    "can_conclude": "It underperformed this account's own baseline on views. Its engagement rate (19.1/1k) was above the median of the 12 posts in this rewrite set (12.5/1k); the input does not include the full-account engagement median. Quadrant label: 'resonance without reach'.",
+    "cannot_conclude": "Why it underperformed. Timing (posted Monday 15:46 UTC), audience mix, competing posts and ranking internals are unobserved, and one post is not evidence of a pattern. With view counts this small, the engagement rate rests on very few actions. The original does not state how many calls were made, so the 80% and 15% figures cannot be judged for reliability.",
+    "rewrite": "Just did a cold call session on the warm intent list.\n\n80% connection rate\n15% meeting booked 😳\n\nWhat I did:\n1. Called only accounts on the warm intent list\n2. Dialed twice every time\n\nThis is strong. Do you call intent accounts before or after the first email?",
+    "editorial_changes": [
+      "Kept both original results (80% connection, 15% meeting booked) and put them on their own lines up top",
+      "Turned the method that was buried in parentheses ('I dial twice every time') into explicit steps, so the post shows how, not just what",
+      "Ended with a specific question to invite replies, since replies per 1k are below peers",
+      "Standalone instead of a quote post; kept the single emoji; no sample size or other numbers added (the original gives none, so the rates should be read as one session)"
+    ],
+    "test": "Publish as a standalone post (not a quote post) as the first post of the day on a weekday between 12:00 and 17:00 UTC, with no other post within the prior few hours. After 7 days compare views/baseline and replies per 1k against the original (0.18x, 0.0 replies/1k), plus bookmarks per 1k. Text, format and timing all change at once, so a single rerun cannot attribute any difference to the copy alone; treat it as one data point.",
+    "drafted_by": "claude-sonnet (session reviewer)"
+  },
+  {
+    "tweet_id": "2109177244157387249",
+    "observed_issue": "Reached 0.19x of the trailing baseline (252 views vs a 1358.5 median for the account's previous 28 days). It drew 0 like(s), 0 replies, 0 reposts and 1 bookmark(s) (4.0 engagements and 0.0 replies per 1k views).",
+    "can_conclude": "It underperformed this account's own baseline on views. Its engagement rate (4.0/1k) was below the median of the 12 posts in this rewrite set (12.5/1k); the input does not include the full-account engagement median. Quadrant label: 'neither'.",
+    "cannot_conclude": "Why it underperformed. Timing (posted Sunday 07:00 UTC), audience mix, competing posts and ranking internals are unobserved, and one post is not evidence of a pattern. With view counts this small, the engagement rate rests on very few actions.",
+    "rewrite": "Been running a marketplace for 12 years. It's literally this.\n\nHumans pick the prettiest profile on page 1.\nAgents read all 400 case studies at 2am and pick the one that fits.\n\nKinda terrifying. Also fair.\n\nSelling on a marketplace? Write for the reader who reads everything.",
+    "editorial_changes": [
+      "Standalone instead of a quote post; first line keeps his unique vantage (12 years running a marketplace)",
+      "Kept the human-vs-agent contrast and his 'terrifying / fair' reaction",
+      "Added one concrete takeaway for agencies and vendors so the post ends with an action instead of an observation",
+      "Dropped 'ngl' and 'gonna' for readability; no new numbers or claims"
+    ],
+    "test": "Publish as a standalone post (not a quote post) as the first post of the day on a weekday between 12:00 and 17:00 UTC, with no other post within the prior few hours. After 7 days compare views/baseline and replies per 1k against the original (0.19x, 0.0 replies/1k), plus bookmarks per 1k. Text, format and timing all change at once, so a single rerun cannot attribute any difference to the copy alone; treat it as one data point.",
+    "drafted_by": "claude-sonnet (session reviewer)"
+  }
+]

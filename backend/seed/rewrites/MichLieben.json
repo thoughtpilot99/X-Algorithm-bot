@@ -1,0 +1,182 @@
+[
+  {
+    "tweet_id": "2112212835967349127",
+    "observed_issue": "118 views against a 3,855-view baseline (0.03x, the lowest in this set). The 59.3 engagements per 1k views come from only 7 interactions (3 likes, 1 reply, 2 reposts, 1 bookmark).",
+    "can_conclude": "This quote post reached about 3% of the account's recent median, and the few people who saw it interacted at a high rate. It sits in 'resonance without reach'.",
+    "cannot_conclude": "With 118 views, 7 interactions is too small a sample to trust the engagement rate. We can't tell whether the quote format, the length, the shout-out framing (promoting another creator) or timing caused the low reach. This is a single post, so it is not a pattern. Posting time, who was online, competing posts that day, how the post was distributed and ranking internals are unobserved, so the gap to baseline cannot be attributed to the copy, the format or the topic.",
+    "rewrite": "24 people on our team posted on LinkedIn using @PierreReddot's playbook. In 85 days, that helped us sign 27 new clients & $151K in new MRR.\n\nWe were clients of his agency first. It worked so well we took it in-house.\n\nWhat I took from having him on my YouTube:\n\n- Comparisons work. \"People love comparing stuff\" and it helps them pick what's right for them\n- Title as big as possible. People read the title, go top to bottom, and only read the caption if the graphic got them\n- Add a small note on the graphic for context, like \"most businesses start here\"\n- He guessed 60-70% of his posts start with a problem, agitate it, then give the fix\n\nHonestly the thing that made our team actually post was a quarterly competition with cash prizes (plus $500 for anyone who posted 20+ times in a quarter).\n\nHe's back on X teaching this. Which one would you try first?",
+    "editorial_changes": [
+      "Published as a standalone post so the result and the takeaways don't depend on the quoted tweet.",
+      "Cut from 7 takeaways to 4 plus the team-incentive point, cutting it from about 385 words to about 160 (the audit found long posts underperform this account's baseline).",
+      "Kept the personal hook (our team, our clients, my YouTube) and every original figure unchanged. Fact flag: the original says 85 days and $151K, while other ColdIQ material says 87 days and $153K. Verify before publishing.",
+      "Replaced the 'go give him a follow' close with a single question to invite replies, keeping the @PierreReddot credit in the first line."
+    ],
+    "test": "Publish as the first post of the day. After 48h compare views/baseline against the original's 0.03x, replies per 1k (original 8.5) and bookmarks per 1k (original 8.5). Treat the result as one data point.",
+    "drafted_by": "claude-sonnet (session reviewer)"
+  },
+  {
+    "tweet_id": "2105340823969878477",
+    "observed_issue": "281 views against a 4,046.5-view baseline (0.07x). Only 3 interactions (1 like, 1 reply, 1 bookmark), 10.7 per 1k views.",
+    "can_conclude": "The post reached about 7% of the recent median and drew low engagement from the people who saw it ('neither' quadrant).",
+    "cannot_conclude": "We can't tell whether the quote-of-own-article format, the dense stage-by-stage walkthrough, the lowercase style or the posting slot drove the result, or whether the linked article got clicks we don't observe. This is a single post, so it is not a pattern. Posting time, who was online, competing posts that day, how the post was distributed and ranking internals are unobserved, so the gap to baseline cannot be attributed to the copy, the format or the topic.",
+    "rewrite": "Our gtm funnel turns 40,000 visitors a month into 100+ meetings.\n\nThe step I'd copy first: identify the silent visitors, the ones who read and leave, land each one as a card in folk, and have claude code score it against your icp file.\n\nA top-band lead gets a rep the same day.",
+    "editorial_changes": [
+      "Turned the quote post into a standalone post that carries one insight instead of a 7-stage list (the audit found very dense lists underperform this account's baseline).",
+      "Picked the single most transferable step (scoring silent visitors against the icp file) and framed it as what Mich would copy first.",
+      "Kept the original numbers (40,000 visitors, 100+ meetings) and tool names, and kept his lowercase style.",
+      "Dropped the 'article below' close. If the article link matters, put it in a reply instead of the main post."
+    ],
+    "test": "Publish as the first post of the day, standalone, with the article link in the first reply. After 48h compare views/baseline against the original's 0.07x and engagements per 1k against 10.7. Also log article clicks from the reply if available.",
+    "drafted_by": "claude-sonnet (session reviewer)"
+  },
+  {
+    "tweet_id": "2092945463330951514",
+    "observed_issue": "455 views against a 6,093-view baseline (0.07x). Zero likes, replies and reposts. All 5 interactions were bookmarks (11.0 per 1k views).",
+    "can_conclude": "People who saw it saved it but didn't respond publicly. The text gives no detail on the method itself, which sits in the attachment.",
+    "cannot_conclude": "We can't see the attached media, so we can't judge its quality or whether people opened it. With 5 interactions on 455 views, the bookmark rate is a small sample. This is a single post, so it is not a pattern. Posting time, who was online, competing posts that day, how the post was distributed and ranking internals are unobserved, so the gap to baseline cannot be attributed to the copy, the format or the topic.",
+    "rewrite": "Here's how I'd copy a viral LinkedIn format for my own account, the right way.\n\nFull walkthrough attached.\n\nWhich format have you been wanting to copy?",
+    "editorial_changes": [
+      "Switched from a generic 'here's the right way' to a first-person how-to ('how I'd copy'), in line with the audit's finding that personal experience is associated with higher reach.",
+      "Re-attach the same media. The text says outright that the walkthrough is attached, so readers know there's something to open.",
+      "Added a reply prompt, since the original got 0 replies.",
+      "Didn't add any steps from the walkthrough. We can't see the media, so a human should add one concrete step from it before publishing rather than having it invented here."
+    ],
+    "test": "Publish as the first post of the day with the same media. After 48h compare views/baseline against the original's 0.07x and replies per 1k against 0. Keep an eye on whether the bookmark rate stays near 11.0 per 1k.",
+    "drafted_by": "claude-sonnet (session reviewer)"
+  },
+  {
+    "tweet_id": "2056368330098065643",
+    "observed_issue": "893 views against a 10,058-view baseline (0.09x). 16 bookmarks against 8 likes, 1 reply and 0 reposts (28.0 engagements per 1k).",
+    "can_conclude": "Saves outnumbered every other interaction, so readers treated it as reference material, but reach was under a tenth of the recent median ('resonance without reach').",
+    "cannot_conclude": "We can't tell whether the length (about 400 words), the credential opener, the two-part list structure or the timing held reach back. This is a single post, so it is not a pattern. Posting time, who was online, competing posts that day, how the post was distributed and ranking internals are unobserved, so the gap to baseline cannot be attributed to the copy, the format or the topic.",
+    "rewrite": "Now I spend more time cleaning my inbox than launching campaigns. 200+ pitches hit it this month and I reply to almost none.\n\nSo I went through the pile and pulled out the few I'd actually engage with. Four patterns:\n\n1. Real work, already done. Some people offered to rewrite our landing pages. We ran this play in ColdIQ's early days, giving away custom lead lists for free, and got back more replies than we knew what to do with.\n\n2. A specific internal referral ask. If you've figured out who owns it at ColdIQ, I'll happily route you to the right person.\n\n3. A free insight, not a \"free consultation.\" Jihad Iqbal put it best: the best free work is insights. A 5-minute technical audit, no strings attached.\n\n4. A notorious sender. A bit unfair, but I watched my own reply rates go up as I built my personal brand.\n\nWhat kills it for me: \"Can I pick your brain?\", copy-pasted templates, and \"Got 30 min for a quick sync?\" as the first ask.\n\nWhich of these has actually worked on you?",
+    "editorial_changes": [
+      "Opened on the personal inbox observation instead of the 10M+ / $7M ARR credential, which keeps it first-person and shortens the hook.",
+      "Cut the length from about 400 words to about 180 by trimming the pro tips and folding the 'what kills it' list into one line (the audit found long posts underperform this account's baseline).",
+      "Removed the hypothetical '23% drop-off' example so the post contains no illustrative stat that could read as a real client result.",
+      "Ended with a question to invite replies (the original got 1 reply on 893 views)."
+    ],
+    "test": "Publish as the first post of the day. After 48h compare views/baseline against the original's 0.09x, replies per 1k (original 1.1) and bookmarks per 1k (original 17.9).",
+    "drafted_by": "claude-sonnet (session reviewer)"
+  },
+  {
+    "tweet_id": "2090750457069335035",
+    "observed_issue": "779 views against a 7,117-view baseline (0.11x). 16 interactions (7 likes, 1 reply, 2 reposts, 6 bookmarks), 20.5 per 1k views.",
+    "can_conclude": "Engagement from viewers was decent for its reach ('resonance without reach'), but views were about a tenth of the recent median.",
+    "cannot_conclude": "We can't tell whether the 'Stop...' contrarian opener (an underperforming hook type for this account across the audit, not proven for this post), the attachment or the timing explains the gap. This is a single post, so it is not a pattern. Posting time, who was online, competing posts that day, how the post was distributed and ranking internals are unobserved, so the gap to baseline cannot be attributed to the copy, the format or the topic.",
+    "rewrite": "How I'd figure out what a good lead looks like before blasting emails to 10,000 of them:\n\nSend 50 by hand first. Open every profile, and note what the ones who reply have in common.\n\nThose shared data points become your filter. You can't guess them in advance.",
+    "editorial_changes": [
+      "Swapped the 'Stop blasting' contrarian opener for a first-person how-to opener. The audit found how-to posts outperform and contrarian openers underperform this account's baseline.",
+      "Kept the method and both numbers (10,000 and 50) unchanged.",
+      "Merged two lines so the steps read as one flow instead of stacked commands.",
+      "Re-attach the same media."
+    ],
+    "test": "Publish as the first post of the day with the same media. After 48h compare views/baseline against the original's 0.11x and engagements per 1k against 20.5. This isolates the opener change (contrarian vs how-to) as far as one post can.",
+    "drafted_by": "claude-sonnet (session reviewer)"
+  },
+  {
+    "tweet_id": "2049836332487508182",
+    "observed_issue": "1,452 views against a 12,681-view baseline (0.11x). 23 bookmarks against 16 likes, 1 reply and 0 reposts (27.5 per 1k views).",
+    "can_conclude": "Readers saved it at a high rate relative to other actions, but it reached about 11% of the recent median ('resonance without reach').",
+    "cannot_conclude": "We can't tell whether the 8-step dense list, the length, the result-number hook or the posting slot caused the low reach. This is a single post, so it is not a pattern. Posting time, who was online, competing posts that day, how the post was distributed and ranking internals are unobserved, so the gap to baseline cannot be attributed to the copy, the format or the topic.",
+    "rewrite": "We've done 20M+ impressions on LinkedIn (and added ~$5M in ARR along the way). Here's what it actually comes down to.\n\nWe picked our ideal buyer and wrote for them. A lot of \"viral\" content doesn't convert because it's written for the creator's competitors, not their buyers.\n\nWe locked 2-3 topics (AI agents, GTM tech) and a few recurring formats (tools carousel, schema infographic) and ran them every week. Content doesn't need to be new. It needs to be shown to people who haven't seen it.\n\nWe pick the goal before each post: bring new people in, get them interested in the offer, or drive action. A single post rarely does all 3.\n\nAnd we handed the playbook to the team. You can't post 2+ times a day from one account without losing reach, so more people posting means more total impressions.\n\nWhich part would you start with?",
+    "editorial_changes": [
+      "Cut the 8 numbered steps with nested '>' bullets down to 4 short paragraphs, keeping the steps that carry Mich's own experience (buyer focus, fixed topics and formats, TOF/MOF/BOF, team posting).",
+      "Rewrote in 'we' so it reads as what ColdIQ did, not a generic checklist (the audit associates personal experience with higher reach).",
+      "Dropped the tool mentions (Taplio, Scripe) and the visuals step to bring the length down from about 300 words to about 150.",
+      "Kept every original figure (20M+, ~$5M ARR, 2-3 topics, 2+ posts a day) and ended with a reply question."
+    ],
+    "test": "Publish as the first post of the day. After 48h compare views/baseline against the original's 0.11x, replies per 1k (original 0.7) and bookmarks per 1k (original 15.8).",
+    "drafted_by": "claude-sonnet (session reviewer)"
+  },
+  {
+    "tweet_id": "2091842977341878388",
+    "observed_issue": "831 views against a 6,376.5-view baseline (0.13x). 11 bookmarks against 8 likes, 1 reply and 1 repost (25.3 per 1k views).",
+    "can_conclude": "Bookmarks led the interactions, so it was saved as a how-to, but reach was about 13% of the recent median ('resonance without reach').",
+    "cannot_conclude": "The '100x more replies' claim was not tested, and we can't tell whether the hook, the attachment or the timing affected reach. This is a single post, so it is not a pattern. Posting time, who was online, competing posts that day, how the post was distributed and ranking internals are unobserved, so the gap to baseline cannot be attributed to the copy, the format or the topic.",
+    "rewrite": "How I'd grade a cold email before sending it:\n\nScore the timing, relevance, and ask separately. Fix the lowest score first. Then send a small batch and grade it again.\n\nGoing from an 8/10 to a 9/10 can mean up to 100x more replies.\n\nWhich of the three do you usually score lowest?",
+    "editorial_changes": [
+      "Led with a first-person how-to line and moved the '8/10 to 9/10' claim after the method, so the post opens on the process (how-to posts outperform for this account).",
+      "Kept the claim word for word, including its 'can mean up to' hedge, and added no new figures.",
+      "Added a question tied to the three scoring dimensions to invite replies (the original got 1 reply on 831 views).",
+      "Re-attach the same media."
+    ],
+    "test": "Publish as the first post of the day with the same media. After 48h compare views/baseline against the original's 0.13x, replies per 1k (original 1.2) and bookmarks per 1k (original 13.2).",
+    "drafted_by": "claude-sonnet (session reviewer)"
+  },
+  {
+    "tweet_id": "2094432685930565974",
+    "observed_issue": "750 views against a 5,688-view baseline (0.13x). 9 interactions (6 likes, 2 replies, 0 reposts, 1 bookmark), 12.0 per 1k views.",
+    "can_conclude": "This announcement reached about 13% of the recent median and got few saves (1 bookmark) compared with the account's how-to posts in this set.",
+    "cannot_conclude": "We can't tell whether announcement posts underperform in general from one post, or whether the attachment, the vague product description or timing played a role. This is a single post, so it is not a pattern. Posting time, who was online, competing posts that day, how the post was distributed and ranking internals are unobserved, so the gap to baseline cannot be attributed to the copy, the format or the topic.",
+    "rewrite": "Your outbound data already knows your best persona.\n\nWe're building the engine that tells you exactly that, and I'd love input while we build it: what's the first thing you'd want it to show you?",
+    "editorial_changes": [
+      "Kept the original claim and announcement word for word, with no product details, dates or results added.",
+      "Turned the announcement into an open request for input, since this post already drew 2 replies, the most of any short post in this set.",
+      "Moved the hook onto its own line so it reads as a standalone statement.",
+      "Re-attach the same media."
+    ],
+    "test": "Publish as the first post of the day with the same media. After 48h compare views/baseline against the original's 0.13x and replies per 1k against 2.7. Read the replies as qualitative product input.",
+    "drafted_by": "claude-sonnet (session reviewer)"
+  },
+  {
+    "tweet_id": "2090401778055745872",
+    "observed_issue": "1,160 views against a 7,117-view baseline (0.16x). 21 interactions (9 likes, 1 reply, 2 reposts, 9 bookmarks), 18.1 per 1k views.",
+    "can_conclude": "Viewers engaged and saved it at a moderate rate, but it reached about 16% of the recent median ('resonance without reach').",
+    "cannot_conclude": "The alternative play lives in the attachment, which we can't see, so we can't judge it. We also can't tell whether the 'Stop...' opener or timing contributed. This is a single post, so it is not a pattern. Posting time, who was online, competing posts that day, how the post was distributed and ranking internals are unobserved, so the gap to baseline cannot be attributed to the copy, the format or the topic.",
+    "rewrite": "Everyone who just raised gets 100 identical congrats emails that same week, and replies to none of them.\n\nHere's what you could do instead 👇\n\nHave you ever had a funding email actually land?",
+    "editorial_changes": [
+      "Dropped the 'Stop emailing' imperative and led with the observation behind it. The audit found contrarian openers underperform this account's baseline, and the mich-voice-checker flags 'Stop X' as off-voice.",
+      "Kept the original fact (100 identical congrats emails) and the attachment-led structure.",
+      "Added a reply question for people who run funding-trigger outbound.",
+      "Re-attach the same media."
+    ],
+    "test": "Publish as the first post of the day with the same media. After 48h compare views/baseline against the original's 0.16x and replies per 1k against 0.9.",
+    "drafted_by": "claude-sonnet (session reviewer)"
+  },
+  {
+    "tweet_id": "2089860572464472507",
+    "observed_issue": "1,191 views against a 7,185-view baseline (0.17x). 18 interactions (7 likes, 3 replies, 0 reposts, 8 bookmarks), 15.1 per 1k views. It was posted at 23:42 UTC.",
+    "can_conclude": "This one-liner drew the most replies in this set (3), but it reached about 17% of the recent median.",
+    "cannot_conclude": "We can't see the quoted tweet, so we don't know how much of the meaning or the reach depended on it. The late-night UTC posting time is observed, but its effect is not. This is a single post, so it is not a pattern. Posting time, who was online, competing posts that day, how the post was distributed and ranking internals are unobserved, so the gap to baseline cannot be attributed to the copy, the format or the topic.",
+    "rewrite": "no one in the history of money has read \"comfort is the enemy of growth\" and then booked a sales call.\n\nwhat's the last post that actually made you book one?",
+    "editorial_changes": [
+      "Made it standalone so the joke doesn't need the quoted tweet for context.",
+      "Kept the original line and lowercase style unchanged.",
+      "Added a follow-up question that turns the joke into a prompt about content that converts, building on the 3 replies it already got.",
+      "Didn't add any claim about what does convert for ColdIQ, since the original makes none."
+    ],
+    "test": "Publish standalone as the first post of the day, at a daytime UTC slot rather than near midnight. After 48h compare views/baseline against the original's 0.17x and replies per 1k against 2.5. Timing and format both change, so treat the result as directional only.",
+    "drafted_by": "claude-sonnet (session reviewer)"
+  },
+  {
+    "tweet_id": "2049254904007712799",
+    "observed_issue": "3,565 views against a 20,345.5-view baseline (0.18x). 0 replies, with 26 bookmarks, 14 likes and 1 repost (11.5 per 1k views).",
+    "can_conclude": "It got the most views in this set but still under a fifth of its own (high) baseline. Saves outnumbered likes and it got no replies.",
+    "cannot_conclude": "We can't tell how many people clicked through to the quoted article, which is where the 5-step process lives. The 22:30 UTC posting time is observed, but its effect is not. This is a single post, so it is not a pattern. Posting time, who was online, competing posts that day, how the post was distributed and ranking internals are unobserved, so the gap to baseline cannot be attributed to the copy, the format or the topic.",
+    "rewrite": "If you post on LinkedIn, your cheapest pipeline is sitting in the likes and comments.\n\nI wrote up the 5-step process I'd use to turn those people into meetings.\n\nIs anyone actually doing something with their post engagers right now?",
+    "editorial_changes": [
+      "Kept it as a quote of the article, since X Articles are this account's strongest format and the 5 steps live there.",
+      "Kept the original hook unchanged and made the second line first-person.",
+      "Added a direct question to invite replies (the original got 0 replies on 3,565 views).",
+      "Didn't summarise the 5 steps, because they aren't in the post text and shouldn't be invented."
+    ],
+    "test": "Publish as a quote of the same article, as the first post of the day at a daytime UTC slot. After 48h compare views/baseline against the original's 0.18x, replies per 1k against 0 and bookmarks per 1k against 7.3. Log article views if available.",
+    "drafted_by": "claude-sonnet (session reviewer)"
+  },
+  {
+    "tweet_id": "2054569878796005452",
+    "observed_issue": "2,340 views against a 13,239.5-view baseline (0.18x). 52 bookmarks (the most in this set) against 26 likes, 1 reply and 1 repost (34.2 per 1k views).",
+    "can_conclude": "Readers treated it as reference material: bookmarks were double the likes. Reach was still under a fifth of the recent median ('resonance without reach').",
+    "cannot_conclude": "We can't tell whether the length (about 430 words), the stack-heavy list format or the timing held reach back, or whether a shorter version would keep the save rate. This is a single post, so it is not a pattern. Posting time, who was online, competing posts that day, how the post was distributed and ranking internals are unobserved, so the gap to baseline cannot be attributed to the copy, the format or the topic.",
+    "rewrite": "People usually see our LinkedIn content and assume that's the engine behind ColdIQ. It's one of four layers that pull 55,000+ visits a month and support $7M ARR:\n\n1. Marketing. LinkedIn does the heaviest lifting (~15,000 visits/mo, 20+ teammates posting). Then SEO run by Yevhen, paid run by Ivan, cold outreach run by Kenny, and the newsletter and webinars from Monika and Harry.\n\n2. Lead capture. Midbound and Vector surface anonymous visitors, and everything routes through n8n to get scored by Clay, OpenAI and PredictLeads before a salesperson sees it.\n\n3. Sales. 2 to 3 Google Meet calls, $5K to $10K/month retainers. Case studies, VSL and free content do the qualifying before discovery.\n\n4. Delivery. n8n runs the kickoff, and GSuite, Supabase, Stripe and Slack are synced so admin happens without anyone in the loop. Our GTM engineers only touch the ICP matrix, campaign concepts and copy.\n\nWhich layer is the weakest in yours right now?",
+    "editorial_changes": [
+      "Cut it from about 430 words to about 155 by dropping most per-channel stats and tool lists while keeping the four-layer structure and the team members' names (the audit found 400+ word posts underperform this account's baseline).",
+      "Rewrote the 'Most people see... It's not.' opener, which is a banned contrast pattern in the ColdIQ SOP, as a plain first-person observation.",
+      "Replaced '(bookmark for later)' with a reply question. Bookmarks are already strong here and replies are the weak metric.",
+      "Fact flag: the original's channel figures (~15K + ~10K + ~6K + ~4K + ~11K) add up to about 46K, not 55,000+, and post 2105340823969878477 says 40,000 visitors a month. Confirm the current figure before publishing."
+    ],
+    "test": "Publish as the first post of the day. After 48h compare views/baseline against the original's 0.18x, bookmarks per 1k (original 22.2) and replies per 1k (original 0.4), to see whether the shorter version keeps the save rate.",
+    "drafted_by": "claude-sonnet (session reviewer)"
+  }
+]

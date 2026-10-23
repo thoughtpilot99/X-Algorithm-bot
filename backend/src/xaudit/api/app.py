@@ -132,6 +132,39 @@ def answers(handle: str) -> list[dict]:
     return final_answers(handle)
 
 
+@app.get("/api/accounts/{handle}/alerts")
+def account_alerts(handle: str) -> list[dict]:
+    _client(handle)
+    items = (load_artifact("alerts") or {}).get("items", [])
+    return [a for a in items if a["handle"] in (handle, "_global")]
+
+
+@app.get("/api/accounts/{handle}/experiments")
+def account_experiments(handle: str) -> list[dict]:
+    _client(handle)
+    return (load_artifact("experiment_results", handle) or {}).get("items", [])
+
+
+@app.get("/api/accounts/{handle}/timeseries/followers")
+def followers_ts(handle: str) -> list[dict]:
+    from xaudit.monitor.timeseries import follower_series
+
+    _client(handle)
+    return follower_series(handle)
+
+
+@app.get("/api/posts/{tweet_id}/curve")
+def post_curve(tweet_id: str) -> list[dict]:
+    from xaudit.monitor.timeseries import post_curve as curve
+
+    return curve(tweet_id)
+
+
+@app.get("/api/monitor")
+def monitor_status() -> dict:
+    return {"last_run": load_artifact("monitor_last_run"), "weekly": load_artifact("weekly_latest")}
+
+
 @app.get("/api/comparison")
 def comparison() -> dict:
     return _art("comparison")

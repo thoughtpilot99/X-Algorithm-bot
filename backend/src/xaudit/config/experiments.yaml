@@ -1,0 +1,58 @@
+# Experiment registry. An experiment is evaluated once `start` is set.
+#
+# arm_rule types:
+#   tweet_ids:          {treatment: [ids], control: [ids]}
+#   alternating_weeks:  {treatment_first: true}          weeks counted from `start`
+#   first_post_of_day:  {}                                treatment = 1st/2nd authored post of the day, control = 3rd+
+#   text_tag:           {tag: "#t1"}                      treatment = posts containing the tag (strip before publishing if needed)
+#   pre_post:           {control_start: date, control_end: date}   treatment = [start, end], control = given window
+# metric: vs_baseline | views | replies_per_1k | bookmarks_per_1k | comment_views
+# population: authored | conversational_comments
+# decision: treatment/control median ratio >= min_ratio with >= min_n_per_arm posts in each arm.
+
+experiments:
+  - id: spacing
+    title: Space authored posts (max 2/day, >= 6h apart)
+    handles: [nifinet, MichLieben]
+    start: null
+    end: null
+    population: authored
+    metric: vs_baseline
+    arm_rule: {type: pre_post, control_start: null, control_end: null}
+    decision: {min_ratio: 1.0, min_n_per_arm: 15}
+  - id: format
+    title: Article-anchored week vs mixed week
+    handles: [nifinet, MichLieben]
+    start: null
+    end: null
+    population: authored
+    metric: views
+    arm_rule: {type: alternating_weeks, treatment_first: true}
+    decision: {min_ratio: 1.3, min_n_per_arm: 8}
+  - id: hooks
+    title: Outcome-first hooks vs current openers
+    handles: [nifinet, MichLieben]
+    start: null
+    end: null
+    population: authored
+    metric: vs_baseline
+    arm_rule: {type: tweet_ids, treatment: [], control: []}
+    decision: {min_ratio: 1.3, min_n_per_arm: 8}
+  - id: prompts
+    title: Specific closing prompt + first-hour author replies
+    handles: [nifinet, MichLieben]
+    start: null
+    end: null
+    population: authored
+    metric: replies_per_1k
+    arm_rule: {type: tweet_ids, treatment: [], control: []}
+    decision: {min_ratio: 1.3, min_n_per_arm: 8}
+  - id: comments
+    title: Expert-addition comments on larger in-niche accounts
+    handles: [nifinet, MichLieben]
+    start: null
+    end: null
+    population: conversational_comments
+    metric: comment_views
+    arm_rule: {type: pre_post, control_start: null, control_end: null}
+    decision: {min_ratio: 2.0, min_n_per_arm: 20}

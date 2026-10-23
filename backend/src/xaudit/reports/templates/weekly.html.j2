@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Weekly X Report</title><style>{{ css }}</style></head>
+<body><main>
+<div class="meta">Weekly performance report · generated {{ generated }}</div>
+<h1>Week ending {{ today }}</h1>
+<div class="sub">Public data. Posts younger than 72 hours are still accruing views and are marked; judge them next week.</div>
+
+<h2>Alerts</h2>
+{% if alerts %}<table><tr><th>Account</th><th>Alert</th><th>Detail</th><th>First seen</th></tr>
+{% for a in alerts %}<tr><td>{{ a.handle }}</td><td><b>{{ a.title }}</b> <span class="badge b-{{ a.evidence_class }}">{{ a.severity }}</span></td><td>{{ a.detail }}</td><td>{{ a.first_seen[:10] }}</td></tr>{% endfor %}</table>
+{% else %}<p>No active alerts. Weekly medians are inside their control limits (or there is not yet enough history to set limits).</p>{% endif %}
+
+{% for h, s in accounts.items() %}
+<h2>{{ names[h] }} (@{{ h }})</h2>
+<div class="cards">
+  <div class="card"><div class="k">Authored posts</div><div class="v">{{ s.authored_n }}</div><div class="n">{{ s.immature_share|pct }} still &lt;72h old</div></div>
+  <div class="card"><div class="k">Median views</div><div class="v">{{ s.authored_median_views|num }}</div><div class="n">prior 4 weeks: {{ s.prior_4wk_weekly_median_views|num }}</div></div>
+  <div class="card"><div class="k">Median vs baseline</div><div class="v">{{ s.median_vs_baseline|r2 }}x</div><div class="n">mature posts only</div></div>
+  <div class="card"><div class="k">Conversational comments</div><div class="v">{{ s.conversational_comments }}</div><div class="n">median {{ s.comment_median_views|num }} views · {{ s.fulfilment_replies }} fulfilment</div></div>
+</div>
+<div class="cols"><div><h3>Top posts</h3><table><tr><th>Date</th><th>Post</th><th class="num">Views</th></tr>
+{% for p in s.top %}<tr><td>{{ p.created_at }}</td><td><a href="{{ p.url }}">{{ p.text }}</a></td><td class="num">{{ p.views|num }}</td></tr>{% endfor %}</table></div>
+<div><h3>Weakest mature posts</h3><table><tr><th>Date</th><th>Post</th><th class="num">vs baseline</th></tr>
+{% for p in s.bottom %}<tr><td>{{ p.created_at }}</td><td><a href="{{ p.url }}">{{ p.text }}</a></td><td class="num">{{ p.vs_baseline|r2 }}x</td></tr>{% endfor %}</table></div></div>
+<h3>Experiments</h3>
+<table><tr><th>Experiment</th><th>Status</th><th class="num">n (T / C)</th><th class="num">Ratio</th><th class="num">90% CI</th></tr>
+{% for e in experiments[h] %}<tr><td>{{ e.title }}</td><td>{{ e.status|replace('_',' ') }}</td><td class="num">{{ e.n_treatment or '–' }} / {{ e.n_control or '–' }}</td><td class="num">{{ e.ratio|r2 }}</td><td class="num">{{ e.lo|r2 }}–{{ e.hi|r2 }}</td></tr>{% endfor %}</table>
+{% endfor %}
+</main></body></html>

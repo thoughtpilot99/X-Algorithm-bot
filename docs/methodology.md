@@ -94,3 +94,33 @@ Only diagnostics the data supports, fully or in part, are ranked.
 | Replies and quotes by others mentioning the account | From the console store, since 2026-07-25 |
 | Likes and reposts by others | Not exposed |
 | Peers | Newest ≤ 100 original posts in 90 days, follower snapshot. Replies not collected |
+
+## Monitoring rules
+
+**Observations.** Every collection appends a `post_metric_obs` row stamped with its real scrape time. "Views at 72h" is interpolated only when a post's observations bracket that age. Import-time stamps from the seed export are excluded from these curves.
+
+**Reach alerts.** For each account and each format, plus all formats together, the system takes the weekly median of log views for mature posts.
+- The latest complete week, ending at least 10 days ago so its posts are mature, is compared with the previous 8 weeks.
+- The band is median ± 3 × 1.4826 × MAD, with a minimum half-width of 0.15 on the log scale.
+- At least 6 earlier weeks and 3 posts in the week are required.
+- An all-format drop of more than 50% against the previous 4 weeks adds an "investigate" alert. It lists format mix, collection coverage and platform changes as the first things to check, and is never treated as evidence of a visibility restriction.
+
+**Other alerts**
+- **Follower change:** the latest 7-day change against the previous 28 days of 7-day changes, using the same robust band. Requires at least 35 days of snapshots.
+- **Collection:** any failed, empty or partial run in the last 36 hours.
+- **Repository:** changes to weight, diversity, out-of-network or cold-start parameters, and citation anchors that moved.
+
+Alerts are deduplicated by key and keep `first_seen` / `last_seen`. Collection and citation alerts resolve automatically once they clear.
+
+**Experiments.** Arms are assigned by the rule in `experiments.yaml`: tweet ids, alternating weeks, first post of day, a text tag, or pre/post windows.
+
+The primary metric is compared as the ratio of treatment and control medians, with a 90% bootstrap confidence interval. Status values:
+
+| Status | Meaning |
+|---|---|
+| `not_started` | No start date set yet |
+| `running` | Minimum sample not reached, or reached but not yet decided |
+| `met` | Ratio ≥ rule and the CI excludes 1 |
+| `met (directional)` | Ratio ≥ rule after the end date, but the CI includes 1 |
+| `not_met` | Ended and the rule was not met |
+| `underpowered` | Ended without the minimum sample |
