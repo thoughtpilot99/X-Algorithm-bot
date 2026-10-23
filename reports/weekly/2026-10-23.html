@@ -38,32 +38,45 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:now
 a{color:var(--accent);text-decoration:none;word-break:break-word}
 .cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}
 svg text{font:10px sans-serif;fill:var(--muted)}
+.plain{border:1px solid var(--line);border-left:4px solid var(--line);border-radius:8px;padding:9px 12px;margin:8px 0;break-inside:avoid}
+.plain.good{border-left-color:var(--good)}.plain.bad{border-left-color:var(--bad)}h3.good{color:var(--good)}h3.bad{color:var(--bad)}
+.plain .ex{font-size:12px;margin-top:5px;padding-left:10px;border-left:2px solid var(--line)}
+h2.appendix{margin-top:56px}
+.diag.proofcard{break-inside:auto}
+.proof{margin-top:8px;padding:8px 10px;background:var(--soft);border-radius:8px;font-size:12px}
+.proof p{margin:4px 0}
+.ptable{font-size:11px;margin:6px 0}
+.ptable th,.ptable td{padding:4px 6px}
+.verdict{display:inline-block;font-size:11px;font-weight:600;padding:1px 8px;border-radius:999px;border:1px solid var(--line);margin-top:6px}
+.v-backed{border-color:var(--good);color:var(--good)}.v-partly{border-color:var(--warn);color:var(--warn)}.v-not_enough{color:var(--muted)}
 @media print{main{padding:0 6mm}h2{break-after:avoid}.diag,.qa,table{break-inside:avoid}a{color:var(--ink)}}
 @media (max-width:700px){.cards{grid-template-columns:1fr 1fr}.cols{grid-template-columns:1fr}main{padding:24px 16px}}
 </style></head>
 <body><main>
-<div class="meta">Weekly performance report · generated 2026-10-23 10:40 UTC</div>
+<div class="meta">Weekly performance report · generated 2026-10-23 12:43 UTC</div>
 <h1>Week ending 2026-10-23</h1>
 <div class="sub">Public data. Posts younger than 72 hours are still accruing views and are marked; judge them next week.</div>
 
 <h2>Alerts</h2>
-<p>No active alerts. Weekly medians are inside their control limits (or there is not yet enough history to set limits).</p>
+<table><tr><th>Account</th><th>Alert</th><th>Detail</th><th>First seen</th></tr>
+<tr><td>nifinet</td><td><b>Collection failed: user-tweets</b> <span class="badge b-account_observed">medium</span></td><td>RuntimeError: no candidate JS bundles found on any seed page -- the fetch was almost certainly blocked or redirected. seeds tried: [&#39;https://x.com/home&#39;, &#39;https://x.com/explore&#39;, &#39;https://x.com&#39;]</td><td>2026-10-23</td></tr><tr><td>MichLieben</td><td><b>Collection succeeded: tweet-detail:own-posts</b> <span class="badge b-account_observed">medium</span></td><td>partial: 1 failed</td><td>2026-10-23</td></tr><tr><td>danielfazio</td><td><b>Collection failed: user-tweets</b> <span class="badge b-account_observed">medium</span></td><td>XClientError: UserByScreenName: no account available after waiting 30s (tried none)</td><td>2026-10-23</td></tr><tr><td>cbwritescopy</td><td><b>Collection failed: user-tweets</b> <span class="badge b-account_observed">medium</span></td><td>XClientError: UserByScreenName: no account available after waiting 30s (tried none)</td><td>2026-10-23</td></tr><tr><td>_global</td><td><b>Collection succeeded: user-info</b> <span class="badge b-account_observed">medium</span></td><td>partial</td><td>2026-10-23</td></tr><tr><td>coldemailchris</td><td><b>Collection succeeded: user-tweets</b> <span class="badge b-account_observed">medium</span></td><td>partial</td><td>2026-10-23</td></tr></table>
+
 
 
 <h2>Nicolas Finet (@nifinet)</h2>
 <div class="cards">
-  <div class="card"><div class="k">Authored posts</div><div class="v">9</div><div class="n">33% still &lt;72h old</div></div>
-  <div class="card"><div class="k">Median views</div><div class="v">814</div><div class="n">prior 4 weeks: 790</div></div>
-  <div class="card"><div class="k">Median vs baseline</div><div class="v">0.45x</div><div class="n">mature posts only</div></div>
-  <div class="card"><div class="k">Conversational comments</div><div class="v">9</div><div class="n">median 39 views · 0 fulfilment</div></div>
+  <div class="card"><div class="k">Posts this week</div><div class="v">9</div><div class="n">33% still under 3 days old (views still growing)</div></div>
+  <div class="card"><div class="k">Typical views per post</div><div class="v">907</div><div class="n">previous 4 weeks: 790</div></div>
+  <div class="card"><div class="k">Compared with usual</div><div class="v">0.45x</div><div class="n">1.00x = the account's usual; posts 3+ days old</div></div>
+  <div class="card"><div class="k">Comments on others' posts</div><div class="v">9</div><div class="n">typically seen by 40 · plus 0 lead-magnet replies</div></div>
 </div>
 <div class="cols"><div><h3>Top posts</h3><table><tr><th>Date</th><th>Post</th><th class="num">Views</th></tr>
-<tr><td>2026-10-20</td><td><a href="https://x.com/nifinet/status/2112602916263772353">https://t.co/O0NZoZ3gZd</a></td><td class="num">6,757</td></tr><tr><td>2026-10-18</td><td><a href="https://x.com/nifinet/status/2111926255671206325">Introducing an open-source bot on Meta&#39;s Muse Wonder that finds people asking on LinkedIn for what you sell... and has the email written before you&#39;ve even seen their post.
+<tr><td>2026-10-20</td><td><a href="https://x.com/nifinet/status/2112602916263772353">https://t.co/O0NZoZ3gZd</a></td><td class="num">6,767</td></tr><tr><td>2026-10-18</td><td><a href="https://x.com/nifinet/status/2111926255671206325">Introducing an open-source bot on Meta&#39;s Muse Wonder that finds people asking on LinkedIn for what you sell... and has the email written before you&#39;ve even seen their post.
 
-Here&#39;s what it does for yo</a></td><td class="num">2,260</td></tr><tr><td>2026-10-19</td><td><a href="https://x.com/nifinet/status/2112256153342324918">You can book more meetings from outbound all while contacting fewer people.
+Here&#39;s what it does for yo</a></td><td class="num">2,261</td></tr><tr><td>2026-10-19</td><td><a href="https://x.com/nifinet/status/2112256153342324918">You can book more meetings from outbound all while contacting fewer people.
 
-Earlier this year, we ran outbound on 142 leads that had all shown a buying signal. 12% of them replied, where cold usually</a></td><td class="num">2,109</td></tr></table></div>
-<div><h3>Weakest mature posts</h3><table><tr><th>Date</th><th>Post</th><th class="num">vs baseline</th></tr>
+Earlier this year, we ran outbound on 142 leads that had all shown a buying signal. 12% of them replied, where cold usually</a></td><td class="num">2,110</td></tr></table></div>
+<div><h3>Weakest posts (3+ days old)</h3><table><tr><th>Date</th><th>Post</th><th class="num">vs usual</th></tr>
 <tr><td>2026-10-16</td><td><a href="https://x.com/nifinet/status/2110979811657261438">Walking the talk!
 
 @elonmusk called it in 2019</a></td><td class="num">0.27x</td></tr><tr><td>2026-10-16</td><td><a href="https://x.com/nifinet/status/2110969673156379110">Can’t wait to avoid traffic jam while dropping the kids</a></td><td class="num">0.29x</td></tr><tr><td>2026-10-18</td><td><a href="https://x.com/nifinet/status/2111705226973495455">gm https://t.co/skNjsjUUat</a></td><td class="num">0.41x</td></tr></table></div></div>
@@ -73,10 +86,10 @@ Earlier this year, we ran outbound on 142 leads that had all shown a buying sign
 
 <h2>Michel Lieben (@MichLieben)</h2>
 <div class="cards">
-  <div class="card"><div class="k">Authored posts</div><div class="v">14</div><div class="n">50% still &lt;72h old</div></div>
-  <div class="card"><div class="k">Median views</div><div class="v">986</div><div class="n">prior 4 weeks: 3,888</div></div>
-  <div class="card"><div class="k">Median vs baseline</div><div class="v">0.27x</div><div class="n">mature posts only</div></div>
-  <div class="card"><div class="k">Conversational comments</div><div class="v">14</div><div class="n">median 34 views · 0 fulfilment</div></div>
+  <div class="card"><div class="k">Posts this week</div><div class="v">14</div><div class="n">50% still under 3 days old (views still growing)</div></div>
+  <div class="card"><div class="k">Typical views per post</div><div class="v">1,006</div><div class="n">previous 4 weeks: 3,888</div></div>
+  <div class="card"><div class="k">Compared with usual</div><div class="v">0.27x</div><div class="n">1.00x = the account's usual; posts 3+ days old</div></div>
+  <div class="card"><div class="k">Comments on others' posts</div><div class="v">14</div><div class="n">typically seen by 34 · plus 0 lead-magnet replies</div></div>
 </div>
 <div class="cols"><div><h3>Top posts</h3><table><tr><th>Date</th><th>Post</th><th class="num">Views</th></tr>
 <tr><td>2026-10-20</td><td><a href="https://x.com/MichLieben/status/2112574545047789980">Imagine accessing 700M+ contacts in Claude Code, via one API...
@@ -85,12 +98,12 @@ Earlier this year, we ran outbound on 142 leads that had all shown a buying sign
 
 As of today, you can. We&#39;re officially launching ∞ unlimited data inside ColdIQ.
 
-C</a></td><td class="num">4,649</td></tr><tr><td>2026-10-18</td><td><a href="https://x.com/MichLieben/status/2111888977271964143">Last year, I recorded a LinkedIn coaching session with Thibault (co-founder of For Digital Sakes). He was at ~3K followers.
+C</a></td><td class="num">4,657</td></tr><tr><td>2026-10-18</td><td><a href="https://x.com/MichLieben/status/2111888977271964143">Last year, I recorded a LinkedIn coaching session with Thibault (co-founder of For Digital Sakes). He was at ~3K followers.
 
 He&#39;s at 16K now (all his work haha!)
 
-So this time we worked on his outboun</a></td><td class="num">4,054</td></tr><tr><td>2026-10-19</td><td><a href="https://x.com/MichLieben/status/2112173612904149207">https://t.co/suqtsz6e2c</a></td><td class="num">3,882</td></tr></table></div>
-<div><h3>Weakest mature posts</h3><table><tr><th>Date</th><th>Post</th><th class="num">vs baseline</th></tr>
+So this time we worked on his outboun</a></td><td class="num">4,056</td></tr><tr><td>2026-10-19</td><td><a href="https://x.com/MichLieben/status/2112173612904149207">https://t.co/suqtsz6e2c</a></td><td class="num">3,900</td></tr></table></div>
+<div><h3>Weakest posts (3+ days old)</h3><table><tr><th>Date</th><th>Post</th><th class="num">vs usual</th></tr>
 <tr><td>2026-10-19</td><td><a href="https://x.com/MichLieben/status/2112212835967349127">24 people on our team posted on LinkedIn using @PierreReddot&#39;s playbook. In 85 days, that helped us sign 27 new clients &amp; $151K in new MRR.
 
 We were clients of his agency at one point. It worked so we</a></td><td class="num">0.03x</td></tr><tr><td>2026-10-19</td><td><a href="https://x.com/MichLieben/status/2112311704533229718">You&#39;re always told not to spray and pray in outbound.
