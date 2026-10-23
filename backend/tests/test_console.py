@@ -18,7 +18,7 @@ def make_client(handler) -> ConsoleClient:  # noqa: ANN001
                          transport=httpx.MockTransport(handler))
 
 
-def store_handler(req: httpx.Request) -> httpx.Response:
+def store_handler(req: httpx.Request, honour: bool = True) -> httpx.Response:
     p = req.url.path
     q = dict(req.url.params)
     if p.endswith("/health"):
@@ -26,21 +26,31 @@ def store_handler(req: httpx.Request) -> httpx.Response:
     if req.headers.get("X-API-Key") != "k":
         return httpx.Response(401, text="unauthorised")
     if p.endswith("/datasets/tweets"):
-        total = 100
-        if "since" in q:
-            total = 10
-        if q.get("post_type") == "reply":
-            total = min(total, 40)
-        if "contains" in q:
-            total = 5
-        return httpx.Response(200, json={"items": [REC], "page": {"total": total, "returned": 1, "truncated": False}})
+        rec = dict(REC)
+        if honour:
+            if "since" in q:
+                rec["created_at"] = f"{q['since']}T12:00:00Z"
+            if q.get("post_type") == "reply":
+                rec.update(is_reply=True, text="@nifinet nice")
+            if int(q.get("offset", 0)) > 0:
+                rec["tweet_id"] = "901"
+        else:
+            rec["created_at"] = "2020-01-01T00:00:00Z"
+        # Live store behaviour: items without page.total.
+        return httpx.Response(200, json={"items": [rec]})
     return httpx.Response(404)
 
 
 def test_doctor_ok_and_filters():
     rep = doctor.run(make_client(store_handler))
     assert rep.ok, rep.as_dict()
-    assert rep.filters == {"since": True, "post_type": True, "contains": True}
+    assert rep.filters == {"since": True, "post_type": True, "contains": True, "offset": True}
+
+
+def test_doctor_flags_ignored_filters_without_failing():
+    rep = doctor.run(make_client(lambda r: store_handler(r, honour=False)))
+    assert rep.ok
+    assert rep.filters["since"] is False and rep.filters["offset"] is False
 
 
 def test_doctor_reports_auth_failure():
@@ -87,3 +97,56 @@ def test_dataset_pagination_and_job_results_fallback():
     assert job.status == "succeeded"
     assert cc.job_items(7) == [REC] and cc._result_path == "/jobs/{id}/items"
     assert json.dumps(calls).count("/jobs/7/results") == 1
+
+
+def test_dataset_pages_by_count_without_metadata():
+    def handler(req):  # noqa: ANN001
+        off = int(req.url.params.get("offset", 0))
+        n = 100 if off < 200 else 7
+        return httpx.Response(200, json={"items": [{**REC, "tweet_id": str(off + i)} for i in range(n)]})
+
+    assert len(make_client(handler).dataset("tweets", username="nifinet")) == 207
+
+
+def test_dataset_stops_when_offset_is_ignored():
+    def handler(req):  # noqa: ANN001
+        return httpx.Response(200, json={"items": [{**REC, "tweet_id": str(i)} for i in range(100)]})
+
+    assert len(make_client(handler).dataset("tweets", username="nifinet")) == 100
+
+
+def test_llm_labels_skip_thinking_blocks(monkeypatch):
+    import types
+
+    import anthropic
+
+    from xaudit.analysis import classify
+
+    class FakeMessages:
+        def create(self, **kw):  # noqa: ANN003
+            return types.SimpleNamespace(content=[
+                types.SimpleNamespace(type="thinking", thinking="..."),
+                types.SimpleNamespace(type="text", text='{"id": "1", "category": "question", "topic": "other"}\n'
+                                                          '{"id": "2", "category": "nonsense"}'),
+            ])
+
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "x")
+    monkeypatch.setattr(anthropic, "Anthropic", lambda: types.SimpleNamespace(messages=FakeMessages()))
+    out = classify._llm_labels("reply", [("1", "@a how?"), ("2", "@b hi")], "ctx")
+    assert out == {"1": {"category": "question", "topic": "other", "substantive": True}}
+
+
+def test_llm_failure_falls_back(monkeypatch):
+    import types
+
+    import anthropic
+
+    from xaudit.analysis import classify
+
+    class Boom:
+        def create(self, **kw):  # noqa: ANN003
+            raise RuntimeError("api down")
+
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "x")
+    monkeypatch.setattr(anthropic, "Anthropic", lambda: types.SimpleNamespace(messages=Boom()))
+    assert classify._llm_labels("content", [("1", "post")], "ctx") == {}

@@ -45,6 +45,7 @@ class ConsoleClient:
         self.key = key or os.environ.get("XP_API_KEY", "")
         self.poll_every = poll_every
         self.max_retries = max_retries
+        self.truncated_reads = 0  # dataset reads that hit max_pages
         self._http = httpx.Client(timeout=60, headers={"User-Agent": USER_AGENT}, transport=transport)
 
     def available(self) -> bool:
@@ -103,7 +104,7 @@ class ConsoleClient:
             time.sleep(self.poll_every)
         raise ConsoleError(f"job {job_id} did not finish in {timeout}s")
 
-    def dataset(self, kind: str = "tweets", **params) -> list[dict]:  # noqa: ANN003
+    def dataset(self, kind: str = "tweets", max_pages: int = 60, **params) -> list[dict]:  # noqa: ANN003
         """Read the console's shared dataset store, paginating.
 
         X job results land in the shared store, not under the job: there is no
@@ -114,19 +115,29 @@ class ConsoleClient:
         """
         out: list[dict] = []
         seen: set[str] = set()
-        offset = 0
-        while True:
+        offset, page_size = 0, 100
+        for _ in range(max_pages):
             page = self._request("GET", f"/datasets/{kind}",
-                                 params={**params, "limit": 100, "offset": offset})
+                                 params={**params, "limit": page_size, "offset": offset})
             items = page if isinstance(page, list) else page.get("items", [])
             fresh = [i for i in items if str(i.get("tweet_id", id(i))) not in seen]
             seen.update(str(i.get("tweet_id", id(i))) for i in fresh)
             out.extend(fresh)
             meta = page.get("page") if isinstance(page, dict) else None
-            nxt = (meta or {}).get("next_offset")
-            if not fresh or nxt is None:
+            if not fresh:
                 return out
-            offset = nxt
+            if meta and meta.get("next_offset") is not None:
+                offset = meta["next_offset"]
+            elif meta and meta.get("truncated") is False:
+                return out
+            elif len(items) >= page_size:
+                # The store answered without paging metadata (seen live on 2026-10-23):
+                # keep paging by count until a short page arrives.
+                offset += len(items)
+            else:
+                return out
+        self.truncated_reads += 1
+        return out
 
     # Where a job's own items can be read. The MCP tool exposes "get_job_results(job_id, kind)";
     # its REST path is not documented in content-agent, so the known shapes are tried in order

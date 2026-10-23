@@ -35,14 +35,6 @@ class DoctorReport:
         return {"ok": self.ok, "filters": self.filters, "checks": [asdict(c) for c in self.checks]}
 
 
-def _total(cc: ConsoleClient, **params) -> int | None:  # noqa: ANN003
-    page = cc.page("tweets", limit=1, **params)
-    meta = page.get("page") or {}
-    if "total" in meta:
-        return int(meta["total"])
-    return None
-
-
 def run(cc: ConsoleClient | None = None, handle: str = "nifinet") -> DoctorReport:
     cc = cc or ConsoleClient()
     checks: list[Check] = []
@@ -82,19 +74,32 @@ def run(cc: ConsoleClient | None = None, handle: str = "nifinet") -> DoctorRepor
     add("pagination metadata", has_meta, "page.total present" if has_meta else "no page.total; paging by item count",
         blocking=False)
 
-    # Filters: a filter is honoured if it changes the total in the expected direction.
-    if has_meta:
-        base = _total(cc, username=handle)
-        recent = _total(cc, username=handle, since=(date.today() - timedelta(days=14)).isoformat())
-        replies = _total(cc, username=handle, post_type="reply")
-        mention = _total(cc, contains=f"@{handle}", post_type="reply")
-        filters = {
-            "since": recent is not None and base is not None and recent < base,
-            "post_type": replies is not None and base is not None and replies < base,
-            "contains": mention is not None and mention > 0,
-        }
-        for k, ok in filters.items():
-            add(f"filter `{k}`", ok, "honoured" if ok else "not honoured — collector falls back to client-side filtering",
-                blocking=k == "since")
+    # Filters are judged on the items returned, not on totals (the live store sends no page.total):
+    # a filter is honoured when every returned item satisfies it.
+    since = (date.today() - timedelta(days=14)).isoformat()
+    probes = {
+        "since": ({"username": handle, "since": since}, lambda i: (i.get("created_at") or "")[:10] >= since),
+        "post_type": ({"username": handle, "post_type": "reply"}, lambda i: bool(i.get("is_reply"))),
+        "contains": ({"contains": f"@{handle}", "post_type": "reply"},
+                     lambda i: f"@{handle.lower()}" in (i.get("text") or "").lower()),
+        "offset": ({"username": handle, "offset": 1, "limit": 1}, None),
+    }
+    first_id = str(items[0].get("tweet_id"))
+    for name, (params, pred) in probes.items():
+        try:
+            got = cc.page("tweets", **{"limit": 25, **params}).get("items") or []
+        except ConsoleError as e:
+            filters[name] = False
+            add(f"filter `{name}`", False, f"request failed: {e}", blocking=False)
+            continue
+        if name == "offset":
+            ok = bool(got) and str(got[0].get("tweet_id")) != first_id
+        else:
+            ok = bool(got) and all(pred(i) for i in got)
+        filters[name] = ok
+        add(f"filter `{name}`", ok,
+            f"honoured ({len(got)} items checked)" if ok else
+            ("no items returned" if not got else "ignored — collector filters client-side and caps paging"),
+            blocking=False)
     ok = all(c.ok for c in checks if c.blocking)
     return DoctorReport(ok, checks, filters)

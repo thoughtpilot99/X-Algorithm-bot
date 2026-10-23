@@ -25,6 +25,18 @@ def sync_repo(commits: int = 50) -> None:
                 k: v for k, v in registry.verify().items() if k != "results"}})
 
 
+@app.command()
+def status(needs_backfill: bool = typer.Option(False, "--needs-backfill",
+                                               help="Print only true/false: is a 180-day backfill needed?")) -> None:
+    """Posts, history depth and labels per client in the database."""
+    from xaudit.ingest import status as st
+
+    if needs_backfill:
+        typer.echo("true" if st.needs_backfill() else "false")
+    else:
+        _print(st.data_status())
+
+
 @app.command("verify-citations")
 def verify_citations() -> None:
     """Re-check every finding/claim citation against the repository."""

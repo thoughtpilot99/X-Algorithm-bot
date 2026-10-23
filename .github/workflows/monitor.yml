@@ -61,10 +61,18 @@ jobs:
         if: inputs.mode != 'dry-run'
         run: uv run xaudit doctor
 
-      - name: First run - full 180-day collection and seed labels
-        if: hashFiles('data/xaudit.sqlite') == '' && inputs.mode != 'dry-run'
+      # Decide from the data, not from file existence: sync-repo writes parameter history
+      # into the database, so the file exists even on a fresh state.
+      - name: Check stored history
+        id: state
+        run: echo "backfill=$(uv run --quiet xaudit status --needs-backfill)" >> "$GITHUB_OUTPUT"
+
+      - name: Backfill (180 days)
+        if: steps.state.outputs.backfill == 'true' && inputs.mode != 'dry-run'
+        run: uv run xaudit ingest --live --days 180
+
+      - name: Seed reviewed labels and rewrites (idempotent)
         run: |
-          uv run xaudit ingest --live --days 180
           uv run xaudit import-labels --folder seed/labels
           mkdir -p ../data/labels/rewrites && cp seed/rewrites/*.json ../data/labels/rewrites/
 
