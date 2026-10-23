@@ -10,7 +10,7 @@ import EvidenceDrawer from "../components/EvidenceDrawer";
 import { ClassBadge, Completeness, Confidence, ErrorBox, fmt, Loading, Panel, Stat } from "../components/ui";
 
 export const SECTIONS: [string, string][] = [
-  ["summary", "Summary (plain English)"],
+  ["summary", "Summary"],
   ["overview", "Executive overview"],
   ["trends", "Reach & engagement"],
   ["posts", "Original posts"],
