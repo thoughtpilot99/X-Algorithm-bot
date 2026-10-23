@@ -52,7 +52,7 @@ time spent). {{ brief.check_note }} {{ brief.bookmark_note }}</div>
 
 <h3>Why reach isn't coming</h3>
 {% for w in brief.why %}<div class="diag">
-<h3>{{ loop.index }}. {{ w.title }} <span class="badge">{{ w.sure }}</span></h3>
+<h3>{{ loop.index }}. {{ w.title }}</h3>
 <dl>
 <dt>What we see</dt><dd>{{ w.we_see }} <span class="meta">({{ w.we_see_label }})</span></dd>
 <dt>What X's algorithm does</dt><dd>{{ w.x_code }} <span class="meta">({{ w.x_code_label }}{% for f in w.x_code_refs %}{% if loop.first %}: {% endif %}<a href="{{ f.url }}">{{ f.id }}</a>{% if not loop.last %}, {% endif %}{% endfor %})</span></dd>

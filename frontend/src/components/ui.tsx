@@ -31,18 +31,6 @@ export function ClassBadge({ c }: { c: EvidenceClass | string }) {
   return <span title={`Evidence class: ${fmt.label(c)}`} className={`chip ${CLASS_STYLE[c] ?? "border-slate-400"}`}>{CLASS_PLAIN[c] ?? fmt.label(c)}</span>;
 }
 
-const CONF_STYLE: Record<string, string> = {
-  high: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200",
-  medium: "bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-200",
-  low: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200",
-  "insufficient evidence": "bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-200",
-};
-
-export function Confidence({ level }: { level: string }) {
-  const words: Record<string, string> = { high: "fairly sure", medium: "somewhat sure", low: "not sure" };
-  return <span title={`confidence: ${level}`} className={`chip border-transparent ${CONF_STYLE[level] ?? ""}`}>{words[level] ?? level}</span>;
-}
-
 export function Panel({ title, right, children, className = "" }: {
   title: ReactNode; right?: ReactNode; children: ReactNode; className?: string;
 }) {

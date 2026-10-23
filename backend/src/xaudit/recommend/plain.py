@@ -25,7 +25,6 @@ CLASS_PLAIN = {
     "unsupported": "Not supported",
     "insufficient": "Not enough data",
 }
-SURE_PLAIN = {"high": "We're fairly sure", "medium": "We're somewhat sure", "low": "We're not sure"}
 
 FORMAT_PLAIN = {"x_article": "X Articles", "short_post": "Short posts", "long_post": "Long posts",
                 "quote_post": "Quote posts", "thread": "Threads", "media_post": "Image/video posts",
@@ -591,7 +590,6 @@ def build_brief(handle: str) -> dict:
             "our_reading": d.get("algo_connection", ""),
             "do": PLAIN_DO.get(kind, d["recommendation"]),
             "check": PLAIN_CHECK.get(kind, d.get("success_criteria", "")),
-            "sure": SURE_PLAIN.get(d["confidence"], d["confidence"]),
             "proof": why_proof(kind, d, ctx, w),
         })
 

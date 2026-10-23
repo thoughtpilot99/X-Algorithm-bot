@@ -7,7 +7,7 @@ import {
 } from "recharts";
 import { api, STATIC, type Diagnostic, type Post } from "../api";
 import EvidenceDrawer from "../components/EvidenceDrawer";
-import { ClassBadge, Completeness, Confidence, ErrorBox, fmt, Loading, Panel, Stat } from "../components/ui";
+import { ClassBadge, Completeness, ErrorBox, fmt, Loading, Panel, Stat } from "../components/ui";
 
 export const SECTIONS: [string, string][] = [
   ["summary", "Summary"],
@@ -252,7 +252,6 @@ function Overview({ o, handle, open }: { o: any; handle: string; open: (d: Diagn
                   <span className="tabular-nums muted">{r.rank}.</span>
                   {r.issue}
                   <ClassBadge c={r.evidence_class} />
-                  <Confidence level={r.confidence} />
                 </div>
                 <p className="mt-1 text-xs muted">{r.observation}</p>
                 <p className="mt-1 text-[11px] muted"><b>Published X algorithm:</b> {r.algo_findings?.length ? r.algo_findings.map((f) => `${f.id} ${f.title}`).join("; ") : "no direct mechanism in the published code; account data only"}</p>
@@ -672,7 +671,7 @@ function Blockers({ handle, open }: { handle: string; open: (d: Diagnostic) => v
       {diags.data.items.map((d: Diagnostic) => (
         <button key={d.id} onClick={() => open(d)} className="panel block w-full text-left hover:border-slate-400">
           <div className="flex flex-wrap items-center gap-2 text-sm font-semibold">
-            {d.issue}<ClassBadge c={d.evidence_class} /><span className="chip border-slate-400">{d.status}</span><Confidence level={d.confidence} />
+            {d.issue}<ClassBadge c={d.evidence_class} /><span className="chip border-slate-400">{d.status}</span>
             <span className="ml-auto text-xs muted tabular-nums">priority {fmt.r(d.priority)}</span>
           </div>
           <p className="mt-1 text-xs">{d.observation}</p>
@@ -735,7 +734,6 @@ function Experiments({ handle }: { handle: string }) {
                 <div className="flex flex-wrap items-center gap-2 text-sm font-semibold">
                   {e.title}
                   {e.underpowered_in_30_days && <span className="chip border-rose-400 text-rose-600">underpowered in 30 days — directional only</span>}
-                  {e.diagnostic_confidence && <Confidence level={e.diagnostic_confidence} />}
                 </div>
                 <dl className="mt-2 grid gap-x-3 gap-y-1 sm:grid-cols-[140px_1fr]">
                   <dt className="muted">Hypothesis</dt><dd>{e.hypothesis}</dd>
@@ -958,7 +956,7 @@ function Summary({ handle }: { handle: string }) {
       <Panel title="Why reach isn't coming">
         <ol className="space-y-3">{d.why.map((w: any, i: number) => (
           <li key={w.title} className="rounded-lg border border-slate-200 p-3 text-sm dark:border-slate-800">
-            <div className="flex flex-wrap items-center gap-2 font-semibold"><span className="muted tabular-nums">{i + 1}.</span>{w.title}<span className="chip border-slate-400 font-normal">{w.sure}</span></div>
+            <div className="flex flex-wrap items-center gap-2 font-semibold"><span className="muted tabular-nums">{i + 1}.</span>{w.title}</div>
             <dl className="mt-2 grid gap-x-4 gap-y-1.5 sm:grid-cols-[170px_1fr]">
               <dt className="text-xs muted">What we see</dt><dd>{w.we_see} <span className="text-xs muted">({w.we_see_label})</span></dd>
               <dt className="text-xs muted">What X's algorithm does</dt>

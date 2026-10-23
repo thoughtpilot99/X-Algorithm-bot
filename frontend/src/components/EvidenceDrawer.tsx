@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import type { Diagnostic } from "../api";
-import { ClassBadge, Confidence, fmt } from "./ui";
+import { ClassBadge, fmt } from "./ui";
 
 export default function EvidenceDrawer({ d, onClose }: { d: Diagnostic | null; onClose: () => void }) {
   useEffect(() => {
@@ -23,7 +23,6 @@ export default function EvidenceDrawer({ d, onClose }: { d: Diagnostic | null; o
         <div className="mt-2 flex flex-wrap gap-2">
           <ClassBadge c={d.evidence_class} />
           <span className="chip border-slate-400">{d.status}</span>
-          <Confidence level={d.confidence} />
           <span className="chip border-slate-300">priority {fmt.r(d.priority)}</span>
         </div>
         <Field t="Observation">{d.observation}</Field>
