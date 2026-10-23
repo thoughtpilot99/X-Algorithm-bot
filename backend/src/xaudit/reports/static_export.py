@@ -23,7 +23,7 @@ ACCOUNT_ROUTES = {
     "followers.json": "/api/accounts/{h}/timeseries/followers",
 }
 REPORTS_URL = "https://github.com/thoughtpilot99/X-Algorithm-bot/blob/claude/charming-hawking-pqaz1d/reports"
-ARTIFACTS = ["reach", "segments", "segments_ex_articles", "brief", "multivariable", "comments", "benchmark", "engagement", "diagnostics",
+ARTIFACTS = ["reach", "segments", "segments_ex_articles", "brief", "algo_check", "peer_check", "conversation", "multivariable", "comments", "benchmark", "engagement", "diagnostics",
              "recommendations"]
 
 

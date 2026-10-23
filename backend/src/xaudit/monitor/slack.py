@@ -81,6 +81,14 @@ def account_section(handle: str, df: pd.DataFrame, now: datetime) -> list[dict]:
             + (f" ({_x(e.get('ratio'))}, n={e.get('n_treatment')}/{e.get('n_control')})" if e.get("ratio") else "")
             for e in running)}]})
     brief = load_artifact("brief", handle) or {}
+
+    def items(key: str) -> str:
+        return "; ".join(f"{x['headline']} ({x['proof']['verdict_label']})" if x.get("proof") else x["headline"]
+                         for x in brief.get(key, [])[:3])
+
+    if brief.get("working") or brief.get("not_working"):
+        blocks.append({"type": "context", "elements": [{"type": "mrkdwn", "text":
+                       f"*Working:* {items('working')}\n*Not working:* {items('not_working')}"}]})
     why = brief.get("why", [])[:3]
     if why:
         blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": "*Why reach isn't higher:*\n" + "\n".join(

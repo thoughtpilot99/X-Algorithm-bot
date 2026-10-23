@@ -40,5 +40,12 @@ svg text{font:10px sans-serif;fill:var(--muted)}
 .plain.good{border-left-color:var(--good)}.plain.bad{border-left-color:var(--bad)}h3.good{color:var(--good)}h3.bad{color:var(--bad)}
 .plain .ex{font-size:12px;margin-top:5px;padding-left:10px;border-left:2px solid var(--line)}
 h2.appendix{margin-top:56px}
+.diag.proofcard{break-inside:auto}
+.proof{margin-top:8px;padding:8px 10px;background:var(--soft);border-radius:8px;font-size:12px}
+.proof p{margin:4px 0}
+.ptable{font-size:11px;margin:6px 0}
+.ptable th,.ptable td{padding:4px 6px}
+.verdict{display:inline-block;font-size:11px;font-weight:600;padding:1px 8px;border-radius:999px;border:1px solid var(--line);margin-top:6px}
+.v-backed{border-color:var(--good);color:var(--good)}.v-partly{border-color:var(--warn);color:var(--warn)}.v-not_enough{color:var(--muted)}
 @media print{main{padding:0 6mm}h2{break-after:avoid}.diag,.qa,table{break-inside:avoid}a{color:var(--ink)}}
 @media (max-width:700px){.cards{grid-template-columns:1fr 1fr}.cols{grid-template-columns:1fr}main{padding:24px 16px}}

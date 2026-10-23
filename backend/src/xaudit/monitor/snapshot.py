@@ -25,9 +25,13 @@ def collect(peers: bool, threads_cap: int) -> list[dict]:
         out.append(collectors.collect_timeline(cc, h, days=14))
         out.append(collectors.collect_engagers(cc, h))
         out.append(collectors.collect_threads_for_new_comments(cc, h, cap=threads_cap))
+        out.append(collectors.collect_own_post_threads(cc, h, cap=12))
         if peers:
+            # Weekly: top up each peer's timeline to the configured depth (new posts are deduplicated).
             for p in c.get("peers", []):
-                out.append(collectors.collect_timeline(cc, p, days=14, include_replies=False, max_pages=5))
+                out.append(collectors.collect_timeline(cc, p, days=analysis_cfg()["peer_window_days"],
+                                                       include_replies=False,
+                                                       max_pages=analysis_cfg()["peer_max_pages"]))
     return out
 
 

@@ -4,10 +4,19 @@
 <body><main>
 <div class="meta">Report {{ letter }} · X Account Intelligence & Algorithm Audit · generated {{ generated }}</div>
 <h1>{{ name }} (@{{ handle }}) — Complete X Account Audit</h1>
-<div class="sub">Window {{ window[0][:10] }} → {{ window[1][:10] }} (180 days; 90-day figures marked) · public data only ·
+<div class="sub">Window {{ window[0][:10] }} → {{ window[1][:10] }} ({{ window_days }} days of posts; 90-day figures marked) · public data only ·
 algorithm repository <a href="{{ repo_url }}/tree/{{ sha }}">xai-org/x-algorithm@{{ sha[:7] }}</a></div>
 
 
+{% macro proof_block(p) %}{% if p %}<div class="proof">
+{% if p.summary %}<p>{{ p.summary }}</p>{% endif %}
+{% if p.table and p.table.rows %}<table class="ptable"><tr>{% for c in p.table.columns %}<th{% if not loop.first %} class="num"{% endif %}>{{ c }}</th>{% endfor %}</tr>
+{% for r in p.table.rows %}<tr>{% for c in r %}<td{% if not loop.first %} class="num"{% endif %}>{{ c }}</td>{% endfor %}</tr>{% endfor %}</table>{% endif %}
+{% if p.posts %}<table class="ptable"><tr><th>Post</th><th class="num">Views</th><th class="num">Replies</th><th class="num">Quotes</th><th class="num">Reposts</th><th class="num">Likes</th><th class="num">Bookmarks</th></tr>
+{% for e in p.posts %}<tr><td>{% if e.tag %}<b>{{ e.tag }}</b> · {% endif %}{{ e.date }} · <a href="{{ e.url }}">{{ e.text[:90] }}</a></td><td class="num">{{ e.views|num }}</td><td class="num">{{ e.replies|num }}</td><td class="num">{{ e.quotes|num }}</td><td class="num">{{ e.reposts|num }}</td><td class="num">{{ e.likes|num }}</td><td class="num">{{ e.bookmarks|num }}</td></tr>{% endfor %}</table>{% endif %}
+{% if p.code %}<p class="meta">From X's published code: {% for c in p.code %}<a href="{{ c.url }}">{{ c.label }}</a>{% if c.where %} ({{ c.where }}){% endif %}{% if not loop.last %} · {% endif %}{% endfor %}</p>{% endif %}
+{% if p.sure %}<p class="meta"><b>How sure:</b> {{ p.sure }}</p>{% endif %}
+</div>{% endif %}{% endmacro %}
 {% if brief %}
 <h2>The short version</h2>
 <p class="meta">Plain-English summary. Every number comes from the detailed sections that follow. "Typical post" means
@@ -20,14 +29,26 @@ the middle post (half got more views, half fewer); "usual" means what the accoun
 {% for w in brief.working %}<div class="plain good">
 <b>{{ w.headline }}</b><br>{{ w.detail }} <span class="meta">{{ w.based_on }} · {{ w.label }}</span>
 {% for e in w.examples %}<div class="ex"><a href="{{ e.url }}">{{ e.text }}</a> — <b>{{ e.views|num }} views</b> · {{ e.date }}</div>{% endfor %}
+{% if w.proof %}<div class="verdict v-{{ w.proof.verdict }}">{{ w.proof.verdict_label }}</div>{% endif %}
 </div>{% else %}<p class="meta">No clear pattern yet.</p>{% endfor %}
 </div><div>
 <h3 class="bad">What's not working</h3>
 {% for w in brief.not_working %}<div class="plain bad">
 <b>{{ w.headline }}</b><br>{{ w.detail }} <span class="meta">{{ w.based_on }} · {{ w.label }}</span>
 {% for e in w.examples %}<div class="ex"><a href="{{ e.url }}">{{ e.text }}</a> — <b>{{ e.views|num }} views</b> · {{ e.date }}</div>{% endfor %}
+{% if w.proof %}<div class="verdict v-{{ w.proof.verdict }}">{{ w.proof.verdict_label }}</div>{% endif %}
 </div>{% else %}<p class="meta">No clear pattern yet.</p>{% endfor %}
 </div></div>
+
+<div class="note"><b>How each item is checked against X's algorithm.</b> X's published ranking weights replies 5, quotes 5,
+reposts 1 and likes 0.66. For each item we compare these reactions per 1,000 views with the account's other posts.
+"Backed by X's code" = the posts also earn more (or fewer, for what's not working) of the reactions X rewards. "Not explained by
+public reactions" = the reach difference must come from things X also counts but nobody outside X can see (shares, follows,
+time spent). {{ brief.check_note }} {{ brief.bookmark_note }}</div>
+
+<h3>Proof for each item</h3>
+{% for w in brief.working + brief.not_working %}<div class="diag proofcard"><h3>{{ w.headline }}{% if w.proof %} <span class="verdict v-{{ w.proof.verdict }}">{{ w.proof.verdict_label }}</span>{% endif %}</h3>
+{{ proof_block(w.proof) }}</div>{% endfor %}
 
 <h3>Why reach isn't coming</h3>
 {% for w in brief.why %}<div class="diag">
@@ -37,7 +58,14 @@ the middle post (half got more views, half fewer); "usual" means what the accoun
 <dt>What X's algorithm does</dt><dd>{{ w.x_code }} <span class="meta">({{ w.x_code_label }}{% for f in w.x_code_refs %}{% if loop.first %}: {% endif %}<a href="{{ f.url }}">{{ f.id }}</a>{% if not loop.last %}, {% endif %}{% endfor %})</span></dd>
 <dt>What to do</dt><dd>{{ w.do }}</dd>
 <dt>How we'll know it worked</dt><dd>{{ w.check }}</dd>
-</dl></div>{% endfor %}
+</dl>{{ proof_block(w.proof) }}</div>{% endfor %}
+
+{% if brief.peers %}<h3>What works for similar accounts</h3>
+{% if brief.peers.summary %}<p>{{ brief.peers.summary }}</p>{% endif %}
+<table class="ptable"><tr>{% for c in brief.peers.table.columns %}<th{% if not loop.first %} class="num"{% endif %}>{{ c }}</th>{% endfor %}</tr>
+{% for r in brief.peers.table.rows %}<tr>{% for c in r %}<td{% if not loop.first %} class="num"{% endif %}>{{ c }}</td>{% endfor %}</tr>{% endfor %}</table>
+<p class="meta">{{ brief.peers.note }}</p>{% endif %}
+{% if brief.conversation %}<h3>Answering commenters</h3><p>{{ brief.conversation }}</p>{% endif %}
 
 <h3>What to do next, in order</h3>
 <ol>{% for t in brief.todo %}<li><b>{{ t.action }}</b><br><span class="meta">Why: {{ t.why }} · Check: {{ t.check }}</span></li>{% endfor %}</ol>
@@ -57,7 +85,7 @@ Associations are not causes; the published repository does not describe every li
 <h2>1. Executive summary</h2>
 <div class="cards">
   <div class="card"><div class="k">Followers</div><div class="v">{{ profile.followers|num }}</div><div class="n">snapshot 2026-10-23</div></div>
-  <div class="card"><div class="k">Typical views per post (median)</div><div class="v">{{ reach.segments['authored (original + quote)'].median|num }}</div><div class="n">n={{ reach.segments['authored (original + quote)'].n }} · 180d</div></div>
+  <div class="card"><div class="k">Typical views per post (median)</div><div class="v">{{ reach.segments['authored (original + quote)'].median|num }}</div><div class="n">n={{ reach.segments['authored (original + quote)'].n }} · {{ window_days }}d</div></div>
   <div class="card"><div class="k">Trend per 30 days</div><div class="v">{{ reach.trend_authored.per_30d|r2 }}x</div><div class="n">90% CI {{ reach.trend_authored.lo|r2 }}–{{ reach.trend_authored.hi|r2 }}</div></div>
   <div class="card"><div class="k">Typical views per comment (median)</div><div class="v">{{ comments.conversation.views.median|num }}</div><div class="n">n={{ comments.conversation.n }} conversational</div></div>
 </div>
@@ -76,7 +104,7 @@ Associations are not causes; the published repository does not describe every li
 {% for i in completeness["items"] %}<tr><td>{{ i.item }}</td><td>{{ i.status }}</td><td>{{ i.detail }}</td></tr>{% endfor %}</table>
 
 <h2>3. Historical performance</h2>
-<h3>Reach by post type (mature posts, 180 days)</h3>
+<h3>Reach by post type (posts 3+ days old, {{ window_days }} days)</h3>
 <table><tr><th>Segment</th><th class="num">n</th><th class="num">Typical (median)</th><th class="num">p25</th><th class="num">p75</th><th class="num">p90</th><th class="num">Mean</th><th class="num">Median / follower</th></tr>
 {% for k, s in reach.segments.items() %}{% if s.n %}<tr><td>{{ k }}</td><td class="num">{{ s.n }}</td><td class="num">{{ s.median|num }}</td><td class="num">{{ s.p25|num }}</td><td class="num">{{ s.p75|num }}</td><td class="num">{{ s.p90|num }}</td><td class="num">{{ s.mean|num }}</td><td class="num">{{ s.median_views_per_follower|pct(2) }}</td></tr>{% endif %}{% endfor %}</table>
 <p>90-day window: median authored views {{ reach90.segments['authored (original + quote)'].median|num }} (n={{ reach90.segments['authored (original + quote)'].n }}).

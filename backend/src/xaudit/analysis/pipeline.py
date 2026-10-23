@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from sqlalchemy import select
 
-from xaudit.analysis import cadence, classify, engagement, reach, segments
+from xaudit.analysis import algo_check, cadence, classify, conversation, engagement, reach, segments
 from xaudit.analysis.dataset import load_posts
 from xaudit.analysis.features import add_features
 from xaudit.benchmark.peers import benchmark
@@ -100,7 +100,7 @@ def completeness(handle: str, df: pd.DataFrame) -> dict:
     conv = df[df["reply_role"] == "conversation"]
     lm = df["label_method"].fillna("none").value_counts().to_dict()
     items = [
-        {"item": "Posts, replies, quotes, reposts (180 days)", "status": "available",
+        {"item": f"Posts, replies, quotes, reposts ({(df['created_at'].max() - df['created_at'].min()).days + 1} days)", "status": "available",
          "detail": f"{len(df)} records from the ThoughtPilot console store"},
         {"item": "Views (public view count)", "status": "available",
          "detail": f"{int(df['views'].notna().sum())} of {len(df)} records have views"},
@@ -165,6 +165,7 @@ def run(handles: list[str] | None = None) -> dict:
             continue
         f = followers.get(h)
         last90 = df[df["created_at"] >= df["observed_at"].max() - pd.Timedelta(days=90)]
+        segs, segs_ex = segments.univariate(df), segments.univariate_ex_articles(df)
         arts = {
             "profile": {"handle": h, **cfg[h], "followers": f, "snapshots": follower_snapshots(h),
                         "window": [df["created_at"].min().isoformat(), df["created_at"].max().isoformat()],
@@ -173,8 +174,11 @@ def run(handles: list[str] | None = None) -> dict:
             "reach": reach.reach_report(df, f),
             "reach_90d": reach.reach_report(last90, f),
             "engagement": engagement.engagement_report(df),
-            "segments": segments.univariate(df),
-            "segments_ex_articles": segments.univariate_ex_articles(df),
+            "segments": segs,
+            "segments_ex_articles": segs_ex,
+            "algo_check": algo_check.run(df, segs, segs_ex),
+            "peer_check": algo_check.peer_formats(h),
+            "conversation": conversation.depth(h, df),
             "multivariable": segments.multivariable(df),
             "strong_weak": segments.strong_weak_profile(df),
             "cadence": cadence.cadence_report(df),

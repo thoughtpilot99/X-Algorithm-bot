@@ -27,7 +27,7 @@ def sync_repo(commits: int = 50) -> None:
 
 @app.command()
 def status(needs_backfill: bool = typer.Option(False, "--needs-backfill",
-                                               help="Print only true/false: is a 180-day backfill needed?")) -> None:
+                                               help="Print only true/false: is a full-history backfill needed?")) -> None:
     """Posts, history depth and labels per client in the database."""
     from xaudit.ingest import status as st
 
@@ -87,9 +87,17 @@ def ingest(from_seed: bool = typer.Option(True, "--from-seed/--live"), days: int
 
         _print(import_seed())
     else:
-        from xaudit.ingest.collectors import collect_all
+        from datetime import UTC, datetime
 
-        _print(collect_all(days))
+        from xaudit.db.session import save_artifact
+        from xaudit.ingest.collectors import collect_all
+        from xaudit.ingest.status import data_status
+        from xaudit.settings import analysis_cfg
+
+        out = collect_all(days)
+        save_artifact("backfill_done", {"days": days or analysis_cfg()["extended_window_days"],
+                                        "at": datetime.now(UTC).isoformat(), "found": data_status()["clients"]})
+        _print(out)
 
 
 @app.command("import-labels")

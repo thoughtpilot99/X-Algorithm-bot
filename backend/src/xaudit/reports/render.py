@@ -86,6 +86,12 @@ def _common() -> dict:
             "repo_url": ALGO_REPO_URL, "sha": registry.STUDIED_SHA, "head_sha": st.sha}
 
 
+def _span_days(window: list[str]) -> int:
+    from datetime import datetime
+
+    return (datetime.fromisoformat(window[1]) - datetime.fromisoformat(window[0])).days + 1
+
+
 def account_context(handle: str, letter: str) -> dict:
     c = clients()[handle]
     diags = (load_artifact("diagnostics", handle) or {}).get("items", [])
@@ -99,6 +105,7 @@ def account_context(handle: str, letter: str) -> dict:
         "comments": load_artifact("comments", handle), "bench": load_artifact("benchmark", handle),
         "completeness": load_artifact("completeness", handle), "rec": load_artifact("recommendations", handle),
         "brief": load_artifact("brief", handle),
+        "window_days": _span_days(load_artifact("profile", handle)["window"]),
         "diagnostics": diags, "used_findings": [registry.by_id(f) for f in used if registry.by_id(f)],
         "answers": final_answers(handle), "claims": registry.claims(),
         "monthly_svg": monthly_svg(load_artifact("reach", handle)["monthly"]), "engagers": _engagers(handle),

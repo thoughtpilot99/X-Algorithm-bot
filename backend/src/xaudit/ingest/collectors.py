@@ -14,7 +14,7 @@ from datetime import UTC, date, datetime, timedelta
 
 from sqlalchemy import func, select
 
-from xaudit.db.models import AccountSnapshot, Engager, ReplyThread
+from xaudit.db.models import AccountSnapshot, Engager, Post, ReplyThread
 from xaudit.db.session import session
 from xaudit.ingest.console_client import ConsoleClient, ConsoleError
 from xaudit.ingest.normalize import parse_ts
@@ -185,6 +185,65 @@ def collect_threads_for_new_comments(cc: ConsoleClient, handle: str, *, cap: int
     return {"handle": handle, "threads": ok, "failed": failed}
 
 
+def own_post_thread_ids(handle: str, cap: int) -> list[str]:
+    """The client's authored posts aged 1-14 days whose reply thread hasn't been captured yet."""
+    from xaudit.db.models import PostThread
+
+    now = datetime.now(UTC).replace(tzinfo=None)
+    with session() as s:
+        done = set(s.scalars(select(PostThread.tweet_id).where(PostThread.handle == handle)))
+        rows = s.execute(select(Post.tweet_id, Post.created_at).where(
+            Post.handle == handle, Post.post_type.in_(("original", "quote")))).all()
+    ok = [(t, c) for t, c in rows if c and timedelta(days=1) <= now - c.replace(tzinfo=None) <= timedelta(days=14)
+          and t not in done]
+    return [t for t, _ in sorted(ok, key=lambda x: x[1], reverse=True)[:cap]]
+
+
+def import_post_thread(s, handle: str, tid: str, items: list[dict]) -> bool:  # noqa: ANN001
+    """Count replies by others and by the author under one post."""
+    from xaudit.db.models import PostThread
+
+    focal = next((i for i in items if str(i.get("tweet_id")) == tid), None)
+    if focal is None:
+        return False
+    t0 = parse_ts(focal["created_at"])
+    after = [i for i in items if str(i.get("tweet_id")) != tid and i.get("created_at")
+             and parse_ts(i["created_at"]) > t0]
+    others = [i for i in after if (i.get("username") or "").lower() != handle.lower()]
+    mine = sorted((i for i in after if (i.get("username") or "").lower() == handle.lower()),
+                  key=lambda i: i["created_at"])
+    first = (parse_ts(mine[0]["created_at"]) - t0).total_seconds() / 60 if mine else None
+    s.merge(PostThread(tweet_id=tid, handle=handle, items_seen=len(items), other_replies=len(others),
+                       distinct_repliers=len({i.get("username") for i in others}), author_replies=len(mine),
+                       author_first_reply_minutes=first, source=SOURCE))
+    return True
+
+
+def collect_own_post_threads(cc: ConsoleClient, handle: str, *, cap: int = 12) -> dict:
+    """Reply threads under the client's recent posts: did others reply, and did the author answer?"""
+    ids = own_post_thread_ids(handle, cap)
+    folder = RAW_DIR / "console" / "post_threads"
+    folder.mkdir(parents=True, exist_ok=True)
+    ok = failed = 0
+    with _Run("tweet-detail:own-posts", {"handle": handle, "requested": len(ids)}) as run:
+        for tid in ids:
+            try:
+                job = cc.run("tweet-detail", {"tweet_id": tid, "limit": 100, "max_pages": 2}, timeout=240)
+                items = cc.job_items(job.job_id, kind="tweets") if job.status == "succeeded" else []
+            except ConsoleError:
+                items = []
+            if not items:
+                failed += 1
+                continue
+            (folder / f"{tid}.json").write_text(json.dumps(items, ensure_ascii=False, indent=2), encoding="utf-8")
+            with session() as s:
+                ok += import_post_thread(s, handle, tid, items)
+        run.items, run.new = ok, ok
+        if failed:
+            run.coverage = f"partial: {failed} failed"
+    return {"handle": handle, "post_threads": ok, "failed": failed}
+
+
 def collect_all(days: int | None = None, *, peers: bool = True, threads: bool = True) -> list[dict]:
     """Full live collection (also used for the first CI run)."""
     cc = ConsoleClient()
@@ -203,8 +262,9 @@ def collect_all(days: int | None = None, *, peers: bool = True, threads: bool = 
         out.append(collect_engagers(cc, handle))
         if threads:
             out.append(collect_threads_for_new_comments(cc, handle))
+            out.append(collect_own_post_threads(cc, handle, cap=40))
         if peers:
             for peer in c.get("peers", []):
-                out.append(collect_timeline(cc, peer, days=min(days, analysis_cfg()["default_window_days"]),
-                                            include_replies=False, max_pages=10))
+                out.append(collect_timeline(cc, peer, days=analysis_cfg()["peer_window_days"],
+                                            include_replies=False, max_pages=analysis_cfg()["peer_max_pages"]))
     return out

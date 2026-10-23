@@ -1,4 +1,7 @@
 tweet_id,url,created_at,post_type,format,text,views,likes,replies,reposts,quotes,bookmarks,vs_baseline,baseline_views,mature,parent_author,topic,subtopic,hook_type,narrative,category,length_bucket,has_tco_url,weekday,daypart_utc,label_method,eng_per_1k,quadrant
+2048303099123528015,https://x.com/nifinet/status/2048303099123528015,2026-04-26T07:28:09Z,quote,quote_post,"If these PE think the only moat of tech companies is the product, they’ll be screwed anyway.
+
+Claude code or not",168.0,0,0,0,0,0,,,True,,AI industry & tools news,PE views on tech moats,contrarian,opinion,,short (15-49),False,Sunday,06-11,llm:claude-sonnet-session-review,0.0,
 2048453177830244669,https://x.com/nifinet/status/2048453177830244669,2026-04-26T17:24:30Z,quote,quote_post,🎯Goals always happen twice: in your mind then in reality,179.0,0,0,0,0,0,,,True,,founder journey & leadership,goals happen twice mindset,observation,opinion,,very short (<15 words),False,Sunday,12-17,llm:claude-sonnet-session-review,0.0,
 2048764101325668391,https://x.com/nifinet/status/2048764101325668391,2026-04-27T14:00:00Z,original,long_post,"The old agency pricing model is dying. Most founders are still trying to save it.
 
@@ -30,7 +33,7 @@ Every agency business eventually sends some version of that message. Usually the
 That’s because 80% of agencies run on referrals as their primary growth channel and call it a growth strategy.
 
 A strategy has inputs you can increase. The volume of referrals you get is not one of them.",874.0,11,0,8,0,1,,,True,,agency business & scaling,agency referral dependence,observation,opinion,,medium (50-149),False,Wednesday,12-17,llm:claude-sonnet-session-review,22.88329519450801,
-2049862380499435662,https://x.com/nifinet/status/2049862380499435662,2026-04-30T14:44:10Z,original,x_article,https://t.co/052BkSBTe8,1931.0,11,0,6,0,4,,,True,,agency business & scaling,agencies finding customers with AI,how_to,tutorial,,very short (<15 words),True,Thursday,12-17,llm:claude-sonnet-session-review,10.875194199896427,
+2049862380499435662,https://x.com/nifinet/status/2049862380499435662,2026-04-30T14:44:10Z,original,x_article,https://t.co/052BkSBTe8,1931.0,11,0,6,0,4,3.8313492063492065,504.0,True,,agency business & scaling,agencies finding customers with AI,how_to,tutorial,,very short (<15 words),True,Thursday,12-17,llm:claude-sonnet-session-review,10.875194199896427,reach + resonance
 2050206102856352148,https://x.com/nifinet/status/2050206102856352148,2026-05-01T13:30:00Z,original,long_post,"The agencies growing fastest right now run themselves like SaaS companies.
 
 Their pipeline does not depend on Google, Clutch, or referrals.
@@ -41,8 +44,8 @@ By the time a buyer reaches out, they already know the agency by name.
 
 This is why we bought Overloop .com last year. 
 
-Agencies that want to grow from here will need an outbound engine of their own, run the same way they run it for clients.",1372.0,19,1,15,0,2,1.5697940503432495,874.0,True,,agency business & scaling,agencies run like SaaS,observation,opinion,,medium (50-149),False,Friday,12-17,llm:claude-sonnet-session-review,26.96793002915452,reach + resonance
-2050452398829629836,https://x.com/nifinet/status/2050452398829629836,2026-05-02T05:48:42Z,quote,quote_post,https://t.co/kV3rC7XVmK,115.0,0,0,0,0,0,0.10240427426536064,1123.0,True,,other,bare link no text,other,other,,very short (<15 words),True,Saturday,00-05,llm:claude-sonnet-session-review,0.0,neither
+Agencies that want to grow from here will need an outbound engine of their own, run the same way they run it for clients.",1372.0,19,1,15,0,2,1.9912917271407837,689.0,True,,agency business & scaling,agencies run like SaaS,observation,opinion,,medium (50-149),False,Friday,12-17,llm:claude-sonnet-session-review,26.96793002915452,reach + resonance
+2050452398829629836,https://x.com/nifinet/status/2050452398829629836,2026-05-02T05:48:42Z,quote,quote_post,https://t.co/kV3rC7XVmK,115.0,0,0,0,0,0,0.13157894736842105,874.0,True,,other,bare link no text,other,other,,very short (<15 words),True,Saturday,00-05,llm:claude-sonnet-session-review,0.0,neither
 2050596574531612679,https://x.com/nifinet/status/2050596574531612679,2026-05-02T15:21:36Z,repost,short_post,"RT @davidsenra: The mind is a powerful place and what you feed it can affect you in a powerful way. 
 
 Tobi Lutke @tobi on how you can liter…",,0,0,168,0,0,,,True,,,,,,,short (15-49),False,Saturday,12-17,,,
@@ -66,10 +69,10 @@ Giving away the full architecture:
 → The six workflows that replace an SDR team 
 → How to plug it into your CRM and LinkedIn
 
-Reply ""ai"" and I'll DM it.",4677.0,32,3,15,0,6,5.351258581235698,874.0,True,,buying signals & intent data,free AI SDR from posts,announcement,promotion,,medium (50-149),False,Monday,12-17,llm:claude-sonnet-session-review,11.973487278169767,reach + resonance
+Reply ""ai"" and I'll DM it.",4677.0,32,3,15,0,6,6.788098693759071,689.0,True,,buying signals & intent data,free AI SDR from posts,announcement,promotion,,medium (50-149),False,Monday,12-17,llm:claude-sonnet-session-review,11.973487278169767,reach + resonance
 2051574229456306379,https://x.com/nifinet/status/2051574229456306379,2026-05-05T08:06:27Z,quote,quote_post,"Package this into a prompt or a .md, it’s not even the point.
 
-@pmarca post if more about the substance, uncovering blind spots, and guiding the LLM into the best outcomes. Give it to any AI and they’ll figure it out",157.0,0,0,0,0,0,0.13980409617097062,1123.0,True,,AI industry & tools news,Andreessen prompt substance debate,observation,conversation,,short (15-49),False,Tuesday,06-11,llm:claude-sonnet-session-review,0.0,neither
+@pmarca post if more about the substance, uncovering blind spots, and guiding the LLM into the best outcomes. Give it to any AI and they’ll figure it out",157.0,0,0,0,0,0,0.17963386727688788,874.0,True,,AI industry & tools news,Andreessen prompt substance debate,observation,conversation,,short (15-49),False,Tuesday,06-11,llm:claude-sonnet-session-review,0.0,neither
 2051678861172289641,https://x.com/nifinet/status/2051678861172289641,2026-05-05T15:02:13Z,original,long_post,"Most ""AI for agencies"" tools were never priced for agencies.
 
 They were priced for SaaS sales teams, where seats expand as the org grows, volume tiers compound, and the product stays always-on against a predictable pipeline.
@@ -90,7 +93,7 @@ It's our answer. We've spent 10 years running Sortlist, the marketplace where co
 
 We know how agencies get hired.
 
-The next step for us is making sure the tools agencies use to win those deals don't bleed them on the way in. The agency stack needs different economics. Marketing alone won't fix that.",557.0,11,0,8,0,1,0.6372997711670481,874.0,True,,agency business & scaling,"agency tools mispriced, Overloop acquisition",contrarian,opinion,,long (150-399),False,Tuesday,12-17,llm:claude-sonnet-session-review,35.90664272890485,resonance without reach
+The next step for us is making sure the tools agencies use to win those deals don't bleed them on the way in. The agency stack needs different economics. Marketing alone won't fix that.",557.0,11,0,8,0,1,0.8084179970972424,689.0,True,,agency business & scaling,"agency tools mispriced, Overloop acquisition",contrarian,opinion,,long (150-399),False,Tuesday,12-17,llm:claude-sonnet-session-review,35.90664272890485,resonance without reach
 2051723805807026463,https://x.com/nifinet/status/2051723805807026463,2026-05-05T18:00:49Z,repost,short_post,"RT @dharmesh: This is a lesson I need to take to heart. 
 
 I'm sure I'm not the only founder with this problem.
@@ -149,7 +152,7 @@ if you're new, here's what i'm going to be writing about:
 
 and occasionally, when it's worth it, the part of the story i usually leave out.
 
-that's me. welcome.",10238.0,21,1,1,0,8,14.308874912648498,715.5,True,,founder journey & leadership,Sortlist founding story,story,story,,very long (400+),False,Wednesday,12-17,llm:claude-sonnet-session-review,3.027935143582731,reach without resonance
+that's me. welcome.",10238.0,21,1,1,0,8,18.38061041292639,557.0,True,,founder journey & leadership,Sortlist founding story,story,story,,very long (400+),False,Wednesday,12-17,llm:claude-sonnet-session-review,3.027935143582731,reach without resonance
 2052118551679668434,https://x.com/nifinet/status/2052118551679668434,2026-05-06T20:09:23Z,quote,quote_post,"Brian's right.
 
 We did the cut in 2022. It was the hardest call I'd made up to that point. The team that emerged was leaner and clearer about what mattered. Profitability followed two years later.
@@ -160,12 +163,12 @@ Both moves came from the same instinct: take out what slows the team down. In 20
 
 For people who build, the future is brighter than it's ever been. The bottleneck moved from ""who can write the code"" to ""who knows what to build."" That's a much better problem to have.
 
-Let's BUILD.",183.0,3,0,0,0,1,0.20938215102974828,874.0,True,,founder journey & leadership,2022 layoffs and AI-first push,observation,story,,long (150-399),False,Wednesday,18-23,llm:claude-sonnet-session-review,21.85792349726776,resonance without reach
-2052153937357361571,https://x.com/nifinet/status/2052153937357361571,2026-05-06T22:30:00Z,quote,quote_post,me and Claude tonight https://t.co/uq5mMe2YRX,204.0,5,0,0,0,0,0.2851153039832285,715.5,True,,other,selfie with Claude,other,other,,very short (<15 words),True,Wednesday,18-23,llm:claude-sonnet-session-review,24.509803921568626,resonance without reach
-2052426940070719892,https://x.com/nifinet/status/2052426940070719892,2026-05-07T16:34:49Z,original,x_article,https://t.co/E7jgFKvtoQ,2265.0,10,0,6,0,3,4.066427289048474,557.0,True,,buying signals & intent data,signal-based outbound for agencies,how_to,tutorial,,very short (<15 words),True,Thursday,12-17,llm:claude-sonnet-session-review,8.388520971302428,reach without resonance
+Let's BUILD.",183.0,3,0,0,0,1,0.2557651991614256,715.5,True,,founder journey & leadership,2022 layoffs and AI-first push,observation,story,,long (150-399),False,Wednesday,18-23,llm:claude-sonnet-session-review,21.85792349726776,resonance without reach
+2052153937357361571,https://x.com/nifinet/status/2052153937357361571,2026-05-06T22:30:00Z,quote,quote_post,me and Claude tonight https://t.co/uq5mMe2YRX,204.0,5,0,0,0,0,0.36624775583482944,557.0,True,,other,selfie with Claude,other,other,,very short (<15 words),True,Wednesday,18-23,llm:claude-sonnet-session-review,24.509803921568626,resonance without reach
+2052426940070719892,https://x.com/nifinet/status/2052426940070719892,2026-05-07T16:34:49Z,original,x_article,https://t.co/E7jgFKvtoQ,2265.0,10,0,6,0,3,4.269557021677662,530.5,True,,buying signals & intent data,signal-based outbound for agencies,how_to,tutorial,,very short (<15 words),True,Thursday,12-17,llm:claude-sonnet-session-review,8.388520971302428,reach without resonance
 2052471881501229540,https://x.com/nifinet/status/2052471881501229540,2026-05-07T19:33:24Z,quote,quote_post,"Writing's on the wall. AI is coming for all who price by tasks. All you can do now is price per outcomes.
 
-Because sooner or later, only tools and AI get paid per seat. A human hire would have to get paid for what they produce.",195.0,1,0,0,0,0,0.27253668763102723,715.5,True,,agency business & scaling,price agencies per outcome,contrarian,opinion,,short (15-49),False,Thursday,18-23,llm:claude-sonnet-session-review,5.128205128205129,neither
+Because sooner or later, only tools and AI get paid per seat. A human hire would have to get paid for what they produce.",195.0,1,0,0,0,0,0.3500897666068223,557.0,True,,agency business & scaling,price agencies per outcome,contrarian,opinion,,short (15-49),False,Thursday,18-23,llm:claude-sonnet-session-review,5.128205128205129,neither
 2052772558395838778,https://x.com/nifinet/status/2052772558395838778,2026-05-08T15:28:11Z,original,long_post,"Last year we ran a 4-hour hackathon at @sortlist with zero engineers in the room. PMs, designers, marketing leads, our exec team.
 
 We gave them Lovable and one rule: pick a workflow you actually own, ship the working version before lunch ends.
@@ -185,7 +188,7 @@ PMs fixing translations across 4 languages in one Slack message. A data analyst 
 
 The hackathon simply killed the idea that you needed to be a dev to write code and build stuff in the first place.
 
-Let's BUILD.",966.0,11,2,9,1,1,1.7342908438061042,557.0,True,,hiring & team,non-engineers shipping code hackathon,story,case_study,,medium (50-149),False,Friday,12-17,llm:claude-sonnet-session-review,24.844720496894407,reach + resonance
+Let's BUILD.",966.0,11,2,9,1,1,1.820923656927427,530.5,True,,hiring & team,non-engineers shipping code hackathon,story,case_study,,medium (50-149),False,Friday,12-17,llm:claude-sonnet-session-review,24.844720496894407,reach + resonance
 2053003435474116716,https://x.com/nifinet/status/2053003435474116716,2026-05-09T06:45:36Z,repost,short_post,RT @moretothat: This is so good. I love Derek's essays. https://t.co/SQuVXVvleC,,0,0,1218,0,0,,,True,,,,,,,very short (<15 words),True,Saturday,06-11,,,
 2053193798453195158,https://x.com/nifinet/status/2053193798453195158,2026-05-09T19:22:02Z,quote,quote_post,"The shift is not chatbot → better chatbot.
 
@@ -195,14 +198,14 @@ That’s why the agent we’re building won’t live as a text box.
 
 I want to ship it from the terminal, but the buyer still needs a rich surface to decide.
 
-Both are true.",169.0,0,0,0,0,1,0.23619846261355695,715.5,True,,AI industry & tools news,app to agent to interface,observation,opinion,,short (15-49),False,Saturday,18-23,llm:claude-sonnet-session-review,5.9171597633136095,neither
-2053910313221890511,https://x.com/nifinet/status/2053910313221890511,2026-05-11T18:49:13Z,original,x_article,https://t.co/kswxn9q346,6458.0,15,0,0,1,11,11.594254937163376,557.0,True,,outbound & cold email,agency outbound guide for 2026,how_to,tutorial,,very short (<15 words),True,Monday,18-23,llm:claude-sonnet-session-review,4.180860947661815,reach without resonance
+Both are true.",169.0,0,0,0,0,1,0.30341113105924594,557.0,True,,AI industry & tools news,app to agent to interface,observation,opinion,,short (15-49),False,Saturday,18-23,llm:claude-sonnet-session-review,5.9171597633136095,neither
+2053910313221890511,https://x.com/nifinet/status/2053910313221890511,2026-05-11T18:49:13Z,original,x_article,https://t.co/kswxn9q346,6458.0,15,0,0,1,11,12.173421300659754,530.5,True,,outbound & cold email,agency outbound guide for 2026,how_to,tutorial,,very short (<15 words),True,Monday,18-23,llm:claude-sonnet-session-review,4.180860947661815,reach without resonance
 2053977412057358377,https://x.com/nifinet/status/2053977412057358377,2026-05-11T23:15:50Z,repost,short_post,"RT @GeniusGTX: This guy has watched over 250,000 agency deals close and runs a marketplace that 600,000 agency buyers visit every month.
 
 H…",,0,0,2,0,0,,,True,,,,,,,short (15-49),False,Monday,18-23,,,
 2054189833002627522,https://x.com/nifinet/status/2054189833002627522,2026-05-12T13:19:55Z,repost,short_post,RT @vasuman: Incredible https://t.co/R6kwjgQALY,,0,0,1295,0,0,,,True,,,,,,,very short (<15 words),True,Tuesday,12-17,,,
-2054261724942151750,https://x.com/nifinet/status/2054261724942151750,2026-05-12T18:05:36Z,original,x_article,https://t.co/m4xmYeQ84A,1209.0,9,0,0,0,5,1.689727463312369,715.5,True,,agency business & scaling,9-step agency audit,list_tease,listicle,,very short (<15 words),True,Tuesday,18-23,llm:claude-sonnet-session-review,11.579818031430934,reach + resonance
-2054335816605024596,https://x.com/nifinet/status/2054335816605024596,2026-05-12T23:00:01Z,quote,quote_post,"claude code dutifully re-executing the malware on every tool call because you hit ""always allow"" back in February https://t.co/N4jl3JWgKP",215.0,0,0,0,0,0,0.2459954233409611,874.0,True,,AI industry & tools news,Claude Code always-allow security joke,observation,other,,short (15-49),True,Tuesday,18-23,llm:claude-sonnet-session-review,0.0,neither
+2054261724942151750,https://x.com/nifinet/status/2054261724942151750,2026-05-12T18:05:36Z,original,x_article,https://t.co/m4xmYeQ84A,1209.0,9,0,0,0,5,2.170556552962298,557.0,True,,agency business & scaling,9-step agency audit,list_tease,listicle,,very short (<15 words),True,Tuesday,18-23,llm:claude-sonnet-session-review,11.579818031430934,reach + resonance
+2054335816605024596,https://x.com/nifinet/status/2054335816605024596,2026-05-12T23:00:01Z,quote,quote_post,"claude code dutifully re-executing the malware on every tool call because you hit ""always allow"" back in February https://t.co/N4jl3JWgKP",215.0,0,0,0,0,0,0.3004891684136967,715.5,True,,AI industry & tools news,Claude Code always-allow security joke,observation,other,,short (15-49),True,Tuesday,18-23,llm:claude-sonnet-session-review,0.0,neither
 2055682908396884244,https://x.com/nifinet/status/2055682908396884244,2026-05-16T16:12:52Z,repost,short_post,"RT @Bouazizalex: ""A great reason for failing won't preserve one dollar for your investors, won't save one employee's job, or get you one ne…",,0,0,100,0,0,,,True,,,,,,,short (15-49),False,Saturday,12-17,,,
 2056059524897812680,https://x.com/nifinet/status/2056059524897812680,2026-05-17T17:09:25Z,reply,short_post,@antinertia https://t.co/KmaBpYqKJN,167.0,0,0,0,0,0,,,True,antinertia,company & product news,,,,promotional,very short (<15 words),True,Sunday,12-17,llm:claude-sonnet-session-review,0.0,
 2056374354263396464,https://x.com/nifinet/status/2056374354263396464,2026-05-18T14:00:26Z,repost,short_post,"RT @theallinpod: Marc Benioff to SaaS CEOs upset about AI hurting their valuations: Grow up, wipe your tears, focus on the customer

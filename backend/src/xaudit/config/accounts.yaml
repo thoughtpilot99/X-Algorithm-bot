@@ -20,7 +20,10 @@ clients:
 analysis:
   # Default window per the brief; extended window used when data allows.
   default_window_days: 90
-  extended_window_days: 180
+  extended_window_days: 365
+  # Peers: depth of each peer's timeline collected for benchmarks and "what works for similar accounts".
+  peer_window_days: 180
+  peer_max_pages: 20
   # Posts younger than this at observation time have immature view counts and
   # are excluded from baselines (they are still listed, flagged "immature").
   min_post_age_hours: 72

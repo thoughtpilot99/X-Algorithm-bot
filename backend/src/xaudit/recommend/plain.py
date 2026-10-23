@@ -352,10 +352,14 @@ def _examples(df: pd.DataFrame, seg: dict, scoped: bool, best: bool, seen: set, 
             for _, r in a.iterrows()]
 
 
-def _finding(item: dict, scoped: bool, df: pd.DataFrame, best: bool, seen: set) -> dict:
+def _finding(item: dict, scoped: bool, df: pd.DataFrame, best: bool, seen: set, check: dict, w: dict) -> dict:
+    from xaudit.analysis.algo_check import find
+
     s = item
     scope = " (comparing posts other than X Articles)" if scoped else ""
+    c = find(check, s["feature"], str(s["level"]), "ex_articles" if scoped else "all")
     return {
+        "proof": segment_proof(c, s, w),
         "headline": subject(s),
         "detail": (f"A typical one gets {views(s['median'])} views vs {views(s['median_rest'])} for the account's "
                    f"other posts — {times(s['ratio'])}{scope}."),
@@ -363,6 +367,124 @@ def _finding(item: dict, scoped: bool, df: pd.DataFrame, best: bool, seen: set) 
         "label": CLASS_PLAIN["statistical_association"],
         "examples": _examples(df, s, scoped, best, seen),
     }
+
+
+# ---------------------------------------------------------------------------
+# Proof blocks: a small table, real posts with all their counts, code links, how sure.
+def _code(w: dict, names: list[str]) -> list[dict]:
+    return [{"label": f"{n} = {w[n]['value']:g}", "where": f"{w[n]['path']}:{w[n]['line']}", "url": w[n]["permalink"]}
+            for n in names if n in w]
+
+
+def _f(v: float | None, nd: int = 2) -> str:
+    return "–" if v is None or (isinstance(v, float) and math.isnan(v)) else f"{v:,.{nd}f}"
+
+
+def segment_proof(c: dict | None, seg: dict, w: dict) -> dict | None:
+    """Proof for a working / not-working item from its algorithm check."""
+    if not c:
+        return None
+    a = c["actions_per_1k"]
+    rows = [["Typical views per post", views(c["reach"]["median"]), views(c["reach"]["median_rest"])]]
+    for k, lbl in (("replies", "Replies per 1,000 views (X weight {ReplyWeight})"),
+                   ("quotes", "Quotes per 1,000 views (X weight {QuoteWeight})"),
+                   ("reposts", "Reposts per 1,000 views (X weight {RetweetWeight})"),
+                   ("likes", "Likes per 1,000 views (X weight {FavoriteWeight})"),
+                   ("bookmarks", "Bookmarks per 1,000 views (no weight in X's code)")):
+        rows.append([lbl.format(**{n: f"{w[n]['value']:g}" for n in ("ReplyWeight", "QuoteWeight", "RetweetWeight",
+                                                                         "FavoriteWeight") if n in w}),
+                     _f(a[k]["segment"]), _f(a[k]["rest"])])
+    rows.append(["X-weighted reactions per 1,000 views", _f(a["x_weighted"]["segment"], 1), _f(a["x_weighted"]["rest"], 1)])
+    pp = c.get("weighted_per_post") or {}
+    rows.append(["X-weighted reactions per post (typical)", _f(pp.get("segment"), 0), _f(pp.get("rest"), 0)])
+    rng = (f"Likely between {seg['lo']:.1f}× and {seg['hi']:.1f}× the views of other posts"
+           if seg.get("lo") is not None and seg.get("hi") is not None else "")
+    sure = " · ".join(x for x in (rng, f"the difference {c['reach']['chance']}",
+                                   f"based on {c['n']} vs {c['n_rest']} posts") if x)
+    return {"verdict": c["verdict"], "verdict_label": c["verdict_label"], "summary": c["explanation"],
+            "table": {"columns": ["", "These posts", "Other posts"], "rows": rows},
+            "posts": [{**x, "tag": "best"} for x in c["best_posts"]] + [{**x, "tag": "weakest"} for x in c["worst_posts"]],
+            "code": _code(w, ["ReplyWeight", "QuoteWeight", "RetweetWeight", "FavoriteWeight", "ShareViaCopyLinkWeight",
+                              "FollowAuthorWeight", "ContClickDwellTimeWeight"]),
+            "sure": sure}
+
+
+def _cards(df: pd.DataFrame) -> list[dict]:
+    from xaudit.analysis.algo_check import add_weighted, post_card, weights
+
+    w = weights()
+    df = add_weighted(df, w) if w else df
+    return [post_card(r) for _, r in df.iterrows()]
+
+
+def why_proof(kind: str, d: dict, ctx: dict, w: dict) -> dict:
+    df, check = ctx["df"], ctx["check"]
+    a = df[df["is_authored"] & df["views"].notna()]
+    table, posts, names = None, [], []
+    if kind == "format":
+        items = [i for i in check.get("items", []) if i["feature"] == "format" and i["scope"] == "all"]
+        table = {"columns": ["Format", "Posts", "Typical views", "X-weighted reactions / 1,000 views", "Check"],
+                 "rows": [[FORMAT_PLAIN.get(i["level"], i["level"]), i["n"], views(i["reach"]["median"]),
+                           _f(i["actions_per_1k"]["x_weighted"]["segment"], 1), i["verdict_label"]] for i in items]}
+        posts = _cards(a[a["mature"]].nlargest(3, "views"))
+        names = ["ShareViaCopyLinkWeight", "ReplyWeight", "QuoteWeight", "FavoriteWeight", "ContClickDwellTimeWeight"]
+    elif kind == "efficiency":
+        rows = []
+        for h, x in (ctx["bench"].get("accounts") or {}).items():
+            if x.get("n"):
+                rows.append([("@" + h) + (" (this account)" if h == ctx["handle"] else ""),
+                             _f(x.get("median_replies_per_1k")), _f(x.get("median_likes_per_1k")),
+                             _f(x.get("median_bookmarks_per_1k"))])
+        table = {"columns": ["Account", "Replies / 1,000 views", "Likes / 1,000 views", "Bookmarks / 1,000 views"],
+                 "rows": rows}
+        posts = _cards(a[a["mature"] & (a["views"] >= 500)].nlargest(3, "replies"))
+        names = ["ReplyWeight", "FavoriteWeight", "BidirectionalFollowReplyWeightBoost"]
+    elif kind == "stacking":
+        order = ctx["cadence"].get("same_day_order", {})
+        table = {"columns": ["Post of the day", "Posts", "Typical result vs usual"],
+                 "rows": [[k, v.get("n"), f"{v['median']:.2f}×" if v.get("median") is not None else "–"]
+                          for k, v in order.items()]}
+        m = a[a["mature"]].sort_values("created_at").copy()
+        m["day"] = m["created_at"].dt.date
+        m["nth"] = m.groupby("day").cumcount() + 1
+        posts = _cards(m[m["nth"] >= 3].sort_values("created_at", ascending=False).head(4))
+        names = ["AuthorDiversityDecay", "AuthorDiversityFloor"]
+    elif kind == "comments":
+        cats = ctx["comments"].get("by_category", [])
+        table = {"columns": ["Kind of comment", "Comments", "Typical views", "Got a reply"],
+                 "rows": [[c["category"].replace("_", " "), c["n"], views(c.get("median_views")),
+                           pct(c["share_with_reply"]) if c.get("share_with_reply") is not None else "–"] for c in cats]}
+        conv = df[(df["reply_role"] == "conversation") & df["views"].notna()]
+        posts = _cards(conv.nlargest(3, "views")) + _cards(conv.nsmallest(2, "views"))
+        names = ["OonWeightFactor"]
+    elif kind in ("topics", "hooks"):
+        feats = ("topic",) if kind == "topics" else ("hook_type", "narrative", "educational_value")
+        scope = "ex_articles" if ctx["scoped"] else "all"
+        items = [i for i in check.get("items", []) if i["feature"] in feats and i["scope"] == scope]
+        table = {"columns": ["Group", "Posts", "Typical views", "Others' typical views", "X-weighted / 1,000 views", "Check"],
+                 "rows": [[subject(i), i["n"], views(i["reach"]["median"]), views(i["reach"]["median_rest"]),
+                           _f(i["actions_per_1k"]["x_weighted"]["segment"], 1), i["verdict_label"]]
+                          for i in sorted(items, key=lambda i: -(i["reach"]["ratio"] or 0))]}
+        names = ["ReplyWeight", "FavoriteWeight"] if kind == "topics" else ["ContClickDwellTimeWeight", "NotDwelledWeight"]
+    elif kind == "concentration":
+        top = a.nlargest(5, "views")
+        total = a["views"].sum()
+        table = {"columns": ["Post", "Views", "Share of all views"],
+                 "rows": [[f"{r['created_at']:%d %b %Y}", views(r["views"]), pct(r["views"] / total)]
+                          for _, r in top.iterrows()]}
+        posts = _cards(top.head(3))
+        names = ["ColdStartFollowerCap", "ColdStartImpressionThreshold"]
+    elif kind == "trend":
+        table = {"columns": ["Month", "Posts", "Typical views"],
+                 "rows": [[_month(m["month"]), m["authored_n"], views(m["authored_median_views"])]
+                          for m in ctx["reach"].get("monthly", [])]}
+    elif kind == "fulfilment":
+        ful = df[df["reply_role"] == "fulfilment"].sort_values("created_at", ascending=False)
+        posts = _cards(ful.head(3))
+    code = _code(w, names) + [{"label": f"{f['id']} · {f['title']}", "where": "", "url": f["url"]}
+                              for f in [{"id": x["id"], "title": x["title"], "url": x["permalink"]}
+                                        for x in d.get("algo_findings", [])]]
+    return {"table": table, "posts": posts, "code": code}
 
 
 def build_brief(handle: str) -> dict:
@@ -377,7 +499,11 @@ def build_brief(handle: str) -> dict:
     rec = load_artifact("recommendations", handle) or {}
     diags = (load_artifact("diagnostics", handle) or {}).get("items", [])
     prof = load_artifact("profile", handle) or {}
+    check = load_artifact("algo_check", handle) or {}
     p = _params()
+    from xaudit.analysis.algo_check import weights
+
+    w = weights()
 
     def seg(feature: str, level: str) -> dict | None:
         return next((s for s in segs if s["feature"] == feature and str(s["level"]) == level), None)
@@ -385,9 +511,12 @@ def build_brief(handle: str) -> dict:
     art = seg("format", "x_article")
     scoped = bool(art and art.get("signal") == "higher" and segs_ex)
     content = segs_ex if scoped else segs
-    ctx = {"seg": seg, "segments": segs, "content_segs": content, "scoped": scoped}
+    ctx = {"seg": seg, "segments": segs, "content_segs": content, "scoped": scoped, "df": df, "check": check,
+           "bench": bench, "cadence": cad, "reach": reach, "handle": handle,
+           "comments": load_artifact("comments", handle) or {}}
 
     # 1. Where the account stands
+    span_days = int((df["created_at"].max() - df["created_at"].min()).days) + 1 if len(df) else 0
     au = reach.get("segments", {}).get("authored (original + quote)", {})
     vb = reach.get("vs_baseline", {})
     tr = reach.get("trend_authored", {})
@@ -396,7 +525,7 @@ def build_brief(handle: str) -> dict:
     ppw = (cad.get("frequency") or {}).get("authored_per_week")
     stand = [
         f"A typical post gets {views(au.get('median'))} views (half of posts get more, half get fewer), "
-        f"based on {au.get('n', 0)} posts over {analysis_cfg()['extended_window_days']} days.",
+        f"based on {au.get('n', 0)} posts over {span_days} days.",
         f"{views(prof.get('followers'))} followers; about {ppw:.0f} posts a week." if ppw else
         f"{views(prof.get('followers'))} followers.",
     ]
@@ -413,6 +542,14 @@ def build_brief(handle: str) -> dict:
             "roughly steady (changes are within normal ups and downs)." if steady else
             f"falling about {round((1 - per) * 100)}% a month." if per < 1 else
             f"growing about {round((per - 1) * 100)}% a month."))
+    m = df[df["is_authored"] & df["mature"] & df["views"].notna()]
+    if span_days >= 300 and len(m):
+        end = m["created_at"].max()
+        recent = m[m["created_at"] > end - pd.Timedelta(days=182)]["views"]
+        before = m[m["created_at"] <= end - pd.Timedelta(days=182)]["views"]
+        if len(recent) >= 10 and len(before) >= 10:
+            stand.append(f"Last 6 months: a typical post got {views(recent.median())} views ({len(recent)} posts); "
+                         f"the 6 months before: {views(before.median())} ({len(before)} posts).")
     comp = {c["metric"]: c for c in bench.get("comparison", [])}
     peers = []
     for key, what in (("median_replies_per_1k", "replies per 1,000 views"),
@@ -435,8 +572,8 @@ def build_brief(handle: str) -> dict:
         return [(s, False) for s in sorted(f_rows, key=key)] + [(s, scoped) for s in sorted(o_rows, key=key)]
 
     seen: set = set()
-    working = [_finding(s, sc, df, True, seen) for s, sc in pick("higher")[:4]]
-    not_working = [_finding(s, sc, df, False, seen) for s, sc in pick("lower")[:4]]
+    working = [_finding(s, sc, df, True, seen, check, w) for s, sc in pick("higher")[:4]]
+    not_working = [_finding(s, sc, df, False, seen, check, w) for s, sc in pick("lower")[:4]]
 
     # 4. Why reach isn't coming
     by_id = {d["id"]: d for d in diags}
@@ -455,6 +592,7 @@ def build_brief(handle: str) -> dict:
             "do": PLAIN_DO.get(kind, d["recommendation"]),
             "check": PLAIN_CHECK.get(kind, d.get("success_criteria", "")),
             "sure": SURE_PLAIN.get(d["confidence"], d["confidence"]),
+            "proof": why_proof(kind, d, ctx, w),
         })
 
     # 5. What to do next (from the ranked barriers, plus the 30-day honesty note)
@@ -465,8 +603,37 @@ def build_brief(handle: str) -> dict:
                "in typical views. Smaller improvements will show a direction, not proof — keep testing."
                if mde and ppw else "")
 
-    brief = {"handle": handle, "name": clients()[handle]["name"], "stand": stand, "working": working,
+    pc = load_artifact("peer_check", handle) or {}
+    peer_rows = [r for r in pc.get("peers", []) if r.get("n")]
+    peers_section = None
+    if peer_rows:
+        art_line = ""
+        if pc.get("peers_with_articles"):
+            art_line = (f"X Articles beat the account's own other posts for {pc['articles_win']} of "
+                        f"{pc['peers_with_articles']} similar accounts that publish them.")
+        peers_section = {
+            "summary": art_line,
+            "table": {"columns": ["Account", "Posts checked", "Typical views", "Share that are X Articles",
+                                  "Articles vs their other posts"],
+                      "rows": [["@" + r["peer"], r["n"], views(r["median_views"]),
+                                pct(r["article_share"]) if r.get("article_share") is not None else "–",
+                                (f"{r['formats']['x_article']['reach_ratio']:.1f}× the views"
+                                 if "x_article" in r.get("formats", {}) else "too few Articles")]
+                               for r in peer_rows]},
+            "note": pc.get("note", ""),
+        }
+    cv = load_artifact("conversation", handle) or {}
+    if cv.get("status") == "ready":
+        vu = cv["vs_usual"]
+        conv_text = (f"Of {cv['posts_with_comments']} posts that got comments, the author answered on "
+                     f"{pct(cv['answered_share'])}. Answered posts did {vu['answered']:.2f}× the account's usual; "
+                     f"unanswered ones {vu['not_answered']:.2f}×. Posts with more comments are also more likely to "
+                     "be answered, so this is a pattern, not proof.")
+    else:
+        conv_text = cv.get("note", "")
+    brief = {"handle": handle, "peers": peers_section, "conversation": conv_text, "name": clients()[handle]["name"], "stand": stand, "working": working,
              "not_working": not_working, "why": why, "todo": todo, "test_note": honesty,
+             "check_note": check.get("proxy_note", ""), "bookmark_note": check.get("bookmark_note", ""),
              "glossary": [{"term": t, "meaning": m} for t, m in GLOSSARY]}
     save_artifact("brief", brief, handle)
     return brief

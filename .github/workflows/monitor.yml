@@ -82,9 +82,11 @@ jobs:
         id: state
         run: echo "backfill=$(uv run --quiet xaudit status --needs-backfill)" >> "$GITHUB_OUTPUT"
 
-      - name: Backfill (180 days)
+      - name: Backfill (full history, 12 months)
         if: steps.state.outputs.backfill == 'true' && steps.mode.outputs.mode != 'dry-run'
-        run: uv run xaudit ingest --live --days 180
+        run: |
+          uv run xaudit ingest --live
+          uv run xaudit status
 
       - name: Seed reviewed labels and rewrites (idempotent)
         run: |
@@ -139,7 +141,10 @@ jobs:
           fi
           git config user.name "xaudit-bot"
           git config user.email "xaudit-bot@users.noreply.github.com"
-          git add reports docs/algorithm-research.md
+          # Dashboard data (JSON only) so the snapshot page can be republished with live results.
+          rm -rf dashboard-data
+          (cd backend && uv run xaudit export-static --out ../dashboard-data)
+          git add reports docs/algorithm-research.md dashboard-data
           if git diff --cached --quiet; then echo "No report changes."; exit 0; fi
           git commit -m "Monitoring reports $(date -u +%Y-%m-%d)"
           # Code may have been pushed while the run was collecting: replay the report commit on top.

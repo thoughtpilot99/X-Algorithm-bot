@@ -159,8 +159,13 @@ def test_brief_is_plain_complete_and_traceable(seeded):
                                                  for e in w["examples"]}]
         assert not [t for t in generated if JARGON.search(t)], [t for t in generated if JARGON.search(t)][:3]
         assert not any(BLOCKED.search(t) for t in generated)
-        urls = set(prepare(h, window_days=180)["url"])
+        urls = set(prepare(h, window_days=365)["url"])
         assert all(e["url"] in urls for w in b["working"] + b["not_working"] for e in w["examples"])
+        # Every proof post is a real post of the account, and every proof names a verdict.
+        for w in b["working"] + b["not_working"]:
+            assert w["proof"] and w["proof"]["verdict"] in ("backed", "partly", "not_enough")
+            assert all(x["url"] in urls for x in w["proof"]["posts"])
+        assert all(y["proof"]["code"] for y in b["why"])
 
     # Weights quoted in plain words are the published home-mixer values.
     hm = {p["name"]: p["value"] for p in param_extract.current() if p["path"].startswith("home-mixer")}

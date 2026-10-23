@@ -42,18 +42,24 @@ svg text{font:10px sans-serif;fill:var(--muted)}
 .plain.good{border-left-color:var(--good)}.plain.bad{border-left-color:var(--bad)}h3.good{color:var(--good)}h3.bad{color:var(--bad)}
 .plain .ex{font-size:12px;margin-top:5px;padding-left:10px;border-left:2px solid var(--line)}
 h2.appendix{margin-top:56px}
+.proof{margin-top:8px;padding:8px 10px;background:var(--soft);border-radius:8px;font-size:12px}
+.proof p{margin:4px 0}
+.ptable{font-size:11px;margin:6px 0}
+.ptable th,.ptable td{padding:4px 6px}
+.verdict{display:inline-block;font-size:11px;font-weight:600;padding:1px 8px;border-radius:999px;border:1px solid var(--line);margin-top:6px}
+.v-backed{border-color:var(--good);color:var(--good)}.v-partly{border-color:var(--warn);color:var(--warn)}.v-not_enough{color:var(--muted)}
 @media print{main{padding:0 6mm}h2{break-after:avoid}.diag,.qa,table{break-inside:avoid}a{color:var(--ink)}}
 @media (max-width:700px){.cards{grid-template-columns:1fr 1fr}.cols{grid-template-columns:1fr}main{padding:24px 16px}}
 </style></head>
 <body><main>
-<div class="meta">Report C · X Account Intelligence & Algorithm Audit · generated 2026-10-23 11:31 UTC</div>
+<div class="meta">Report C · X Account Intelligence & Algorithm Audit · generated 2026-10-23 12:05 UTC</div>
 <h1>Comparative Growth Intelligence — Nicolas Finet vs Michel Lieben</h1>
 <div class="sub">Independent audits compared on normalised metrics. Metrics are never pooled across accounts.
 Algorithm repository <a href="https://github.com/xai-org/x-algorithm/tree/07d159b69109f069c85f84d39dd38e38adc040f0">xai-org/x-algorithm@07d159b</a>.</div>
 
 <h2>1. Normalised performance</h2>
 <table><tr><th>Metric</th><th class="num">@nifinet</th><th class="num">@MichLieben</th></tr>
-<tr><td>Followers (snapshot)</td><td class="num">11,613</td><td class="num">13,338</td></tr><tr><td>Median views per authored post (90d)</td><td class="num">1,183</td><td class="num">4,091</td></tr><tr><td>Median views per 1k followers (90d)</td><td class="num">101.9</td><td class="num">306.7</td></tr><tr><td>Engagements per 1k views</td><td class="num">9.2</td><td class="num">16.5</td></tr><tr><td>Likes per 1k views</td><td class="num">4.16</td><td class="num">5.71</td></tr><tr><td>Replies per 1k views</td><td class="num">0.93</td><td class="num">0.98</td></tr><tr><td>Bookmarks per 1k views</td><td class="num">2.14</td><td class="num">8.76</td></tr><tr><td>Authored posts per week</td><td class="num">6.3</td><td class="num">12.0</td></tr><tr><td>Share of output as X Articles (90d)</td><td class="num">14%</td><td class="num">33%</td></tr><tr><td>X Article median vs other formats</td><td class="num">15.12</td><td class="num">1.91</td></tr><tr><td>Reach trend per 30 days (multiplier)</td><td class="num">0.92</td><td class="num">0.83</td></tr><tr><td>Share of views from top 5% posts</td><td class="num">96%</td><td class="num">47%</td></tr><tr><td>3rd+ same-day post vs baseline</td><td class="num">0.23</td><td class="num">0.60</td></tr></table>
+<tr><td>Followers (snapshot)</td><td class="num">11,613</td><td class="num">13,338</td></tr><tr><td>Median views per authored post (90d)</td><td class="num">1,183</td><td class="num">4,091</td></tr><tr><td>Median views per 1k followers (90d)</td><td class="num">101.9</td><td class="num">306.7</td></tr><tr><td>Engagements per 1k views</td><td class="num">9.2</td><td class="num">16.5</td></tr><tr><td>Likes per 1k views</td><td class="num">4.16</td><td class="num">5.71</td></tr><tr><td>Replies per 1k views</td><td class="num">0.93</td><td class="num">0.98</td></tr><tr><td>Bookmarks per 1k views</td><td class="num">2.14</td><td class="num">8.76</td></tr><tr><td>Authored posts per week</td><td class="num">6.3</td><td class="num">12.0</td></tr><tr><td>Share of output as X Articles (90d)</td><td class="num">14%</td><td class="num">33%</td></tr><tr><td>X Article median vs other formats</td><td class="num">15.79</td><td class="num">1.91</td></tr><tr><td>Reach trend per 30 days (multiplier)</td><td class="num">0.94</td><td class="num">0.83</td></tr><tr><td>Share of views from top 5% posts</td><td class="num">96%</td><td class="num">47%</td></tr><tr><td>3rd+ same-day post vs baseline</td><td class="num">0.23</td><td class="num">0.60</td></tr></table>
 <ul class="meta"><li>Normalised metrics use views per 1,000 followers and engagement per 1,000 views; follower counts are a single 2026-10-23 snapshot.</li><li>The two accounts interact heavily (each is among the other&#39;s most-replied-to accounts), so their audiences overlap; transferability is judged per account, never by pooling metrics.</li></ul>
 
 <h2>2. Shared issues (supported for both)</h2>
@@ -67,7 +73,7 @@ Algorithm repository <a href="https://github.com/xai-org/x-algorithm/tree/07d159
 <h2>4. Content approaches</h2>
 <div class="cols"><div><h3>@nifinet — strongest and weakest segments</h3>
 <table><tr><th>Segment</th><th class="num">n</th><th class="num">Ratio</th></tr>
-<tr><td>format = x_article</td><td class="num">30</td><td class="num">15.12x</td></tr><tr><td>hook_type = how_to</td><td class="num">33</td><td class="num">8.87x</td></tr><tr><td>hook_type = story</td><td class="num">8</td><td class="num">6.24x</td></tr><tr><td>narrative = tutorial</td><td class="num">46</td><td class="num">6.10x</td></tr><tr><td>topic = AI agents &amp; GTM automation</td><td class="num">33</td><td class="num">4.18x</td></tr><tr><td>length_bucket = short (15-49)</td><td class="num">24</td><td class="num">0.18x</td></tr><tr><td>narrative = other</td><td class="num">28</td><td class="num">0.21x</td></tr><tr><td>hook_type = other</td><td class="num">24</td><td class="num">0.22x</td></tr><tr><td>topic = personal &amp; lifestyle</td><td class="num">9</td><td class="num">0.24x</td></tr></table></div><div><h3>@MichLieben — strongest and weakest segments</h3>
+<tr><td>format = x_article</td><td class="num">30</td><td class="num">15.79x</td></tr><tr><td>hook_type = how_to</td><td class="num">33</td><td class="num">8.97x</td></tr><tr><td>hook_type = story</td><td class="num">8</td><td class="num">6.31x</td></tr><tr><td>narrative = tutorial</td><td class="num">46</td><td class="num">6.10x</td></tr><tr><td>topic = AI agents &amp; GTM automation</td><td class="num">33</td><td class="num">4.32x</td></tr><tr><td>length_bucket = short (15-49)</td><td class="num">25</td><td class="num">0.17x</td></tr><tr><td>narrative = other</td><td class="num">28</td><td class="num">0.21x</td></tr><tr><td>topic = AI industry &amp; tools news</td><td class="num">13</td><td class="num">0.22x</td></tr><tr><td>hook_type = other</td><td class="num">24</td><td class="num">0.24x</td></tr></table></div><div><h3>@MichLieben — strongest and weakest segments</h3>
 <table><tr><th>Segment</th><th class="num">n</th><th class="num">Ratio</th></tr>
 <tr><td>narrative = promotion</td><td class="num">18</td><td class="num">2.68x</td></tr><tr><td>length_bucket = very short (&lt;15 words)</td><td class="num">130</td><td class="num">1.95x</td></tr><tr><td>format = x_article</td><td class="num">105</td><td class="num">1.91x</td></tr><tr><td>hook_type = how_to</td><td class="num">101</td><td class="num">1.70x</td></tr><tr><td>topic = LinkedIn &amp; social selling</td><td class="num">46</td><td class="num">1.40x</td></tr><tr><td>format = short_post</td><td class="num">10</td><td class="num">0.18x</td></tr><tr><td>length_bucket = very long (400+)</td><td class="num">37</td><td class="num">0.46x</td></tr><tr><td>format = long_post</td><td class="num">45</td><td class="num">0.53x</td></tr><tr><td>hook_type = contrarian</td><td class="num">29</td><td class="num">0.67x</td></tr></table></div></div>
 
@@ -77,7 +83,7 @@ Algorithm repository <a href="https://github.com/xai-org/x-algorithm/tree/07d159
 
 <h2>6. Transferable vs account-specific strategies</h2>
 <table><tr><th>From</th><th>To</th><th>Strategy</th><th>Basis</th></tr>
-<tr><td>@MichLieben</td><td>@nifinet</td><td>Reference-style tutorials/playbooks that earn saves (bookmark rate)</td><td>bookmarks per 1k views</td></tr><tr><td>@MichLieben</td><td>@nifinet</td><td>Higher X Article cadence</td><td>nifinet&#39;s own articles already outperform its other formats (15.1x) but make up a smaller share of output</td></tr></table>
+<tr><td>@MichLieben</td><td>@nifinet</td><td>Reference-style tutorials/playbooks that earn saves (bookmark rate)</td><td>bookmarks per 1k views</td></tr><tr><td>@MichLieben</td><td>@nifinet</td><td>Higher X Article cadence</td><td>nifinet&#39;s own articles already outperform its other formats (15.8x) but make up a smaller share of output</td></tr></table>
 <p class="note">Transfer is proposed only where the receiving account's own data already shows the mechanism working (e.g. its own articles outperform). Copying a successful post from the other account is not expected to reproduce its performance.</p>
 
 <h2>7. Top barriers side by side</h2>

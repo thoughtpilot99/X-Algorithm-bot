@@ -7,8 +7,8 @@ from datetime import UTC, datetime
 from sqlalchemy import func, select
 
 from xaudit.db.models import Classification, Post
-from xaudit.db.session import session
-from xaudit.settings import clients
+from xaudit.db.session import load_artifact, session
+from xaudit.settings import analysis_cfg, clients
 
 
 def data_status() -> dict:
@@ -26,5 +26,13 @@ def data_status() -> dict:
 
 
 def needs_backfill(min_posts: int = 100, min_history_days: int = 150) -> bool:
+    """True when history is thin, or no backfill has yet covered the configured window.
+
+    The marker matters when the console store holds less history than the window: one
+    backfill attempt is recorded and not repeated every day.
+    """
     st = data_status()["clients"]
-    return any(c["posts"] < min_posts or c["history_days"] < min_history_days for c in st.values())
+    if any(c["posts"] < min_posts or c["history_days"] < min_history_days for c in st.values()):
+        return True
+    done = load_artifact("backfill_done") or {}
+    return int(done.get("days") or 0) < analysis_cfg()["extended_window_days"]

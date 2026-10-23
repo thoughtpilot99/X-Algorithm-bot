@@ -44,4 +44,10 @@ def _run(tmp_path, import_seed):  # noqa: ANN001
     import_seed(root2)
     st = data_status()["clients"]
     assert all(v["history_days"] >= 150 and v["posts"] >= 100 for v in st.values())
-    assert not needs_backfill()
+    # Deep enough, but no backfill has covered the configured 12-month window yet.
+    assert needs_backfill()
+    from xaudit.db.session import save_artifact
+    from xaudit.settings import analysis_cfg
+
+    save_artifact("backfill_done", {"days": analysis_cfg()["extended_window_days"]})
+    assert not needs_backfill()  # attempted once; not repeated daily even if the store held less

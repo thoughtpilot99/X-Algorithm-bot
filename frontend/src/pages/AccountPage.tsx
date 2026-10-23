@@ -844,13 +844,87 @@ function Example({ e }: { e: any }) {
   );
 }
 
-function PlainItem({ w, tone }: { w: any; tone: "good" | "bad" }) {
+const VERDICT_STYLE: Record<string, string> = {
+  backed: "border-emerald-600 bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300",
+  partly: "border-amber-500 bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300",
+  not_enough: "border-slate-400 text-slate-600 dark:text-slate-300",
+};
+
+function Verdict({ code, label }: { code: string; label: string }) {
+  return <span className={`chip ${VERDICT_STYLE[code] ?? VERDICT_STYLE.not_enough}`}>{label}</span>;
+}
+
+function ProofTable({ t }: { t: { columns: string[]; rows: any[][] } }) {
+  return (
+    <div className="overflow-x-auto">
+      <table className="tbl text-xs">
+        <thead><tr>{t.columns.map((c, i) => <th key={i} className={i ? "num" : ""}>{c}</th>)}</tr></thead>
+        <tbody>{t.rows.map((r, i) => <tr key={i}>{r.map((c, j) => <td key={j} className={j ? "num" : ""}>{c}</td>)}</tr>)}</tbody>
+      </table>
+    </div>
+  );
+}
+
+function PostCounts({ e }: { e: any }) {
+  const stat = (k: string, label: string) => e[k] == null ? null : (
+    <span className="whitespace-nowrap"><b className="text-slate-900 dark:text-slate-100">{fmt.n(e[k])}</b> {label}</span>
+  );
+  return (
+    <a href={e.url} target="_blank" rel="noreferrer" className="block rounded-lg border border-slate-200 p-2.5 text-xs hover:border-slate-400 dark:border-slate-800">
+      <div className="flex items-center gap-2">
+        {e.tag && <span className={`chip ${e.tag === "best" ? "border-emerald-600 text-emerald-700 dark:text-emerald-300" : "border-rose-500 text-rose-700 dark:text-rose-300"}`}>{e.tag}</span>}
+        <span className="muted">{e.date}</span>
+      </div>
+      <p className="mt-1 line-clamp-2">{e.text}</p>
+      <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 muted tabular-nums">
+        {stat("views", "views")}{stat("replies", "replies")}{stat("quotes", "quotes")}{stat("reposts", "reposts")}{stat("likes", "likes")}{stat("bookmarks", "bookmarks")}
+      </div>
+    </a>
+  );
+}
+
+function Proof({ p, note }: { p: any; note?: string }) {
+  if (!p) return null;
+  return (
+    <details className="group mt-2">
+      <summary className="cursor-pointer list-none text-xs font-medium text-blue-700 hover:underline dark:text-blue-400">
+        <span className="group-open:hidden">Show proof ▸</span><span className="hidden group-open:inline">Hide proof ▾</span>
+      </summary>
+      <div className="mt-2 space-y-3 rounded-lg bg-slate-50 p-3 dark:bg-slate-900/60">
+        {p.summary && <p className="text-xs">{p.summary}</p>}
+        {p.table && p.table.rows?.length > 0 && <ProofTable t={p.table} />}
+        {p.posts?.length > 0 && (
+          <div>
+            <div className="mb-1 text-xs font-medium">Real posts</div>
+            <div className="grid gap-2 sm:grid-cols-2">{p.posts.map((e: any) => <PostCounts key={e.tweet_id ?? e.url} e={e} />)}</div>
+          </div>
+        )}
+        {p.code?.length > 0 && (
+          <div className="text-xs">
+            <div className="mb-1 font-medium">From X's published code</div>
+            <ul className="space-y-0.5">{p.code.map((c: any) => (
+              <li key={c.label}><a className="text-blue-700 hover:underline dark:text-blue-400" href={c.url} target="_blank" rel="noreferrer">{c.label}</a>{c.where && <span className="muted"> · {c.where}</span>}</li>
+            ))}</ul>
+          </div>
+        )}
+        {p.sure && <p className="text-xs muted"><b>How sure:</b> {p.sure}</p>}
+        {note && <p className="text-[11px] muted">{note}</p>}
+      </div>
+    </details>
+  );
+}
+
+function PlainItem({ w, tone, note }: { w: any; tone: "good" | "bad"; note?: string }) {
   return (
     <div className={`rounded-lg border border-l-4 border-slate-200 p-3 dark:border-slate-800 ${tone === "good" ? "border-l-emerald-600" : "border-l-rose-600"}`}>
-      <div className="text-sm font-semibold">{w.headline}</div>
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div className="text-sm font-semibold">{w.headline}</div>
+        {w.proof && <Verdict code={w.proof.verdict} label={w.proof.verdict_label} />}
+      </div>
       <p className="mt-0.5 text-sm">{w.detail}</p>
       <p className="mt-0.5 text-xs muted">{w.based_on} · {w.label}</p>
       {w.examples.map((e: any) => <Example key={e.url} e={e} />)}
+      <Proof p={w.proof} note={note} />
     </div>
   );
 }
@@ -860,17 +934,25 @@ function Summary({ handle }: { handle: string }) {
   if (b.error) return <ErrorBox error={b.error} />;
   if (!b.data) return <Loading what="summary" />;
   const d = b.data;
+  const note = [d.check_note, d.bookmark_note].filter(Boolean).join(" ");
   return (
     <div className="space-y-4">
       <Panel title="Where the account stands">
         <ul className="list-disc space-y-1 pl-5 text-sm">{d.stand.map((x: string) => <li key={x}>{x}</li>)}</ul>
       </Panel>
+      <div className="rounded-lg border border-slate-200 bg-white p-3 text-xs dark:border-slate-800 dark:bg-slate-950">
+        <b>How each item is checked against X's algorithm.</b> X's published ranking weights replies 5, quotes 5, reposts 1 and likes 0.66.
+        For every item we compare how many of these reactions its posts get per 1,000 views with the account's other posts.{" "}
+        <Verdict code="backed" label="Backed by X's code" /> = it also earns more (or fewer, for what's not working) of the reactions X rewards.{" "}
+        <Verdict code="partly" label="Not explained by public reactions" /> = the reach difference must come from things X also counts but nobody outside X can see (shares, follows, time spent).
+        Open "Show proof" on any item for the numbers, the real posts and the code lines.
+      </div>
       <div className="grid gap-4 md:grid-cols-2">
         <Panel title={<span className="text-emerald-700 dark:text-emerald-400">What's working</span>}>
-          <div className="space-y-2">{d.working.length ? d.working.map((w: any) => <PlainItem key={w.headline} w={w} tone="good" />) : <p className="text-sm muted">No clear pattern yet.</p>}</div>
+          <div className="space-y-2">{d.working.length ? d.working.map((w: any) => <PlainItem key={w.headline} w={w} tone="good" note={note} />) : <p className="text-sm muted">No clear pattern yet.</p>}</div>
         </Panel>
         <Panel title={<span className="text-rose-700 dark:text-rose-400">What's not working</span>}>
-          <div className="space-y-2">{d.not_working.length ? d.not_working.map((w: any) => <PlainItem key={w.headline} w={w} tone="bad" />) : <p className="text-sm muted">No clear pattern yet.</p>}</div>
+          <div className="space-y-2">{d.not_working.length ? d.not_working.map((w: any) => <PlainItem key={w.headline} w={w} tone="bad" note={note} />) : <p className="text-sm muted">No clear pattern yet.</p>}</div>
         </Panel>
       </div>
       <Panel title="Why reach isn't coming">
@@ -880,15 +962,26 @@ function Summary({ handle }: { handle: string }) {
             <dl className="mt-2 grid gap-x-4 gap-y-1.5 sm:grid-cols-[170px_1fr]">
               <dt className="text-xs muted">What we see</dt><dd>{w.we_see} <span className="text-xs muted">({w.we_see_label})</span></dd>
               <dt className="text-xs muted">What X's algorithm does</dt>
-              <dd>{w.x_code} <span className="text-xs muted">({w.x_code_label}{w.x_code_refs.length ? ": " : ""}{w.x_code_refs.map((f: any, j: number) => (
-                <span key={f.id}>{j ? ", " : ""}<a className="text-blue-600 hover:underline dark:text-blue-400" href={f.url} target="_blank" rel="noreferrer" title={f.title}>{f.id}</a></span>
-              ))})</span></dd>
+              <dd>{w.x_code} <span className="text-xs muted">({w.x_code_label})</span></dd>
               <dt className="text-xs muted">What to do</dt><dd className="font-medium">{w.do}</dd>
               <dt className="text-xs muted">How we'll know it worked</dt><dd>{w.check}</dd>
             </dl>
+            <Proof p={w.proof} />
           </li>
         ))}</ol>
       </Panel>
+      {d.peers && (
+        <Panel title="What works for similar accounts">
+          {d.peers.summary && <p className="mb-2 text-sm">{d.peers.summary}</p>}
+          <ProofTable t={d.peers.table} />
+          <p className="mt-2 text-xs muted">{d.peers.note}</p>
+        </Panel>
+      )}
+      {d.conversation && (
+        <Panel title="Answering commenters">
+          <p className="text-sm">{d.conversation}</p>
+        </Panel>
+      )}
       <Panel title="What to do next, in order">
         <ol className="list-decimal space-y-2 pl-5 text-sm">{d.todo.map((t: any) => (
           <li key={t.action}><b>{t.action}</b><div className="text-xs muted">Why: {t.why} · Check: {t.check}</div></li>

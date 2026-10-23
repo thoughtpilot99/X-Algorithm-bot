@@ -125,6 +125,22 @@ class ReplyThread(Base):
     source: Mapped[str] = mapped_column(String)
 
 
+class PostThread(Base):
+    """Replies under one of the client's own posts, from a tweet-detail scrape (conversation depth)."""
+
+    __tablename__ = "post_threads"
+
+    tweet_id: Mapped[str] = mapped_column(String, primary_key=True)  # the client's post
+    handle: Mapped[str] = mapped_column(String, index=True)
+    items_seen: Mapped[int] = mapped_column(Integer, default=0)
+    other_replies: Mapped[int] = mapped_column(Integer, default=0)
+    distinct_repliers: Mapped[int] = mapped_column(Integer, default=0)
+    author_replies: Mapped[int] = mapped_column(Integer, default=0)
+    author_first_reply_minutes: Mapped[float | None] = mapped_column(Float)
+    observed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    source: Mapped[str] = mapped_column(String)
+
+
 class Engager(Base):
     """A public reply or quote someone else made on a client's post."""
 
