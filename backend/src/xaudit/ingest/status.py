@@ -25,14 +25,29 @@ def data_status() -> dict:
     return {"clients": out, "labels": int(n_labels)}
 
 
-def needs_backfill(min_posts: int = 100, min_history_days: int = 150) -> bool:
-    """True when history is thin, or no backfill has yet covered the configured window.
+def backfill_state(min_posts: int = 100, min_history_days: int = 150) -> dict[str, str]:
+    """Per client: "ok" once its full-history timeline was collected (or history already covers the window).
 
-    The marker matters when the console store holds less history than the window: one
-    backfill attempt is recorded and not repeated every day.
+    A client whose timeline step failed stays "failed" and is retried on the next run; a client whose
+    timeline succeeded is "ok" even if the console store held less history than the window.
     """
-    st = data_status()["clients"]
-    if any(c["posts"] < min_posts or c["history_days"] < min_history_days for c in st.values()):
-        return True
+    window = analysis_cfg()["extended_window_days"]
     done = load_artifact("backfill_done") or {}
-    return int(done.get("days") or 0) < analysis_cfg()["extended_window_days"]
+    marks = done.get("clients") or {}
+    out = {}
+    for h, c in data_status()["clients"].items():
+        if c["posts"] < min_posts or c["history_days"] < min_history_days:
+            out[h] = "thin"
+        elif c["history_days"] >= window - 35 or (marks.get(h) == "ok" and int(done.get("days") or 0) >= window):
+            out[h] = "ok"
+        else:
+            out[h] = marks.get(h, "missing")
+    return out
+
+
+def missing_backfill() -> list[str]:
+    return [h for h, s in backfill_state().items() if s != "ok"]
+
+
+def needs_backfill() -> bool:
+    return bool(missing_backfill())

@@ -1,7 +1,7 @@
 import json
 from datetime import UTC, datetime, timedelta
 
-from xaudit.ingest.status import data_status, needs_backfill
+from xaudit.ingest.status import data_status, missing_backfill, needs_backfill
 from xaudit.settings import clients
 
 
@@ -49,5 +49,11 @@ def _run(tmp_path, import_seed):  # noqa: ANN001
     from xaudit.db.session import save_artifact
     from xaudit.settings import analysis_cfg
 
-    save_artifact("backfill_done", {"days": analysis_cfg()["extended_window_days"]})
-    assert not needs_backfill()  # attempted once; not repeated daily even if the store held less
+    days = analysis_cfg()["extended_window_days"]
+    hs = list(clients())
+    # One client's timeline failed: only that client is retried.
+    save_artifact("backfill_done", {"days": days, "clients": {hs[0]: "failed", **{h: "ok" for h in hs[1:]}}})
+    assert needs_backfill() and missing_backfill() == [hs[0]]
+    # Succeeded once: not repeated daily even if the store held less than the window.
+    save_artifact("backfill_done", {"days": days, "clients": {h: "ok" for h in hs}})
+    assert not needs_backfill()

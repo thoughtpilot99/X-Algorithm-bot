@@ -1,5 +1,5 @@
 # Collected data, labels, SQLite and the cloned algorithm repo stay local.
-data/
+/data/
 .env
 *.sqlite
 *.sqlite-*

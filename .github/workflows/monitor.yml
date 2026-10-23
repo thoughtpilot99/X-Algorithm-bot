@@ -85,7 +85,7 @@ jobs:
       - name: Backfill (full history, 12 months)
         if: steps.state.outputs.backfill == 'true' && steps.mode.outputs.mode != 'dry-run'
         run: |
-          uv run xaudit ingest --live
+          uv run xaudit ingest --live --missing-only
           uv run xaudit status
 
       - name: Seed reviewed labels and rewrites (idempotent)

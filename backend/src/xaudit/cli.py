@@ -80,24 +80,35 @@ def monitor(dry_run: bool = typer.Option(False, help="Skip collection; re-analys
 
 
 @app.command()
-def ingest(from_seed: bool = typer.Option(True, "--from-seed/--live"), days: int | None = None) -> None:
+def ingest(from_seed: bool = typer.Option(True, "--from-seed/--live"), days: int | None = None,
+           missing_only: bool = typer.Option(False, "--missing-only",
+                                             help="Live: only clients whose full-history backfill hasn't succeeded")) -> None:
     """Load data: from console JSON exports under data/raw/console (default) or live via XP_API_KEY."""
     if from_seed:
         from xaudit.ingest.seed_import import import_seed
 
         _print(import_seed())
-    else:
-        from datetime import UTC, datetime
+        return
+    from datetime import UTC, datetime
 
-        from xaudit.db.session import save_artifact
-        from xaudit.ingest.collectors import collect_all
-        from xaudit.ingest.status import data_status
-        from xaudit.settings import analysis_cfg
+    from xaudit.db.session import load_artifact, save_artifact
+    from xaudit.ingest.collectors import collect_all
+    from xaudit.ingest.status import data_status, missing_backfill
+    from xaudit.settings import analysis_cfg, clients
 
-        out = collect_all(days)
-        save_artifact("backfill_done", {"days": days or analysis_cfg()["extended_window_days"],
-                                        "at": datetime.now(UTC).isoformat(), "found": data_status()["clients"]})
-        _print(out)
+    handles = missing_backfill() if missing_only else list(clients())
+    if not handles:
+        _print({"backfill": "nothing missing"})
+        return
+    out = collect_all(days, handles=handles)
+    # A client counts as backfilled only when its own timeline step succeeded.
+    timeline = {r["handle"]: r.get("status") for r in out if r.get("handle") in handles and "coverage" in r}
+    prev = load_artifact("backfill_done") or {}
+    marks = {**(prev.get("clients") or {}),
+             **{h: "ok" if timeline.get(h) == "succeeded" else "failed" for h in handles}}
+    save_artifact("backfill_done", {"days": days or analysis_cfg()["extended_window_days"], "clients": marks,
+                                    "at": datetime.now(UTC).isoformat(), "found": data_status()["clients"]})
+    _print({"handles": handles, "backfill": marks, "results": out})
 
 
 @app.command("import-labels")

@@ -244,13 +244,14 @@ def collect_own_post_threads(cc: ConsoleClient, handle: str, *, cap: int = 12) -
     return {"handle": handle, "post_threads": ok, "failed": failed}
 
 
-def collect_all(days: int | None = None, *, peers: bool = True, threads: bool = True) -> list[dict]:
-    """Full live collection (also used for the first CI run)."""
+def collect_all(days: int | None = None, *, peers: bool = True, threads: bool = True,
+                handles: list[str] | None = None) -> list[dict]:
+    """Full live collection (also used for the first CI run); ``handles`` limits it to some clients."""
     cc = ConsoleClient()
     if not cc.available():
         raise ConsoleError("XP_API_KEY not set; use `xaudit ingest --from-seed` or set the key")
     days = days or analysis_cfg()["extended_window_days"]
-    cfg = clients()
+    cfg = {h: c for h, c in clients().items() if handles is None or h in handles}
     out = [collect_profiles(cc, list(cfg) + [p for c in cfg.values() for p in c.get("peers", [])])]
     for handle, c in cfg.items():
         with session() as s:
