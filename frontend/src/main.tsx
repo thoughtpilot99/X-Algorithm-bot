@@ -1,8 +1,8 @@
 import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query";
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { BrowserRouter, Navigate, NavLink, Route, Routes } from "react-router-dom";
-import { api } from "./api";
+import { BrowserRouter, MemoryRouter, Navigate, NavLink, Route, Routes } from "react-router-dom";
+import { api, STATIC } from "./api";
 import "./index.css";
 import AccountPage from "./pages/AccountPage";
 import AlgorithmPage from "./pages/AlgorithmPage";
@@ -13,13 +13,14 @@ const qc = new QueryClient({ defaultOptions: { queries: { staleTime: 5 * 60_000,
 function Shell() {
   const accounts = useQuery({ queryKey: ["accounts"], queryFn: api.accounts });
   const reports = useQuery({ queryKey: ["reports"], queryFn: api.reports });
+  const meta = useQuery({ queryKey: ["meta"], queryFn: api.meta, enabled: STATIC });
   const link = ({ isActive }: { isActive: boolean }) =>
     `rounded-md px-3 py-1.5 text-sm ${isActive ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900" : "hover:bg-slate-200 dark:hover:bg-slate-800"}`;
   const first = accounts.data?.[0]?.handle;
   return (
     <>
-      <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/90 backdrop-blur dark:border-slate-800 dark:bg-slate-950/90">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-2 px-4 py-2">
+      <header className="app-header z-40 border-b border-slate-200 bg-white/90 backdrop-blur dark:border-slate-800 dark:bg-slate-950/90">
+        <div className="page-gutter mx-auto flex max-w-7xl flex-wrap items-center gap-2 py-2">
           <span className="mr-3 text-sm font-semibold">X Audit</span>
           {accounts.data?.map((a) => (
             <NavLink key={a.handle} to={`/a/${a.handle}/overview`} className={link}>{a.name}</NavLink>
@@ -40,7 +41,13 @@ function Shell() {
           </details>
         </div>
       </header>
-      <main className="mx-auto max-w-7xl px-4 py-5">
+      {STATIC && meta.data && (
+        <div className="snapshot-band">
+          Snapshot taken {meta.data.snapshot_at.slice(0, 10)} · posts from {meta.data.data_from} to {meta.data.data_to} ·
+          public data only. Live charts per post and code search are in the full dashboard.
+        </div>
+      )}
+      <main className="page-gutter mx-auto max-w-7xl py-5">
         <Routes>
           <Route path="/" element={first ? <Navigate to={`/a/${first}/overview`} replace /> : <div className="muted text-sm">Loading…</div>} />
           <Route path="/a/:handle" element={<Navigate to="overview" replace />} />
@@ -56,9 +63,15 @@ function Shell() {
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <QueryClientProvider client={qc}>
-      <BrowserRouter>
-        <Shell />
-      </BrowserRouter>
+      {STATIC ? (
+        <MemoryRouter>
+          <Shell />
+        </MemoryRouter>
+      ) : (
+        <BrowserRouter>
+          <Shell />
+        </BrowserRouter>
+      )}
     </QueryClientProvider>
   </React.StrictMode>,
 );

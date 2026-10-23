@@ -29,6 +29,7 @@ jobs:
     env:
       XP_API_KEY: ${{ secrets.XP_API_KEY }}
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
     defaults:
       run:
         working-directory: backend
@@ -85,6 +86,18 @@ jobs:
             monthly) ARGS="--monthly --weekly --peers" ;;
           esac
           uv run xaudit monitor $ARGS
+
+      - name: Post Slack digest
+        if: success() && env.SLACK_WEBHOOK_URL != '' && inputs.mode != 'dry-run'
+        run: uv run xaudit notify-slack
+
+      - name: Tell Slack the run failed
+        if: failure() && env.SLACK_WEBHOOK_URL != ''
+        run: |
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          curl -sS -X POST -H 'Content-type: application/json' \
+            --data "{\"text\":\":warning: X audit monitoring run failed today. Logs: ${RUN_URL}\"}" \
+            "$SLACK_WEBHOOK_URL" > /dev/null
 
       - name: Regenerate algorithm research doc
         run: uv run xaudit algo-docs

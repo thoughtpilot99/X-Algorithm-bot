@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { api } from "../api";
+import { api, STATIC } from "../api";
 import { ClassBadge, fmt, Loading, Panel } from "../components/ui";
 
 const AREAS: Record<string, string> = {
@@ -57,7 +57,7 @@ export default function AlgorithmPage() {
           </div>
         )}
       </Panel>
-      <Panel title="Code search (pinned commit)">
+      {!STATIC && <Panel title="Code search (pinned commit)">
         <form className="flex gap-2" onSubmit={async (e) => { e.preventDefault(); setHits(await api.search(q)); }}>
           <input className="input flex-1" placeholder="e.g. author diversity, oon, cold start" value={q} onChange={(e) => setQ(e.target.value)} />
           <button className="btn">Search</button>
@@ -68,7 +68,7 @@ export default function AlgorithmPage() {
               <pre className="mt-1 whitespace-pre-wrap rounded bg-slate-100 p-2 dark:bg-slate-800">{h.snippet}</pre></li>
           ))}</ul>
         )}
-      </Panel>
+      </Panel>}
       <Panel title="Findings registry" right={
         <div className="flex gap-1">{Object.keys(AREAS).map((a) => (
           <button key={a} className={`btn ${area === a ? "bg-slate-200 dark:bg-slate-700" : ""}`} onClick={() => setArea(a)}>{a}. {AREAS[a]}</button>

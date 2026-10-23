@@ -1,9 +1,43 @@
+/* Audit console: neutral slate surfaces with a blue-ink accent; data set in a mono face. */
+:root {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --fg: #141a26;
+  --muted: #5b6474;
+  --line: #e2e6ec;
+  --accent: #2a55c9;
+  --band: #fff7e0;
+  --band-fg: #6b4e00;
+  --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0c1018; --surface: #121826; --fg: #e6e9ef; --muted: #98a2b3; --line: #232b3b;
+    --accent: #8aa8ff; --band: #2a2410; --band-fg: #f2d68a; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0c1018; --surface: #121826; --fg: #e6e9ef; --muted: #98a2b3; --line: #232b3b;
+  --accent: #8aa8ff; --band: #2a2410; --band-fg: #f2d68a; color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); }
+.tabular-nums, .num { font-family: var(--font-data); }
+.page-gutter { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.app-header { position: sticky; top: env(safe-area-inset-top, 0px); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 50; background: var(--surface); }
+.snapshot-band { background: var(--band); color: var(--band-fg); font-size: 12px; text-align: center;
+  padding-block: 6px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1, h2, h3 { text-wrap: balance; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer components {
-  .panel { @apply rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900; }
+  .panel { @apply min-w-0 overflow-x-auto rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900; }
   .h-panel { @apply mb-3 flex items-center justify-between gap-2 text-sm font-semibold; }
   .muted { @apply text-slate-500 dark:text-slate-400; }
   .tbl { @apply w-full text-left text-xs; }

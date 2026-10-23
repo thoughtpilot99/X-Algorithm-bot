@@ -92,6 +92,18 @@ frontend/                 React + Vite + Tailwind + Recharts dashboard
 
 Locally: `uv run xaudit monitor --dry-run` re-analyses stored data without collecting.
 
+### Daily Slack digest
+After each daily run the workflow posts a digest to a Slack channel. It covers active alerts, and for each account: followers, the last 24 hours (posts, comments, lead-magnet replies), the last 7 days against the previous 4 weeks, top and weakest posts with links, experiment status and the top barriers. If a run fails, it posts a short notice with the log link.
+
+To enable it:
+1. Create a Slack app with an **Incoming Webhook** for the channel.
+2. Add the webhook URL as the repository secret `SLACK_WEBHOOK_URL`.
+
+Without the secret the step is skipped. Preview the message locally with `uv run xaudit notify-slack --dry-run`.
+
+### Dashboard snapshot (private web page)
+`VITE_STATIC=1 npm run build` (in `frontend/`) followed by `uv run xaudit export-static` (in `backend/`) produces `frontend/dist-static/dashboard.html`. That is a single publishable page with the dashboard data exported as JSON next to it. It is published as a private claude.ai page and republished when the data changes.
+
 ## Quick start
 
 ```bash

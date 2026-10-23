@@ -82,3 +82,34 @@ def test_diagnostics_pass_guard_and_api_serves(seeded):
     assert c.get(f"/api/accounts/{h}/artifacts/diagnostics").status_code == 200
     assert c.get("/api/accounts/nobody/overview").status_code == 404
     assert c.get(f"/api/accounts/{h}/posts.csv").headers["content-type"].startswith("text/csv")
+
+
+@pytest.mark.skipif(not (ALGO_REPO_DIR / ".git").exists(), reason="algorithm repo not cloned")
+def test_static_export_writes_every_file(seeded, tmp_path):
+    from xaudit.diagnostics.engine import run as drun
+    from xaudit.recommend.compare import compare
+    from xaudit.recommend.engine import run as rrun
+    from xaudit.reports.static_export import ACCOUNT_ROUTES, ARTIFACTS, export
+
+    for h in clients():
+        drun(h)
+        rrun(h)
+    compare()
+    r = export(tmp_path)
+    for h in clients():
+        for name in ACCOUNT_ROUTES:
+            json.loads((tmp_path / "data" / h / name).read_text(encoding="utf-8"))
+        for kind in ARTIFACTS:
+            json.loads((tmp_path / "data" / h / "artifacts" / f"{kind}.json").read_text(encoding="utf-8"))
+    params = json.loads((tmp_path / "data/algo/params.json").read_text(encoding="utf-8"))
+    assert params["histories"] and r["files"] > 30
+
+
+def test_slack_digest_builds_from_stored_data(seeded):
+    from xaudit.monitor.slack import build_digest
+
+    d = build_digest()
+    assert d["text"].startswith("X audit daily digest")
+    headers = [b["text"]["text"] for b in d["blocks"] if b["type"] == "header"]
+    assert any("@nifinet" in h for h in headers) and any("@MichLieben" in h for h in headers)
+    assert len(d["blocks"]) <= 50

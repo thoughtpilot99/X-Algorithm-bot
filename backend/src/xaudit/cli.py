@@ -169,6 +169,34 @@ def algo_docs() -> None:
     typer.echo(str(write()))
 
 
+@app.command("notify-slack")
+def notify_slack(dry_run: bool = typer.Option(False, help="Print the digest instead of posting it")) -> None:
+    """Post the daily digest to Slack (needs SLACK_WEBHOOK_URL)."""
+    import os
+
+    from xaudit.monitor import slack
+
+    payload = slack.build_digest()
+    if dry_run:
+        _print(payload)
+        return
+    if not os.environ.get("SLACK_WEBHOOK_URL"):
+        typer.echo("SLACK_WEBHOOK_URL not set; digest not posted.")
+        return
+    slack.post(payload)
+    typer.echo("Slack digest posted.")
+
+
+@app.command("export-static")
+def export_static(out: Path = typer.Option(Path("../frontend/dist-static"), help="Static build folder")) -> None:
+    """Write the dashboard's data as static JSON (plus report PDFs) for a snapshot page."""
+    from xaudit.reports.static_export import export, publish_page
+
+    r = export(out)
+    page = publish_page(out) if (out / "index.html").exists() else None
+    _print({"out": r["out"], "files": r["files"], "publish_page": str(page) if page else None})
+
+
 @app.command()
 def run(pdf: bool = True) -> None:
     """Full audit from stored data: analyze -> diagnose -> report."""

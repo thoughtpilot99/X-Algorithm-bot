@@ -85,13 +85,16 @@ export interface Account {
   peers: string[];
 }
 
+/** Static snapshot build (VITE_STATIC=1): read exported JSON files instead of the API. */
+export const STATIC = import.meta.env.VITE_STATIC === "1";
+
 async function get<T>(path: string): Promise<T> {
   const r = await fetch(path);
   if (!r.ok) throw new Error(`${r.status} ${await r.text()}`);
   return r.json() as Promise<T>;
 }
 
-export const api = {
+const live = {
   accounts: () => get<Account[]>("/api/accounts"),
   overview: (h: string) => get<any>(`/api/accounts/${h}/overview`),
   artifact: <T = any>(h: string, kind: string) => get<T>(`/api/accounts/${h}/artifacts/${kind}`),
@@ -108,4 +111,32 @@ export const api = {
   curve: (id: string) => get<any[]>(`/api/posts/${id}/curve`),
   monitor: () => get<any>("/api/monitor"),
   reports: () => get<{ name: string; url: string; bytes: number }[]>("/api/reports"),
+  meta: async () => null as null | { snapshot_at: string; data_from: string; data_to: string },
 };
+
+const d = (p: string) => get<any>(`./data/${p}`);
+
+const snapshot: typeof live = {
+  accounts: () => d("accounts.json"),
+  overview: (h) => d(`${h}/overview.json`),
+  artifact: (h, kind) => d(`${h}/artifacts/${kind}.json`),
+  posts: (h) => d(`${h}/posts.json`),
+  answers: (h) => d(`${h}/answers.json`),
+  comparison: () => d("comparison.json"),
+  findings: () => d("algo/findings.json"),
+  claims: () => d("algo/claims.json"),
+  params: async (name) => {
+    const p = await d("algo/params.json");
+    return name ? { ...p, history: p.histories?.[name] ?? [] } : p;
+  },
+  search: async () => [],
+  alerts: (h) => d(`${h}/alerts.json`),
+  experiments: (h) => d(`${h}/experiments.json`),
+  followers: (h) => d(`${h}/followers.json`),
+  curve: async () => [],
+  monitor: () => d("monitor.json"),
+  reports: () => d("reports.json"),
+  meta: () => d("meta.json"),
+};
+
+export const api = STATIC ? snapshot : live;

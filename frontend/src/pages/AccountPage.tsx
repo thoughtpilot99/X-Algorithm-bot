@@ -5,7 +5,7 @@ import { NavLink, useParams } from "react-router-dom";
 import {
   CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis,
 } from "recharts";
-import { api, type Diagnostic, type Post } from "../api";
+import { api, STATIC, type Diagnostic, type Post } from "../api";
 import EvidenceDrawer from "../components/EvidenceDrawer";
 import { ClassBadge, Completeness, Confidence, ErrorBox, fmt, Loading, Panel, Stat } from "../components/ui";
 
@@ -98,7 +98,7 @@ export default function AccountPage() {
           </p>
         </header>
         {showFilters && (
-          <FilterBar filters={filters} setFilters={setFilters} topics={topics} count={filtered.length} handle={handle} />
+          <FilterBar filters={filters} setFilters={setFilters} topics={topics} count={filtered.length} handle={handle} rows={filtered} />
         )}
         {posts.error && <ErrorBox error={posts.error} />}
         {section === "overview" && <Overview o={o} handle={handle} open={setDrawer} />}
@@ -119,8 +119,40 @@ export default function AccountPage() {
   );
 }
 
-function FilterBar({ filters, setFilters, topics, count, handle }: {
-  filters: Filters; setFilters: (f: Filters) => void; topics: string[]; count: number; handle: string;
+function toCsv(rows: Post[]): string {
+  const cols: (keyof Post)[] = ["tweet_id", "created_at", "post_type", "format", "topic", "views", "likes", "replies",
+    "reposts", "bookmarks", "vs_baseline", "url", "text"];
+  const esc = (v: unknown) => {
+    const t = v == null ? "" : String(v);
+    return /[",\n]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t;
+  };
+  return [cols.join(","), ...rows.map((r) => cols.map((c) => esc(r[c])).join(","))].join("\n");
+}
+
+function CopyCsv({ rows }: { rows: Post[] }) {
+  const [state, setState] = useState<"idle" | "copied" | "manual">("idle");
+  const [text, setText] = useState("");
+  return (
+    <>
+      <button
+        className="btn"
+        onClick={() => {
+          const csv = toCsv(rows);
+          navigator.clipboard?.writeText(csv).then(() => setState("copied"), () => { setText(csv); setState("manual"); })
+            ?? (setText(csv), setState("manual"));
+        }}
+      >
+        {state === "copied" ? `Copied ${rows.length} rows` : "Copy as CSV"}
+      </button>
+      {state === "manual" && (
+        <textarea id="csv-fallback" readOnly className="input h-24 w-full" value={text} onFocus={(e) => e.currentTarget.select()} />
+      )}
+    </>
+  );
+}
+
+function FilterBar({ filters, setFilters, topics, count, handle, rows }: {
+  filters: Filters; setFilters: (f: Filters) => void; topics: string[]; count: number; handle: string; rows: Post[];
 }) {
   const qs = new URLSearchParams();
   if (filters.start) qs.set("start", filters.start);
@@ -169,7 +201,7 @@ function FilterBar({ filters, setFilters, topics, count, handle }: {
       </label>
       <button className="btn" onClick={() => setFilters({ start: "", end: "", types: [], topic: "", segment: "" })}>Reset</button>
       <span className="muted ml-auto">{count.toLocaleString()} records</span>
-      <a className="btn" href={`/api/accounts/${handle}/posts.csv?${qs}`}>Export CSV</a>
+      {STATIC ? <CopyCsv rows={rows} /> : <a className="btn" href={`/api/accounts/${handle}/posts.csv?${qs}`}>Export CSV</a>}
     </div>
   );
 }
@@ -363,7 +395,8 @@ function Trends({ handle, posts }: { handle: string; posts: Post[] }) {
 }
 
 function Curve({ id }: { id: string }) {
-  const q = useQuery({ queryKey: ["curve", id], queryFn: () => api.curve(id) });
+  const q = useQuery({ queryKey: ["curve", id], queryFn: () => api.curve(id), enabled: !STATIC });
+  if (STATIC) return <span className="muted">Views-over-time readings are shown in the live dashboard.</span>;
   if (!q.data) return <span className="muted">loading…</span>;
   return (
     <span className="muted">
