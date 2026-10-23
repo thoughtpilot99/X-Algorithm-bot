@@ -15,7 +15,7 @@ clients:
     user_id: "512156315"
     company: ColdIQ
     positioning_hint: Co-founder of ColdIQ; B2B outbound, Clay, GTM systems
-    peers: [itsalexvacca, RetentionAdam, coldemailchris, danielfazio, cbwritescopy, codyschneiderxx]
+    peers: [itsalexvacca, RetentionAdam, coldemailchris, danielfazio, cbwritescopy]
 
 analysis:
   # Default window per the brief; extended window used when data allows.

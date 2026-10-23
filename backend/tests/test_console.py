@@ -150,3 +150,69 @@ def test_llm_failure_falls_back(monkeypatch):
     monkeypatch.setenv("ANTHROPIC_API_KEY", "x")
     monkeypatch.setattr(anthropic, "Anthropic", lambda: types.SimpleNamespace(messages=Boom()))
     assert classify._llm_labels("content", [("1", "post")], "ctx") == {}
+
+
+def _profile_handler(empty_first: bool):  # noqa: ANN202
+    def handler(req):  # noqa: ANN001
+        p = req.url.path
+        if p.endswith("/jobs") and req.method == "POST":
+            return httpx.Response(200, json={"id": 9})
+        if p.endswith("/jobs/9"):
+            return httpx.Response(200, json={"status": "succeeded", "coverage": "complete"})
+        if p.endswith("/jobs/9/results"):
+            items = [] if empty_first else [{"username": "nifinet", "followers_count": 11613}]
+            return httpx.Response(200, json={"items": items, "page": {"truncated": False}})
+        if p.endswith("/jobs/9/items"):
+            return httpx.Response(200, json={"items": [{"username": "nifinet", "followers_count": 11613}]})
+        return httpx.Response(404)
+    return handler
+
+
+def test_job_items_skips_path_that_answers_empty():
+    cc = make_client(_profile_handler(empty_first=True))
+    cc._result_path = "/jobs/{id}/results"  # cached from an earlier tweets job
+    assert cc.job_items(9, kind="profiles") == [{"username": "nifinet", "followers_count": 11613}]
+    assert cc._result_path == "/jobs/{id}/items"
+
+
+def test_job_items_all_empty_returns_nothing():
+    def handler(req):  # noqa: ANN001
+        return httpx.Response(200, json={"items": []})
+
+    cc = make_client(handler)
+    assert cc.job_items(9, kind="profiles") == [] and cc._result_path is None
+
+
+def test_collect_profiles_marks_empty(tmp_path, monkeypatch):
+    from xaudit.db import session as db
+    from xaudit.ingest import collectors
+
+    # Own database: other tests share the session DB.
+    old = db.db_url()
+    monkeypatch.setenv("XAUDIT_DB_URL", f"sqlite:///{tmp_path / 't.sqlite'}")
+    db.reset_engine()
+    try:
+        def handler(req):  # noqa: ANN001
+            if req.url.path.endswith("/jobs") and req.method == "POST":
+                return httpx.Response(200, json={"id": 9})
+            if req.url.path.endswith("/jobs/9"):
+                return httpx.Response(200, json={"status": "succeeded"})
+            return httpx.Response(200, json={"items": []})
+
+        out = collectors.collect_profiles(make_client(handler), ["nifinet"])
+        assert out["status"] == "empty" and out["profiles"] == 0
+        out = collectors.collect_profiles(make_client(_profile_handler(empty_first=True)), ["nifinet"])
+        assert out == {"status": "succeeded", "profiles": 1}
+    finally:
+        monkeypatch.setenv("XAUDIT_DB_URL", old)
+        db.reset_engine()
+
+
+def test_doctor_profiles_probe():
+    def handler(req):  # noqa: ANN001
+        if "/jobs" in req.url.path:
+            return _profile_handler(empty_first=False)(req)
+        return store_handler(req)
+
+    rep = doctor.run(make_client(handler))
+    assert rep.ok and any(c.name == "profiles" and c.ok for c in rep.checks)

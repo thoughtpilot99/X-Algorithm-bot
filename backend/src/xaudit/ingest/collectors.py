@@ -92,6 +92,10 @@ def collect_profiles(cc: ConsoleClient, handles: list[str]) -> dict:
             run.status, run.error = job.status, job.error
             return {"status": job.status, "error": job.error}
         profiles = cc.job_items(job.job_id, kind="profiles")
+        if not profiles:
+            # A succeeded job with no profiles would silently stop follower tracking.
+            run.status, run.error = "empty", f"user-info job {job.job_id} succeeded but returned no profiles"
+            return {"status": run.status, "error": run.error, "profiles": 0}
         now = _now()
         with session() as s:
             for p in profiles:

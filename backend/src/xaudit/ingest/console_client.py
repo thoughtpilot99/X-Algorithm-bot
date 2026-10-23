@@ -146,8 +146,17 @@ class ConsoleClient:
     _result_path: str | None = None
 
     def job_items(self, job_id: int, kind: str = "tweets", limit: int = 100) -> list[dict]:
-        paths = [self._result_path] if self._result_path else list(self.RESULT_PATHS)
-        last: Exception | None = None
+        """Read a finished job's results, trying the known result paths.
+
+        A path is remembered only once it returns items: an endpoint that answers 200
+        with nothing for one result kind (seen live for ``profiles``) must not hide
+        the path that serves it.
+        """
+        paths = list(self.RESULT_PATHS)
+        if self._result_path:
+            paths.remove(self._result_path)
+            paths.insert(0, self._result_path)
+        answered, last = False, None
         for tmpl in paths:
             path = tmpl.format(id=job_id, kind=kind)
             out: list[dict] = []
@@ -166,8 +175,12 @@ class ConsoleClient:
                     last = e
                     continue
                 raise
-            self._result_path = tmpl
-            return out
+            answered = True
+            if out:
+                self._result_path = tmpl
+                return out
+        if answered:
+            return []
         raise ConsoleError(f"no job-results endpoint answered for job {job_id}: {last}", 404)
 
     def run(self, actor: str, payload: dict, *, timeout: float = 600) -> JobResult:

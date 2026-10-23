@@ -128,4 +128,9 @@ jobs:
           git add reports docs/algorithm-research.md
           if git diff --cached --quiet; then echo "No report changes."; exit 0; fi
           git commit -m "Monitoring reports $(date -u +%Y-%m-%d)"
-          git push
+          # Code may have been pushed while the run was collecting: replay the report commit on top.
+          for i in 1 2 3; do
+            git pull --rebase origin "${{ github.ref_name }}" && git push origin "HEAD:${{ github.ref_name }}" && exit 0
+            sleep $((i * 5))
+          done
+          echo "Could not push reports after 3 attempts"; exit 1

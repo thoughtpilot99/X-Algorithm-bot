@@ -101,5 +101,16 @@ def run(cc: ConsoleClient | None = None, handle: str = "nifinet") -> DoctorRepor
             f"honoured ({len(got)} items checked)" if ok else
             ("no items returned" if not got else "ignored — collector filters client-side and caps paging"),
             blocking=False)
+
+    # Profiles feed the follower series; a job that succeeds with no profiles is otherwise silent.
+    try:
+        job = cc.run("user-info", {"usernames": [handle]}, timeout=180)
+        profs = cc.job_items(job.job_id, kind="profiles") if job.status == "succeeded" else []
+        good = [p for p in profs if p.get("followers_count") is not None]
+        add("profiles", bool(good),
+            f"{len(good)} profile(s) via {cc._result_path}" if good else
+            f"user-info job {job.job_id} {job.status}, no profiles returned", blocking=False)
+    except ConsoleError as e:
+        add("profiles", False, f"request failed: {e}", blocking=False)
     ok = all(c.ok for c in checks if c.blocking)
     return DoctorReport(ok, checks, filters)
