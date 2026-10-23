@@ -1,0 +1,46 @@
+# Accounts under audit, their peers, and analysis settings.
+#
+# Handles were verified against the ThoughtPilot console store on 2026-10-23
+# (user_id is the numeric X id the console returns with every post).
+
+clients:
+  nifinet:
+    name: Nicolas Finet
+    user_id: "286109542"
+    company: Sortlist (Sortlist MAX, Overloop, Signals)
+    positioning_hint: B2B agency marketplace founder; AI-assisted outbound and buying signals
+    peers: [jspujji, lorenzo_pravata, jordan_ross_8F, georgeclem, wickedguro, RodmanAi]
+  MichLieben:
+    name: Michel Lieben
+    user_id: "512156315"
+    company: ColdIQ
+    positioning_hint: Co-founder of ColdIQ; B2B outbound, Clay, GTM systems
+    peers: [itsalexvacca, RetentionAdam, coldemailchris, danielfazio, cbwritescopy, codyschneiderxx]
+
+analysis:
+  # Default window per the brief; extended window used when data allows.
+  default_window_days: 90
+  extended_window_days: 180
+  # Posts younger than this at observation time have immature view counts and
+  # are excluded from baselines (they are still listed, flagged "immature").
+  min_post_age_hours: 72
+  # Minimum group size before a segment comparison is reported at all.
+  min_segment_n: 8
+  # Thresholds for "substantially above/below baseline" (multiples of rolling median).
+  above_baseline_multiple: 2.0
+  below_baseline_multiple: 0.5
+
+# Commenting Effectiveness Score — an INTERNAL DIAGNOSTIC, not an X algorithm score.
+# Components are scored 0..1 and combined with these user-editable weights.
+comment_score_weights:
+  relevance: 0.25        # parent post / author is in the client's topic cluster
+  originality: 0.25      # reply category is substantive (insight, expertise, question, disagreement)
+  observed_engagement: 0.20  # reply views/likes relative to the client's reply median
+  conversation: 0.15     # reply drew replies (public reply_count > 0)
+  timing: 0.15           # reply posted while parent is fresh (when parent time is known)
+
+llm:
+  # Used for topic / hook / reply classification and rewrite drafting.
+  # Every LLM output is cached and labelled; numbers in prose are validated.
+  model: claude-sonnet-5-5
+  max_tokens: 4096

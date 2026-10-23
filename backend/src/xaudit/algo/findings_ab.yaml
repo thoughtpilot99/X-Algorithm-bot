@@ -1,0 +1,510 @@
+# Findings for areas A (candidate retrieval) and B (ranking & engagement prediction)
+# Source: xai-org x-algorithm @ 07d159b69109f069c85f84d39dd38e38adc040f0
+# Every anchor is verified to be a substring of lines[start-1:end] of path.
+- id: A01
+  area: A
+  title: Follow graph is the sole input to in-network (Thunder) retrieval
+  mechanism: ThunderSource builds a GetInNetworkPostsRequest whose following_user_ids are the viewer's followed_user_ids (hydrated from the social graph by FollowedUserIdsQueryHydrator). Already-seen post ids are passed as exclude_tweet_ids, and max_results comes from ThunderMaxResults (default 1200 in param.rs) passed through quality_factor::apply. Posts returned are tagged ForYouInNetwork.
+  path: home-mixer/sources/thunder_source.rs
+  lines: [29, 43]
+  symbol: ThunderSource::source
+  anchor: let following_list = &query.user_features.followed_user_ids;
+  params: [ThunderMaxResults, ThunderAlgorithm]
+  status: verified
+  relevance: Only viewers who follow an account can receive its posts through this path, so follower count plausibly bounds in-network candidate supply. It says nothing about non-follower discovery, which depends on the out-of-network paths (A04-A18).
+  observable_proxy: follower count; views relative to follower count on posts
+  limitations: quality_factor::apply lives in the xai_candidate_pipeline component_library, which is not in this repo, so the effective max_results under load is unknown. ThunderSource is disabled when the request is served from cached posts. README (Experiments and Configuration) says tunable values are read from a configuration system and that cron scripts set code defaults to the primary production values; per-user experiments can still override them.
+- id: A02
+  area: A
+  title: Thunder per-author caps on in-network posts
+  mechanism: 'Thunder caps how many posts per followed author it returns: MAX_ORIGINAL_POSTS_PER_AUTHOR = 50 originals and MAX_REPLY_POSTS_PER_AUTHOR = 30 replies/reposts, with a global MAX_POSTS_TO_RETURN = 1200 (MAX_VIDEOS_TO_RETURN = 600 for video requests). thunder_service.rs uses these as upper bounds and allows a request to lower them via per_author_limits.'
+  path: thunder/config.rs
+  lines: [1, 7]
+  symbol: MAX_ORIGINAL_POSTS_PER_AUTHOR, MAX_REPLY_POSTS_PER_AUTHOR, MAX_POSTS_TO_RETURN
+  anchor: 'pub const MAX_ORIGINAL_POSTS_PER_AUTHOR: usize = 50;'
+  params: []
+  status: verified
+  relevance: Very prolific accounts could have older posts cut from a follower's in-network candidate set once the per-author cap is reached; typical posting volumes are unlikely to hit these caps.
+  observable_proxy: post timing / posting frequency per 48h window
+  limitations: 'Constants are compiled into Thunder; whether production Thunder runs with different limits is not stated. The For You ThunderSource sends per_author_limits: None, so these defaults apply there.'
+- id: A03
+  area: A
+  title: Thunder orders in-network candidates purely by recency
+  mechanism: Whatever algorithm string is requested, Thunder logs an error for unsupported values and calls score_recent, which sorts posts by created_at descending and truncates to max_results. There is no engagement-based ordering at this stage; ranking happens later in home-mixer.
+  path: thunder/thunder_service.rs
+  lines: [307, 343]
+  symbol: score_recent
+  anchor: light_posts.sort_unstable_by_key(|post| Reverse(post.created_at));
+  params: [ThunderAlgorithm]
+  status: verified
+  relevance: For viewers who follow many active accounts, older posts may fall outside the in-network candidate window before ranking, so posting time relative to a follower's session could plausibly matter.
+  observable_proxy: post timing (hour/day), post age at time of views
+  limitations: Thunder's in-memory retention is set by post_retention_seconds (default 172800 in thunder/args.rs lines 48-49); home-mixer also applies a 48h AgeFilter. How often the 1200 cap binds in practice is not observable from code.
+- id: A04
+  area: A
+  title: Viewer's recent engagement sequence feeds Phoenix retrieval
+  mechanism: RetrievalSequenceQueryHydrator fetches the viewer's aggregated user-action sequence from the user action aggregation service, with length up to MaxSeqLengthRetrieval (default 1024) and aggregation type PhoenixRetrievalAggregationType (default DENSE_WITH_LONG_DWELL). That sequence is the input PhoenixSource, PhoenixMOESource and PhoenixTopicsSource send to the retrieval model.
+  path: home-mixer/query_hydrators/retrieval_sequence_query_hydrator.rs
+  lines: [36, 61]
+  symbol: RetrievalSequenceQueryHydrator::hydrate
+  anchor: query.params.get(MaxSeqLengthRetrieval),
+  params: [EnableRetrievalSequenceHydration, MaxSeqLengthRetrieval, PhoenixRetrievalAggregationType, UserActionsClusterId]
+  status: verified
+  relevance: Out-of-network retrieval is driven by what each viewer engaged with, so an account's posts are plausibly more retrievable for viewers whose histories contain similar posts/authors. This is a viewer-side signal, not something an author controls directly.
+  observable_proxy: none — not observable from public data (viewer histories are private)
+  limitations: The aggregation service and the exact actions included per aggregation type are not in this repo; the meaning of UAS_WINDOW_TIME_MS passed here is not documented.
+- id: A05
+  area: A
+  title: Phoenix retrieval is a two-tower model over engagement history
+  mechanism: Per phoenix/README.md, the user tower encodes the viewer's engagement history (plus one user-features token) into a normalized embedding, with no learned per-user ID embedding. The candidate tower embeds posts via semantic IDs plus hashed author IDs; the index is baked into the checkpoint, and serving retrieves top-K by dot product.
+  path: phoenix/README.md
+  lines: [99, 121]
+  symbol: RecsysTwoTowerModel (user_tower, candidate_tower)
+  anchor: '4. **Similarity Search**: the serving engine retrieves top-K candidates by'
+  params: [PhoenixRetrievalInferenceClusterId]
+  status: verified
+  relevance: 'Main ML path by which non-followers can be shown an account''s posts: posts whose content/author embeddings sit near a viewer''s history embedding are more likely to be retrieved. Content similarity (semantic IDs) and author identity both enter the candidate representation.'
+  observable_proxy: views from non-followers are not public; total views vs follower count is a weak proxy
+  limitations: This is README prose; the code is phoenix/xrex/models/recsys_two_tower_model.py (RecsysTwoTowerModel, RecsysCandidateTower). The README also says retrieval is trained with favorites as the positive signal (phoenix/README.md lines 274-275). Production checkpoints, corpus and cluster configs are not published.
+- id: A06
+  area: A
+  title: 'PhoenixSource request: main and cold-start result budgets'
+  mechanism: 'PhoenixSource calls the retrieval service with PhoenixMaxResults (default 1000) for the main budget and PhoenixColdStartMaxResults (default 200) as a separate cold-start budget, optional seen-post exclusions and retrieval value-model weights. Returned candidates get a served type per dataset: HomeCold maps to ForYouPhoenixRetrievalCold and ZeroFav to ForYouPhoenixRetrievalZeroFav (served_type_for_dataset, same file lines 199-205).'
+  path: home-mixer/sources/phoenix_source.rs
+  lines: [124, 146]
+  symbol: PhoenixSource::source, served_type_for_dataset
+  anchor: query.params.get(PhoenixColdStartMaxResults),
+  params: [EnablePhoenixSource, PhoenixMaxResults, PhoenixColdStartMaxResults, PhoenixRetrievalExcludeSeenPosts, RetrievalValueModelWeights]
+  status: verified
+  relevance: A dedicated cold-start retrieval budget means low-engagement posts can plausibly be retrieved for non-followers separately from the main pool, which matters for smaller accounts.
+  observable_proxy: early views on new posts with few likes
+  limitations: How the retrieval server splits/uses the cold-start budget is inside the Phoenix serving engine and the retrieval client (component_library, not in repo). RetrievalValueModelWeights defaults to an empty string. README (Experiments and Configuration) says tunable values are read from a configuration system and that cron scripts set code defaults to the primary production values; per-user experiments can still override them.
+- id: A07
+  area: A
+  title: 'Cold-start retrieval pool: low-fav, low-view, fresh posts'
+  mechanism: cold_pool_mask keeps posts whose metadata shows view_count < max_views (default 500) and fav_count < max_favs (default 8); posts missing metadata are kept. retrieval_dataset.py combines this with fresh_post_mask(cold_start_max_age_seconds) to form the HOME_COLD slice of the home index, and the complement becomes HOME_HOT (DEFAULT_COLD_START_MAX_AGE_SECONDS = 2 * 60 * 60).
+  path: phoenix/xrex/data/cold_pool_filter.py
+  lines: [16, 51]
+  symbol: cold_pool_mask, DEFAULT_COLD_START_MAX_AGE_SECONDS
+  anchor: 'max_favs: int | None = 8,'
+  params: [PhoenixColdStartMaxResults]
+  status: verified
+  relevance: Young posts that have not yet accumulated many views or likes appear to be eligible for a separate cold-start retrieval slice, which could give small accounts' new posts some out-of-network exposure; eligibility appears to end once a post crosses the view/fav/age limits.
+  observable_proxy: views and likes in the first hours after posting; post age
+  limitations: Defaults are function defaults in training/indexing code (phoenix/xrex); whether production serving passes other values (e.g. cold_start_max_age_seconds) is not shown. HOME_COLD is built from the 1fav_1day snapshot (retrieval_dataset.py line 280), so it presumably requires the post to be in the 1fav index (see A08).
+- id: A08
+  area: A
+  title: Phoenix retrieval index admission is triggered by favorite events
+  mechanism: The rank-all candidate processor skips community posts and reposts, routes replies to separate reply indexes, and skips posts that visibility filtering would drop or that are adult (except an NSFW video index). For other posts, a Fav event source writes the post to the 1fav, 1fav_topic and 32fav (only if favoriteCount >= 32, lines 62-76) indexes; a PostCreation event writes a separate post-creation index.
+  path: phoenix-rankall-strato/columns/phoenix_rank_all/phoenixRankAllCandidateProcessor.strato
+  lines: [469, 530]
+  symbol: executeOp, build1FavIndex, build32FavIndex, buildPostCreationIndex
+  anchor: build1FavIndex(candidate, receiverStats)
+  params: []
+  status: verified
+  relevance: Getting at least one like plausibly matters for an original post to enter the 1fav retrieval index that HOME/HOME_COLD slices are built from; posts that VF would drop or that are labelled adult are not indexed there, which would limit non-follower discovery.
+  observable_proxy: like count (whether a post has >= 1 like; >= 32 likes); reply vs original post type
+  limitations: Which index each Phoenix retrieval cluster actually queries in production is configured outside this file. eventProcessing helpers (shouldDropPostByVF, isNsfwPost) are referenced but their full logic is elsewhere. lifecycle labels differ between strato files (some say Development).
+- id: A09
+  area: A
+  title: Phoenix MoE retrieval source is off by default
+  mechanism: PhoenixMOESource only runs when EnablePhoenixMOESource is true, the SID source is not enabled, the request is not in-network-only or cached, and a kill-switch decider is off. It uses a separate MoE inference cluster and tags candidates ForYouPhoenixRetrievalMoe. Defaults in param.rs are EnablePhoenixMOESource = false and PhoenixMOEMaxResults = 0.
+  path: home-mixer/sources/phoenix_moe_source.rs
+  lines: [25, 35]
+  symbol: PhoenixMOESource::enable
+  anchor: '&& !sid_source_enabled(query)'
+  params: [EnablePhoenixMOESource, PhoenixMOEMaxResults, PhoenixMoeColdStartMaxResults, PhoenixRetrievalMOEInferenceClusterId]
+  status: verified
+  relevance: With repo defaults this path contributes no candidates, so it is unlikely to explain reach for most viewers; it may apply to experiment buckets.
+  observable_proxy: none — not observable from public data
+  limitations: Experiment overrides (feature switches) can enable it for some users; the repo does not say for whom. README (Experiments and Configuration) says tunable values are read from a configuration system and that cron scripts set code defaults to the primary production values; per-user experiments can still override them.
+- id: A10
+  area: A
+  title: Phoenix topics source serves only single-topic requests
+  mechanism: PhoenixTopicsSource is enabled only for topic requests that are not bulk topic requests (and not in-network-only or cached). It sends the requested topic entity ids plus a topic-filter mode to the topic retrieval cluster (PhoenixRetrievalTopicInferenceClusterId) with a cold-start budget of 0.
+  path: home-mixer/sources/phoenix_topics_source.rs
+  lines: [26, 32]
+  symbol: PhoenixTopicsSource::enable
+  anchor: query.is_topic_request()
+  params: [PhoenixRetrievalTopicInferenceClusterId, TopicFilteringId, TopicFilteringOverrides, PhoenixMaxResults]
+  status: verified
+  relevance: Matters only on topic-filtered timeline requests; posts classified into a topic (via the 1fav_topic index, A08) may be discoverable by non-followers browsing that topic.
+  observable_proxy: none — not observable from public data
+  limitations: How topics are assigned to posts relies on classifiers/stores outside this source file.
+- id: A11
+  area: A
+  title: SimClusters source constants (score floor, seed age, result caps)
+  mechanism: SimclustersSource queries SimClusters ANN with cosine similarity over log-fav embeddings (MODEL_20M_145K_2020), ANN_MAX_NUM_RESULTS = 200 per seed, scanning up to 50 clusters. Results are kept only if score > POST_ANN_MIN_SCORE = 0.5, seeds must be no older than MAX_SEED_AGE (90 days), and the merged output is capped at MAX_RESULTS = 800.
+  path: home-mixer/sources/simclusters_source.rs
+  lines: [25, 36]
+  symbol: POST_ANN_MIN_SCORE, MAX_SEED_AGE, MAX_RESULTS, MAX_SANN_CANDIDATES
+  anchor: 'const POST_ANN_MIN_SCORE: f64 = 0.5;'
+  params: [EnableSimclustersSource, SimclustersMaxCandidateAgeHours]
+  status: verified
+  relevance: 'A second out-of-network path: posts that are cluster-similar (by who favorites them) to posts the viewer engaged with can be surfaced to non-followers. Candidate age is bounded by SimclustersMaxCandidateAgeHours (default 48).'
+  observable_proxy: likes (log-fav embeddings are favorite-based); post age
+  limitations: The SimClusters embeddings and ANN service are in simclusters/ (Scala) and their training data is not published. The OONNsfwSimclustersFilter later removes SimClusters posts from adult-flagged authors the viewer does not follow.
+- id: A12
+  area: A
+  title: SimClusters seeds come from the viewer's recent engagements
+  mechanism: Seeds are the post ids from the viewer's explicit and implicit engagement signals, sorted by engaged_at_ms (most recent first) and deduplicated; seeds older than MAX_SEED_AGE are dropped. Each seed's ANN results are filtered by POST_ANN_MIN_SCORE, limited to MAX_SANN_CANDIDATES / number_of_seeds per seed, round-robin interleaved, and truncated to 800.
+  path: home-mixer/sources/simclusters_source.rs
+  lines: [222, 252]
+  symbol: SimclustersSource::source, post_signal_ids
+  anchor: let max_per_query = (MAX_SANN_CANDIDATES / signal_ids.len()).max(1);
+  params: [SimclustersMaxCandidateAgeHours, EngagementSignalsMaxPerType]
+  status: verified
+  relevance: If viewers who engage with posts similar to an account's posts are numerous, the account's posts may be pulled in as similar candidates; engagement on an account's own posts also becomes a seed for that engager's future SimClusters retrieval.
+  observable_proxy: likes, reposts, replies, bookmarks on posts (as seeds for engagers)
+  limitations: Per-type signal caps (EngagementSignalsMaxPerType, default 15) and the upstream engagement stores (twistly) are outside this file; caching (pod and shared caches, 600s pod TTL) can delay changes.
+- id: A13
+  area: A
+  title: Explicit engagement signal types used as retrieval seeds
+  mechanism: ExplicitEngagementSignalsQueryHydrator splits the viewer's recent engaged tweets into Favorite, Retweet, Reply, Bookmark, Share and OriginalTweet (the viewer's own posts) signals, keeping EngagementSignalsMaxPerType per type. The implicit hydrator adds PhotoExpand, VideoQualityView and ImmersiveVideoQualityView. These feed SimClusters and SID seeds via post_signal_ids.
+  path: home-mixer/query_hydrators/explicit_engagement_signals_query_hydrator.rs
+  lines: [68, 96]
+  symbol: split_by_type
+  anchor: EngagementMetadata::BookmarkMetadata(m) => {
+  params: [EnableExplicitEngagementSignals, EnableImplicitEngagementSignals, EngagementSignalsMaxPerType]
+  status: verified
+  relevance: Bookmarks and shares are seed signals here even though bookmarks have no weight in the ranking value model; a viewer bookmarking a post may plausibly lead to similar posts being retrieved for that viewer later.
+  observable_proxy: bookmarks, likes, reposts, replies (counts are public; who engaged mostly is not)
+  limitations: Signals are capped per type and fetched with a 300ms timeout (HYDRATE_TIMEOUT, line 16); the store's retention is unknown.
+- id: A14
+  area: A
+  title: 'Popular-posts list: time-decayed view quality with per-author cap'
+  mechanism: 'select_popular_posts keeps posts aged 0..window_hours, scores each with quality = views * saturation / elapsed using an exponential half-life, keeps the top per_author posts per author, then the top budget overall. SelectionConfig defaults: per_author 5, budget 500, half_life_hours 8.0, floor_hours 0.5, window_hours 24.0.'
+  path: home-mixer/util/popular_posts.rs
+  lines: [36, 86]
+  symbol: SelectionConfig::default, quality, select_popular_posts
+  anchor: 'half_life_hours: 8.0,'
+  params: [EnablePopularPostsSource, PopularPostsMaxResults]
+  status: verified
+  relevance: Only authors in the popular-authors list (A15) feed this list, so for most accounts it is not a discovery path; for eligible authors, posts with high views relative to age rank higher.
+  observable_proxy: views and post age (views per hour since posting)
+  limitations: home-mixer/main.rs exposes CLI flags for per_author, budget and half_life (defaults 5, 500, 8.0); actual job flags in production are not shown. PopularPostsSource serves up to PopularPostsMaxResults (default 500) and is shared across viewers.
+- id: A15
+  area: A
+  title: Popular authors are the top fraction of active posters by followers
+  mechanism: select_top_posting_authors takes authors sorted by follower count descending and keeps the top k = ceil(active_posters_7d * fraction), with TOP_POSTING_AUTHORS_FRACTION = 0.00005. The job reads the ranked list from a BigQuery table of popular posting authors and logs the minimum follower count of the selection.
+  path: home-mixer/util/popular_authors.rs
+  lines: [11, 43]
+  symbol: select_top_posting_authors, TOP_POSTING_AUTHORS_FRACTION
+  anchor: 'pub const TOP_POSTING_AUTHORS_FRACTION: f64 = 0.00005;'
+  params: []
+  status: verified
+  relevance: Eligibility for the shared popular-posts list depends on being among the highest-follower accounts that posted in the last 7 days; most accounts will not qualify, so this path likely matters only for very large accounts.
+  observable_proxy: follower count
+  limitations: The absolute follower threshold depends on how many accounts posted in 7 days, which is not in the repo. The BigQuery table's construction is not published; the fraction can be overridden by a CLI flag.
+- id: A16
+  area: A
+  title: Popular-posts job uses original posts only
+  mechanism: The popular-posts job fetches posts for popular authors from Thunder in chunks of 20 authors with per_author_limits of 50 posts and max_replies_reposts_per_author Some(0), then keeps only originals (not replies or reposts) before fetching view counts and selecting.
+  path: home-mixer/popular_posts_job.rs
+  lines: [67, 106]
+  symbol: is_original, Job::fetch_posts
+  anchor: 'max_replies_reposts_per_author: Some(0),'
+  params: []
+  status: verified
+  relevance: Replies and reposts from popular authors are not eligible for the shared popular list.
+  observable_proxy: post type (original vs reply/repost); views
+  limitations: Job cadence is a CLI flag (default 300s); production flags unknown.
+- id: A17
+  area: A
+  title: Tweet Mixer source is disabled by default
+  mechanism: TweetMixerSource requests HOME_RECOMMENDED_TWEETS from the tweet-mixer service and keeps candidates up to MAX_POST_AGE (48h). It is gated by EnableTweetMixerSource, which defaults to false in param.rs (TweetMixerMaxResults default 800).
+  path: home-mixer/sources/tweet_mixer_source.rs
+  lines: [17, 29]
+  symbol: TweetMixerSource::enable, MAX_POST_AGE
+  anchor: 'const MAX_POST_AGE: Duration = Duration::from_secs(48 * 60 * 60);'
+  params: [EnableTweetMixerSource, TweetMixerMaxResults]
+  status: verified
+  relevance: With repo defaults it contributes no candidates, so it is unlikely to drive reach for most viewers.
+  observable_proxy: none — not observable from public data
+  limitations: Tweet-mixer's internal candidate sources are not in this repo. README (Experiments and Configuration) says tunable values are read from a configuration system and that cron scripts set code defaults to the primary production values; per-user experiments can still override them.
+- id: A18
+  area: A
+  title: Semantic-ID (SID) retrieval source seeded by engagements, off by default
+  mechanism: SidSource takes the same engagement-signal seeds as SimClusters, truncated to SidSourceMaxSeeds (default 50), and asks the SID retrieval service for posts sharing a semantic-ID prefix of at least SidSourceMinPrefixDepth (default 3), up to SidSourceMaxPerSeed (100) per seed and SidSourceMaxResults (800). EnableSidSource defaults to false; when enabled it disables the MoE source.
+  path: home-mixer/sources/sid_source.rs
+  lines: [66, 85]
+  symbol: SidSource::source
+  anchor: seed_post_ids.truncate(query.params.get(SidSourceMaxSeeds));
+  params: [EnableSidSource, SidSourceMaxSeeds, SidSourceMaxPerSeed, SidSourceMaxResults, SidSourceMinPrefixDepth]
+  status: verified
+  relevance: If enabled for a viewer, content-similar posts (same semantic-ID prefix) to what they engaged with could be surfaced, a content-based non-follower discovery path.
+  observable_proxy: none — not observable from public data
+  limitations: Off by default per param.rs; SID assignment model is in phoenix/xrex (sid code) and SID index server.
+- id: B01
+  area: B
+  title: Predicted heads consumed by the value model
+  mechanism: 'PhoenixScores lists the per-candidate predictions the value model reads: probability heads (favorite, reply, retweet, photo_expand, video_open, click, open_link, profile_click, vqv, share, share_via_dm, share_via_copy_link, dwell, quote, quoted_click, quoted_vqv, follow_author, post_unexplored, react_with_video), negative heads (not_interested, block_author, mute_author, report, not_dwelled) and continuous values (dwell_time, click_dwell_time, home_video_continuation_secs, home_profile_visit_secs).'
+  path: xai-value-model/phoenix_scores.rs
+  lines: [1, 31]
+  symbol: PhoenixScores
+  anchor: 'pub share_via_copy_link_score: Option<f64>,'
+  params: []
+  status: verified
+  relevance: These are the only engagement predictions that enter the weighted score; actions not listed (e.g. bookmark) have no direct weight in ranking.
+  observable_proxy: likes, replies, reposts, quotes (public counts only loosely track predicted probabilities)
+  limitations: The mapping from Phoenix output indices to these fields is in the component_library (PredictNextActions::candidate_scores), not in this repo. Which heads a production checkpoint emits is not published.
+- id: B02
+  area: B
+  title: Continuous action names in recsys.proto
+  mechanism: recsys.proto defines ContinuousActionName (HOME_PROFILE_VISIT_SECS, DWELL_TIME, CLICK_DWELL_TIME, HOME_VIDEO_CONTINUATION_SECS, plus ads/value names) alongside the ActionName enum of discrete actions (e.g. SERVER_TWEET_FAV = 1 at line 445). PhoenixScorer reads HomeVideoContinuationSecs and HomeProfileVisitSecs only when EnableHomeExcursionScores is true (default false).
+  path: phoenix/crates/serving/xai-recsys-proto/proto/recsys.proto
+  lines: [683, 692]
+  symbol: ContinuousActionName
+  anchor: HOME_VIDEO_CONTINUATION_SECS = 3;
+  params: [EnableHomeExcursionScores]
+  status: verified
+  relevance: Dwell time and click-dwell time are modelled as continuous values; time spent on a post (not just taps) can feed ranking via ContDwellTimeWeight and ContClickDwellTimeWeight.
+  observable_proxy: none — not observable from public data (dwell is private)
+  limitations: A second copy of recsys.proto exists under phoenix/python/common/xai-proto/proto/.
+- id: B03
+  area: B
+  title: 'Published weights: like, reply, bidirectional boost, repost'
+  mechanism: param.rs sets FavoriteWeight 0.66, ReplyWeight 5.0, BidirectionalFollowReplyWeightBoost 15.0, BidirectionalFollowDwellWeightBoost 0.0 and RetweetWeight 1.0. Each multiplies a predicted probability for the viewer, not an engagement count.
+  path: home-mixer/params/param.rs
+  lines: [345, 359]
+  symbol: FavoriteWeight, ReplyWeight, BidirectionalFollowReplyWeightBoost, BidirectionalFollowDwellWeightBoost, RetweetWeight
+  anchor: param!(FavoriteWeight, f64, "rust_home_mixer_favorite_weight", 0.66);
+  params: [FavoriteWeight, ReplyWeight, BidirectionalFollowReplyWeightBoost, BidirectionalFollowDwellWeightBoost, RetweetWeight]
+  status: verified
+  relevance: Posts a viewer is predicted to reply to get relatively large weight per unit probability; the contribution also depends on how likely each action is, which the weights do not show.
+  observable_proxy: replies, likes, reposts
+  limitations: Line 1 states values are mirrored from config defaults (last sync 2026-10-22T16:00:34Z). README (Experiments and Configuration) says tunable values are read from a configuration system and that cron scripts set code defaults to the primary production values; per-user experiments can still override them.
+- id: B04
+  area: B
+  title: 'Published weights: clicks, expands, profile click 0, VQV 0'
+  mechanism: param.rs sets PhotoExpandWeight 0.05, VideoOpenWeight 0.02, ClickWeight 0.3, OpenLinkWeight 0.2, ProfileClickWeight 0.0 and VqvWeight 0.0. With weight 0.0, predicted profile clicks and video quality views add nothing to the weighted score.
+  path: home-mixer/params/param.rs
+  lines: [360, 380]
+  symbol: PhotoExpandWeight, VideoOpenWeight, ClickWeight, OpenLinkWeight, ProfileClickWeight, VqvWeight
+  anchor: param!(VqvWeight, f64, "rust_home_mixer_vqv_weight", 0.0);
+  params: [PhotoExpandWeight, VideoOpenWeight, ClickWeight, OpenLinkWeight, ProfileClickWeight, VqvWeight]
+  status: verified
+  relevance: Under these defaults, predicted profile clicks and video quality views do not raise a post's score; link opens and post clicks contribute small weights.
+  observable_proxy: none — not observable from public data (clicks/expands are private)
+  limitations: 'VQV is additionally gated per candidate (vqv_eligible in home-mixer/util/candidates_util.rs: video duration > MinVideoDurationMs and a follower-count condition on the requesting user). README (Experiments and Configuration) says tunable values are read from a configuration system and that cron scripts set code defaults to the primary production values; per-user experiments can still override them.'
+- id: B05
+  area: B
+  title: 'Published weights: shares (copy link 20), dwell, quote'
+  mechanism: param.rs sets ShareWeight 2.0, ShareViaDmWeight 5.0, ShareViaCopyLinkWeight 20.0, DwellWeight 0.05 and QuoteWeight 5.0. share_via_copy_link has the largest positive weight in the file.
+  path: home-mixer/params/param.rs
+  lines: [381, 395]
+  symbol: ShareWeight, ShareViaDmWeight, ShareViaCopyLinkWeight, DwellWeight, QuoteWeight
+  anchor: '"rust_home_mixer_share_via_copy_link_weight",'
+  params: [ShareWeight, ShareViaDmWeight, ShareViaCopyLinkWeight, DwellWeight, QuoteWeight]
+  status: verified
+  relevance: Posts viewers are predicted to share (especially via copy link or DM) or quote receive relatively high weight per unit probability; since such actions are presumably rare, the realized effect is uncertain.
+  observable_proxy: quotes (public); shares are not public
+  limitations: Weights scale predicted probabilities whose base rates differ by action, so weight size alone does not show relative influence. README (Experiments and Configuration) says tunable values are read from a configuration system and that cron scripts set code defaults to the primary production values; per-user experiments can still override them.
+- id: B06
+  area: B
+  title: 'Published weights: follow_author, unexplored, continuous dwell'
+  mechanism: param.rs sets QuotedClickWeight 0.05, QuotedVqvWeight 0.0, FollowAuthorWeight 4.0, PostUnexploredWeight 0.015, ReactWithVideoWeight 0.0, ContDwellTimeWeight 0.006 and ContClickDwellTimeWeight 0.4. The cont_* weights multiply predicted continuous dwell values rather than probabilities.
+  path: home-mixer/params/param.rs
+  lines: [396, 437]
+  symbol: QuotedClickWeight, QuotedVqvWeight, FollowAuthorWeight, PostUnexploredWeight, ReactWithVideoWeight, ContDwellTimeWeight, ContClickDwellTimeWeight
+  anchor: '"rust_home_mixer_follow_author_weight",'
+  params: [QuotedClickWeight, QuotedVqvWeight, FollowAuthorWeight, PostUnexploredWeight, ReactWithVideoWeight, ContDwellTimeWeight, ContClickDwellTimeWeight]
+  status: verified
+  relevance: Predicted probability that a viewer follows the author is rewarded, which could favour posts that convert non-followers; predicted dwell also contributes. PostUnexplored applies only to in-network candidates in home-mixer (see B17).
+  observable_proxy: follower growth after posts (weak, aggregate proxy); dwell not observable
+  limitations: Units/scale of predicted dwell_time and click_dwell_time are not documented. README (Experiments and Configuration) says tunable values are read from a configuration system and that cron scripts set code defaults to the primary production values; per-user experiments can still override them.
+- id: B07
+  area: B
+  title: Published negative weights
+  mechanism: param.rs sets NotInterestedWeight -52.272, BlockAuthorWeight -31.2, MuteAuthorWeight -58.8, ReportWeight -234.0 and NotDwelledWeight -0.02. These multiply the viewer's predicted probability of each negative action.
+  path: home-mixer/params/param.rs
+  lines: [439, 463]
+  symbol: NotInterestedWeight, BlockAuthorWeight, MuteAuthorWeight, ReportWeight, NotDwelledWeight
+  anchor: param!(ReportWeight, f64, "rust_home_mixer_report_weight", -234.0);
+  params: [NotInterestedWeight, BlockAuthorWeight, MuteAuthorWeight, ReportWeight, NotDwelledWeight]
+  status: verified
+  relevance: Content a viewer is predicted to mark not-interested, mute, block or report is pushed down for that viewer; per the code comments, this is personalized rather than a global count-based penalty.
+  observable_proxy: none — not observable from public data (negative feedback is private)
+  limitations: See B08 for the authors' caution against reading weight ratios as count equivalences. README (Experiments and Configuration) says tunable values are read from a configuration system and that cron scripts set code defaults to the primary production values; per-user experiments can still override them.
+- id: B08
+  area: B
+  title: Weights multiply predicted probabilities; only Home Timeline engagement counts
+  mechanism: The param.rs comment says each weight multiplies a predicted probability (or continuous value) and not raw engagement counts, so ratios such as report vs like are not count equivalences. It adds that the baseline report probability is more than 1000x lower than a like, and that for an engagement to count in the recommendation system it must happen on a post served in Home Timeline.
+  path: home-mixer/params/param.rs
+  lines: [316, 344]
+  symbol: weights comment block
+  anchor: it must take place on a post served in Home Timeline. Directly
+  params: []
+  status: verified
+  relevance: Coordinated engagement from people navigating directly to a post is described as having no ranking impact; reach depends on per-viewer predicted actions, not totals.
+  observable_proxy: none — public counts do not separate Home Timeline engagement from other surfaces
+  limitations: The same comment appears in xai-value-model/scoring.rs (lines 28-56) and README.md lines 353-355. The '468' example matches 234/0.5 (the vm-ranker/params.rs favorite default), whereas param.rs now has 0.66 (inferred arithmetic). The training-label pipeline that enforces the Home Timeline rule is not shown in this file.
+- id: B09
+  area: B
+  title: 'compute_weighted_score: weighted sum with eligibility gates'
+  mechanism: compute_weighted_score sums apply(score, weight) = score.unwrap_or(0.0) * weight across all heads. VQV and quoted VQV weights are zeroed for ineligible candidates; post_unexplored applies only in-network unless post_unexplored_include_out_of_network is set; reply and dwell weights come from reply_weight_for / dwell_weight_for (bidirectional boost). Continuous video/profile terms are products of a probability and a continuous value.
+  path: xai-value-model/scoring.rs
+  lines: [73, 113]
+  symbol: compute_weighted_score
+  anchor: apply(scores.reply_score, weights.reply_weight_for(candidate)),
+  params: [ReplyWeight, DwellWeight, PostUnexploredWeight, VqvWeight, QuotedVqvWeight]
+  status: verified
+  relevance: A post's base score is a linear blend of predicted actions for the specific viewer; missing heads contribute 0.
+  observable_proxy: likes, replies, reposts, quotes as weak proxies of predicted heads
+  limitations: Model calibration and head availability in production are unknown.
+- id: B10
+  area: B
+  title: offset_score and NEGATIVE_SCORES_OFFSET
+  mechanism: offset_score adds NEGATIVE_SCORES_OFFSET (0.001, weights.rs line 4) to non-negative combined scores. Negative combined scores are mapped to (combined + negative_sum) / total_sum * 0.001, i.e. into the range below the offset, where negative_sum is the magnitude of the negative weights. unoffset_score inverts this.
+  path: xai-value-model/scoring.rs
+  lines: [161, 181]
+  symbol: offset_score, unoffset_score, NEGATIVE_SCORES_OFFSET
+  anchor: (combined_score + w.negative_sum()) / total_sum * NEGATIVE_SCORES_OFFSET
+  params: []
+  status: verified
+  relevance: Posts whose predicted negatives outweigh positives for a viewer are compressed below every net-positive post, so they would rank under all net-positive candidates for that viewer.
+  observable_proxy: none — not observable from public data
+  limitations: home-mixer/params/config.rs line 43 duplicates the 0.001 constant.
+- id: B11
+  area: B
+  title: vm-ranker/params.rs defaults conflict with home-mixer param.rs
+  mechanism: 'vm-ranker/params.rs declares the same feature-switch keys with different compiled defaults: FavoriteWeight 0.5 (vs 0.66), VideoOpenWeight 0.07 (vs 0.02), ContDwellTimeWeight 0.004 (vs 0.006), PostUnexploredWeight 0.02 (vs 0.015) and NotInterestedWeight -47.52 (vs -52.272). Other weights in this range match, and it adds VideoContinuationWeight, UserVideoContinuationWeight and ProfileVisitSecsWeight at 0.0.'
+  path: vm-ranker/params.rs
+  lines: [3, 132]
+  symbol: FavoriteWeight, VideoOpenWeight, ContDwellTimeWeight, PostUnexploredWeight, NotInterestedWeight
+  anchor: param!(FavoriteWeight, f64, "rust_home_mixer_favorite_weight", 0.5);
+  params: [FavoriteWeight, VideoOpenWeight, ContDwellTimeWeight, PostUnexploredWeight, NotInterestedWeight]
+  status: verified
+  relevance: Which defaults apply in production is ambiguous from code alone; an audit should not treat either file's like weight as certain.
+  observable_proxy: none — not observable from public data
+  limitations: vm-ranker loads feature switches from a synced rust_home_mixer.yml (vm-ranker/config_sync.rs), so live values may override both sets of compiled defaults. Unlike param.rs, vm-ranker/params.rs has no 'last sync' header, so it may be stale (inferred). README (Experiments and Configuration) says tunable values are read from a configuration system and that cron scripts set code defaults to the primary production values; per-user experiments can still override them.
+- id: B12
+  area: B
+  title: Author diversity decay and out-of-network discount (vm-ranker)
+  mechanism: 'vm-ranker defaults: EnableAuthorDiversity true with AuthorDiversityDecay 0.5 and AuthorDiversityFloor 0.25, applied as (1 - floor) * decay^k + floor for an author''s k-th post in the slate (scoring.rs diversity_multiplier). OonWeightFactor 0.75 multiplies out-of-network posts and, with EnableOonRescoreForInNetworkRepliesRetweets true, in-network replies/reposts; topic requests use TopicOonWeightFactor 0.5.'
+  path: vm-ranker/params.rs
+  lines: [169, 228]
+  symbol: AuthorDiversityDecay, AuthorDiversityFloor, OonWeightFactor, TopicOonWeightFactor, NewUserOonWeightFactor
+  anchor: '"rust_home_mixer_oon_weight_factor",'
+  params: []
+  status: verified
+  relevance: A non-follower sees an account's post at a 0.75 multiplier relative to an identical in-network post, and several posts from the same author in one slate get progressively discounted.
+  observable_proxy: posting frequency (multiple posts per session window); follower count
+  limitations: These params are vm-ranker-only names (not in home-mixer param.rs); home-mixer's local value model disables author diversity and OON rescoring (B17), so on the RPC-failure fallback path these multipliers are not applied. NewUserAgeThresholdSecs defaults to 0, effectively disabling the new-user OON factor. README (Experiments and Configuration) says tunable values are read from a configuration system and that cron scripts set code defaults to the primary production values; per-user experiments can still override them.
+- id: B13
+  area: B
+  title: ComputeValueModel default false is overridden by the request flag
+  mechanism: 'vm-ranker computes the value model when req.compute_value_model is true or the ComputeValueModel param is true (default false in vm-ranker/params.rs). home-mixer''s RequestShape::build always sets compute_value_model: true with value_model_id "dpp", so the vm-ranker value model runs regardless of the param default; otherwise vm-ranker would pass through home-mixer''s scores.'
+  path: vm-ranker/scoring/mod.rs
+  lines: [31, 35]
+  symbol: rank, ComputeValueModel
+  anchor: req.compute_value_model || params.as_ref()
+  params: []
+  status: verified
+  relevance: Means the vm-ranker weights, author diversity and OON factor (B11/B12) are the ones applied on the normal path, followed by DPP diversity reordering (DppEnabled true, DppTheta 0.65 in vm-ranker/params.rs lines 235-247).
+  observable_proxy: none — not observable from public data
+  limitations: If vm-ranker has no resolved config it falls back to upstream scores (reason no_config); home-mixer/scorers/vm_ranker_request.rs lines 37-45 hold the request flag.
+- id: B14
+  area: B
+  title: Bidirectional (mutual) follow reply boost history
+  mechanism: The doc says the boost raises the weight on the predicted probability that a viewer replies to an original post from someone they mutually follow. An A/B test from July 10, 2026 tried values 5, 10, 15, 20; a value of 20 rolled out broadly on July 13; on July 24, 2026 it was set to 15. A dwell boost was tested but not shipped broadly.
+  path: docs/BIDIRECTIONAL_BOOST_CHANGE.md
+  lines: [5, 11]
+  symbol: BidirectionalFollowReplyWeightBoost
+  anchor: we set the bidirectional follow reply boost value to 15 instead of 20.
+  params: [BidirectionalFollowReplyWeightBoost, BidirectionalFollowDwellWeightBoost, EnableBidirectionalFollowHydration]
+  status: verified
+  relevance: Original posts may rank higher for mutual followers who are likely to reply, which favours accounts with many mutual-follow relationships; it does not affect non-followers.
+  observable_proxy: replies from accounts the author follows back (partially observable)
+  limitations: The doc reports 'great initial results' without metrics. Some users were still in other boost arms per the doc; current arm allocation is unknown.
+- id: B15
+  area: B
+  title: 'Bidirectional boost eligibility: mutual-follow original posts only'
+  mechanism: reply_weight_for returns reply + bidirectional_follow_reply_weight_boost when the boost is non-zero and the candidate is bidirectional_boost_eligible, defined in inputs.rs as not a reply, not a repost, and is_mutual_follow_author. Mutual status is hydrated by BidirectionalFollowHydrator (EnableBidirectionalFollowHydration default true).
+  path: xai-value-model/weights.rs
+  lines: [84, 100]
+  symbol: ValueModelWeights::reply_weight_for, dwell_weight_for
+  anchor: return self.reply + self.bidirectional_follow_reply_weight_boost;
+  params: [ReplyWeight, BidirectionalFollowReplyWeightBoost, BidirectionalFollowDwellWeightBoost, EnableBidirectionalFollowHydration]
+  status: verified
+  relevance: With ReplyWeight 5.0 and boost 15.0 the effective reply weight for eligible posts is 20.0 in home-mixer defaults (arithmetic); only original posts benefit, not the author's replies or reposts.
+  observable_proxy: reply counts on original posts; mutual-follow relationships (partially public)
+  limitations: Mutual-follow check uses the social graph at request time; failures return errors for the hydrator.
+- id: B16
+  area: B
+  title: Phoenix ranking transformer with candidate isolation
+  mechanism: The ranker attention mask lets history and candidate queries attend to history keys, while a candidate may attend to candidate keys only at its own position (q_pos == kv_pos). Per README, this makes a candidate's score independent of which other posts are in the batch.
+  path: phoenix/xrex/pallas/ranker_attention_utils.py
+  lines: [49, 56]
+  symbol: history_candidate_mask
+  anchor: candidate_self_mask = q_is_candidate & kv_is_candidate & (q_pos == kv_pos)
+  params: [PhoenixInferenceClusterId, MaxSeqLengthScoring, PhoenixAggregationType]
+  status: verified
+  relevance: A post's predicted engagement depends on the viewer's history and the post, not on competing posts; competition only matters later via sorting, diversity and DPP.
+  observable_proxy: none — not observable from public data
+  limitations: phoenix/README.md lines 129-235 describe the mask (user-token handling there is described at the README level). Production checkpoints and model sizes are not published; several attention kernel variants exist in phoenix/xrex/pallas/.
+- id: B17
+  area: B
+  title: home-mixer local value model hard-codes several terms to 0/off
+  mechanism: weights_for in home-mixer sets video_continuation, user_video_continuation and profile_visit_secs to 0.0, post_unexplored_include_out_of_network false, enable_author_diversity false (decay/floor 1.0), oon_rescore_in_network_replies_retweets false and multiplier_pre_offset false, while reading the other weights from param.rs.
+  path: home-mixer/scorers/value_model.rs
+  lines: [28, 49]
+  symbol: weights_for
+  anchor: 'profile_visit_secs: 0.0,'
+  params: [PostUnexploredWeight, MinVideoDurationMs, EnableQuotedVqvDurationCheck]
+  status: verified
+  relevance: Predicted video-continuation seconds and profile-visit seconds do not affect the local score; author diversity and OON discounting are left to vm-ranker.
+  observable_proxy: none — not observable from public data
+  limitations: vm-ranker reads its own VideoContinuationWeight/UserVideoContinuationWeight/ProfileVisitSecsWeight (all default 0.0), so those terms are also zero on the vm-ranker path under defaults.
+- id: B18
+  area: B
+  title: 'Scorer order: PhoenixScorer, ImmersiveVideoScorer, VMRanker'
+  mechanism: PhoenixCandidatePipeline runs scorers in the order PhoenixScorer (per-action predictions), ImmersiveVideoScorer (immersive predictions for carousel videos, only when the video carousel is enabled), then VMRanker (local weighted score + cold start, then the vm-ranker RPC).
+  path: home-mixer/candidate_pipeline/phoenix_candidate_pipeline.rs
+  lines: [475, 476]
+  symbol: PhoenixCandidatePipeline::build_with_clients (scorers)
+  anchor: vec![phoenix_scorer, immersive_video_scorer, vm_ranker];
+  params: [EnableRanking, EnableVideoCarousel]
+  status: verified
+  relevance: Pre-scoring filters run before this, so a post removed by filters is never scored; final order comes from VMRanker's score, then TopKScoreSelector.
+  observable_proxy: none — not observable from public data
+  limitations: README's diagram names a 'RankingScorer' step; in this code that logic lives inside VMRanker (value_model + author_cold_start) and vm-ranker. VMRanker is gated by EnableRanking (default true).
+- id: B19
+  area: B
+  title: Local-score fallback when the vm-ranker RPC fails
+  mechanism: If the vm-ranker call fails, VMRanker logs a warning, records a local_score_fallback metric and serves the locally computed scores (home-mixer weighted score with cold-start lift). Candidates missing from a successful response also keep local scores. Separately, VMRankerEnableFallback (default false) only controls retrying via DNS after an xDS failure.
+  path: home-mixer/scorers/vm_ranker.rs
+  lines: [107, 113]
+  symbol: VMRanker::score
+  anchor: '"VMRanker rank failed; serving local weighted scores"'
+  params: [VMRankerEnableFallback, VMRankerClusterId]
+  status: verified
+  relevance: On fallback, author diversity, OON discount and DPP reordering are not applied (B17), so ranking could differ for those requests; frequency is unknown.
+  observable_proxy: none — not observable from public data
+  limitations: Fallback rates are only in internal metrics.
+- id: B20
+  area: B
+  title: New-author cold-start lift with Thompson sampling
+  mechanism: Eligible posts are originals (not replies/reposts) from authors with followers <= ColdStartFollowerCap, no older than ColdStartMaxPostAgeSecs, with view_count_on_home < ColdStartImpressionThreshold, ranked within LowImpressionsMaxPositionRatio of non-zero scores, and in the viewer's experiment corpus. One post is picked (Thompson sampling over Beta(alpha0 + favs, beta0 + views - favs), then highest score among the top ts_top_k) and its score is raised to at least the score at a random rank in [slot_min, slot_max) chosen by cold_start_target (lines 216-226).
+  path: home-mixer/scorers/author_cold_start.rs
+  lines: [243, 334]
+  symbol: sample_reward, pick_thompson, apply_cold_start
+  anchor: .is_some_and(|imp| imp < params.impression_threshold)
+  params: [EnableViewerColdStart, EnableColdStartThompsonSampling, ColdStartFollowerCap, ColdStartImpressionThreshold, ColdStartMaxPostAgeSecs, LowImpressionsMaxPositionRatio, ColdStartSlotMin, ColdStartSlotMax, ColdStartBetaAlpha0, ColdStartBetaBeta0, ColdStartTsTopK, ColdStartImpressionScale]
+  status: verified
+  relevance: Smaller accounts' fresh, low-impression original posts can be lifted into a mid-feed slot for some viewers; among eligible posts, a higher like-to-view ratio raises the sampled reward.
+  observable_proxy: follower count; likes and views in the first hours after posting; post age
+  limitations: At most one post per request is lifted. Corpus eligibility depends on experiment arms (PhoenixMoeCodivertViewerIsTreatment/Control; AuthorIsTreatment/Control); with both viewer flags false the viewer is in Holdout, where all authors are corpus-eligible. view_count_on_home comes from the engagement-counts service (not in repo). In vm-ranker the lift is applied before the author-diversity and OON multipliers (xai-value-model/scoring.rs lines 315-327), so a lifted out-of-network post is still discounted.
+- id: B21
+  area: B
+  title: Cold-start parameter defaults
+  mechanism: 'param.rs defaults: ColdStartImpressionThreshold 200, ColdStartSlotMin 15, ColdStartSlotMax 16, ColdStartFollowerCap 50000, ColdStartMaxPostAgeSecs 7200, LowImpressionsMaxPositionRatio 0.97, EnableViewerColdStart true, EnableColdStartThompsonSampling true, ColdStartBetaAlpha0 0.75, ColdStartBetaBeta0 49.25, ColdStartTsTopK 2, ColdStartImpressionScale 1.0.'
+  path: home-mixer/params/param.rs
+  lines: [538, 617]
+  symbol: ColdStart* params
+  anchor: '"rust_home_mixer_cold_start_follower_cap",'
+  params: [ColdStartImpressionThreshold, ColdStartSlotMin, ColdStartSlotMax, ColdStartFollowerCap, ColdStartMaxPostAgeSecs, LowImpressionsMaxPositionRatio, EnableViewerColdStart, EnableColdStartThompsonSampling, ColdStartBetaAlpha0, ColdStartBetaBeta0, ColdStartTsTopK, ColdStartImpressionScale]
+  status: verified
+  relevance: Under these defaults the lift targets posts under 2 hours old, with fewer than 200 home views, from accounts with at most 50000 followers; the prior mean alpha0/(alpha0+beta0) is 0.015 (arithmetic).
+  observable_proxy: follower count; views and likes within the first 2 hours
+  limitations: view_count_on_home is not the public view count; public views may include other surfaces. README (Experiments and Configuration) says tunable values are read from a configuration system and that cron scripts set code defaults to the primary production values; per-user experiments can still override them.

@@ -1,0 +1,423 @@
+# Common public claims about the X algorithm, checked against
+# x-algorithm @ 07d159b69109f069c85f84d39dd38e38adc040f0.
+# "not_found_in_repo" means absent from this public code only; it is not proof
+# that the behaviour is absent in production. Parameter values cited are code
+# defaults; the README (lines 418) says param.rs defaults are synced to primary
+# production values by cron, but experiments can differ.
+
+- id: K01
+  claim: "X uses a TweepCred-style reputation score for accounts"
+  verdict: partially_supported
+  explanation: >-
+    There is no "TweepCred" in this repo, but user-cred-v2 computes a PageRank-based
+    per-account score (0-100) from follow edges, with premium accounts and
+    like/repost engagement in the teleport set. In this code the score is consumed by
+    spam/abuse systems as an exemption threshold, not by the For You value model.
+  evidence:
+    - path: user-cred-v2/UserCredV2.scala
+      lines: [9, 20]
+      anchor: "else ScoreIntercept + ScoreSlope * scala.math.log(mass)"
+      note: Score is a log transform of PageRank mass clamped to 0-100.
+    - path: botmaker-rules/scarecrow/derived-feature/IsHighPageRankUser.df
+      lines: [1, 28]
+      anchor: "Coalesce(:userCredScore, -1) >= HighPageRankThreshold"
+      note: Scarecrow uses the score as a high-PageRank exemption.
+    - path: xai-value-model/inputs.rs
+      lines: [3, 17]
+      anchor: "pub struct CandidateScoringInputs {"
+      note: Value-model inputs contain no cred or reputation field.
+  searched: "rg -i tweepcred (no matches); rg -n -i 'cred|page_?rank' home-mixer vm-ranker xai-value-model (no ranking use)"
+
+- id: K02
+  claim: "TweepCred below 65 limits an account to 3 tweets being considered"
+  verdict: not_found_in_repo
+  explanation: >-
+    No TweepCred, no threshold of 65, and no per-author cap of 3 tweets were found in
+    the published ranking code. The user-cred thresholds visible here are 54 (scarecrow
+    high-PageRank), 50.0 (abuse-enforcement skip) and 66 (Grox reply-label
+    exemption), and they gate spam labelling, not tweet counts. Absence here does not
+    prove absence in production.
+  evidence:
+    - path: abuse-enforcement-service/service-lib/rules/enforcement_user.yaml
+      lines: [32, 38]
+      anchor: "|| cred.score >= 50.0"
+      note: Cred threshold used to skip enforcement, not to cap tweets.
+    - path: grox/flows/reply_spam/constants.py
+      lines: [9, 9]
+      anchor: "RISKY_HIGH_VIZ_REPLY_EXEMPT_MIN_PAGE_RANK_SCORE = 66"
+      note: Cred threshold exempting authors from a reply label.
+  searched: "rg -i tweepcred; rg -n '\\b65\\b' home-mixer vm-ranker xai-value-model"
+
+- id: K03
+  claim: "Posts with external links get a 30-50% reach penalty"
+  verdict: not_found_in_repo
+  explanation: >-
+    The published weighted score has no link-penalty term; open_link is a positive
+    head (weight 0.2). A has_url content feature exists only in an experimental
+    debias payload that is off by default and is not read by the published value
+    model. Link-specific effects could still arise from model predictions or
+    URL-quality spam rules, which this does not rule out.
+  evidence:
+    - path: home-mixer/params/param.rs
+      lines: [373, 373]
+      anchor: 'param!(OpenLinkWeight, f64, "rust_home_mixer_open_link_weight", 0.2);'
+      note: Predicted link opens carry a positive weight.
+    - path: home-mixer/params/param.rs
+      lines: [502, 507]
+      anchor: '"rust_home_mixer_vm_ranker_send_debias_inputs",'
+      note: Debias inputs (which include has_url) default to false.
+    - path: home-mixer/models/content_features.rs
+      lines: [8, 20]
+      anchor: "has_url: text.external_urls > 0,"
+      note: has_url is only a content feature for the debias payload.
+  searched: "rg -n -i 'has_url|link|url' home-mixer/scorers xai-value-model vm-ranker"
+
+- id: K04
+  claim: "Using 3 or more hashtags gets a post penalised"
+  verdict: not_found_in_repo
+  explanation: >-
+    No hashtag count or hashtag penalty appears in home-mixer, vm-ranker or
+    xai-value-model; hashtags appear only in SimClusters entity extraction, muted
+    keyword handling, ads tests and Agatha data loaders. This is absent from the
+    public ranking code, not proven absent in production.
+  evidence: []
+  searched: "rg -i -l hashtag home-mixer vm-ranker xai-value-model (only filters/viewer_muted_keyword_filter.rs and an ads test)"
+
+- id: K05
+  claim: "Premium/verified accounts get a 4x in-network and 2x out-of-network boost"
+  verdict: not_found_in_repo
+  explanation: >-
+    No verification or premium multiplier appears in the For You scoring code; the
+    only post-fusion multipliers are author diversity and the out-of-network factor.
+    Premium status does appear in user-cred-v2 as the uniform teleport set, and
+    gray/grey-badge status exempts accounts from some spam labels, which are
+    indirect effects, not a ranking boost.
+  evidence:
+    - path: xai-value-model/scoring.rs
+      lines: [12, 26]
+      anchor: "score * self.author_diversity * self.oon"
+      note: Only author-diversity and OON multipliers are applied.
+    - path: user-cred-v2/UserCredV2App.scala
+      lines: [173, 175]
+      anchor: "validUserInfoPipe.filter(u => !u.isNearZero && u.isPremium)"
+      note: Premium accounts seed user-cred PageRank, which ranking does not read.
+  searched: "rg -n -i 'premium|blue_verified|is_verified|verified' home-mixer vm-ranker xai-value-model --glob '*.rs'"
+
+- id: K06
+  claim: "One report cancels out 468 likes"
+  verdict: contradicted
+  explanation: >-
+    The ratio comes from ReportWeight -234 vs a favorite weight of 0.5, but the
+    weights multiply each viewer's predicted probabilities, not raw counts, and the
+    code comment explicitly calls this reading incorrect. The current home-mixer
+    favorite default is 0.66, so even the ratio differs by file.
+  evidence:
+    - path: home-mixer/params/param.rs
+      lines: [320, 330]
+      anchor: "one report cancels 468 likes"
+      note: Code comment rejects the count-equivalence interpretation.
+    - path: home-mixer/params/param.rs
+      lines: [457, 457]
+      anchor: 'param!(ReportWeight, f64, "rust_home_mixer_report_weight", -234.0);'
+      note: Report weight applies to P(report).
+
+- id: K07
+  claim: "Replies are worth 27x a like"
+  verdict: contradicted
+  explanation: >-
+    Current defaults are ReplyWeight 5.0 and FavoriteWeight 0.66 in home-mixer (0.5
+    in vm-ranker), i.e. roughly 7.6x-10x, and they weight predicted probabilities
+    rather than counts. The 27x figure may describe the 2023 heavy ranker, which is
+    not in this repo.
+  evidence:
+    - path: home-mixer/params/param.rs
+      lines: [345, 346]
+      anchor: 'param!(ReplyWeight, f64, "rust_home_mixer_reply_weight", 5.0);'
+      note: Current reply and favorite default weights.
+    - path: vm-ranker/params.rs
+      lines: [3, 4]
+      anchor: 'param!(FavoriteWeight, f64, "rust_home_mixer_favorite_weight", 0.5);'
+      note: vm-ranker default favorite weight differs from home-mixer.
+
+- id: K08
+  claim: "A reply the author engages with is worth 75x (or 150x) a like"
+  verdict: not_found_in_repo
+  explanation: >-
+    The current Phoenix heads have no "reply engaged by author" prediction; the
+    weighted score sums the listed heads only. These numbers come from the 2023
+    heavy-ranker configuration, which is not part of this repository.
+  evidence:
+    - path: xai-value-model/phoenix_scores.rs
+      lines: [1, 31]
+      anchor: "pub reply_score: Option<f64>,"
+      note: Full list of prediction heads; none is author-engaged-reply.
+  searched: "rg -n -i 'author_engaged|engaged_by_author|reply_engaged' ."
+
+- id: K09
+  claim: "Bookmarks are worth 20x a like"
+  verdict: not_found_in_repo
+  explanation: >-
+    There is no bookmark prediction head or bookmark weight in the scoring code;
+    bookmarks appear as viewer engagement-history signals and candidate counts. A
+    weight of 20.0 exists for share_via_copy_link, which is a different action.
+  evidence:
+    - path: xai-value-model/phoenix_scores.rs
+      lines: [1, 31]
+      anchor: "pub share_via_copy_link_score: Option<f64>,"
+      note: Heads include shares but no bookmark head.
+    - path: home-mixer/params/param.rs
+      lines: [388, 393]
+      anchor: '"rust_home_mixer_share_via_copy_link_weight",'
+      note: The 20.0 weight belongs to share via copy link.
+    - path: home-mixer/models/engagement_signals.rs
+      lines: [20, 26]
+      anchor: 'EngagementSignalType::Bookmark => "bookmark",'
+      note: Bookmarks are a viewer-history signal type.
+  searched: "rg -n -i bookmark home-mixer xai-value-model vm-ranker"
+
+- id: K10
+  claim: "A good click / dwell (2+ minutes) is worth 10-11x a like"
+  verdict: contradicted
+  explanation: >-
+    Current defaults are ClickWeight 0.3, DwellWeight 0.05, ContDwellTimeWeight
+    0.006 and ContClickDwellTimeWeight 0.4 (per unit of predicted dwell time); there
+    is no "good click" head with weight 10-11. The figure appears to come from the
+    2023 heavy ranker, not this code.
+  evidence:
+    - path: home-mixer/params/param.rs
+      lines: [372, 372]
+      anchor: 'param!(ClickWeight, f64, "rust_home_mixer_click_weight", 0.3);'
+      note: Current click weight.
+    - path: home-mixer/params/param.rs
+      lines: [432, 437]
+      anchor: '"rust_home_mixer_cont_click_dwell_time_weight",'
+      note: Continuous click-dwell-time weight (default 0.4).
+
+- id: K11
+  claim: "Scores decay with a 6-hour half-life"
+  verdict: contradicted
+  explanation: >-
+    The published weighted score has no time-decay term; freshness is enforced by a
+    hard 48-hour age cutoff. The only half-life found in home-mixer is 8 hours, used to
+    normalise views in the popular-posts retrieval source, not to decay ranking
+    scores. Recency could still be learned implicitly by the prediction model.
+  evidence:
+    - path: xai-value-model/scoring.rs
+      lines: [69, 140]
+      anchor: "apply(scores.favorite_score, weights.favorite),"
+      note: Weighted sum of heads with no age term.
+    - path: home-mixer/params/config.rs
+      lines: [40, 40]
+      anchor: "pub const MAX_POST_AGE: u64 = 48 * 60 * 60;"
+      note: Hard 48h cutoff.
+    - path: home-mixer/util/popular_posts.rs
+      lines: [36, 46]
+      anchor: "half_life_hours: 8.0,"
+      note: 8h half-life only in popular-posts selection.
+
+- id: K12
+  claim: "The first 30 minutes decide a post's distribution"
+  verdict: not_found_in_repo
+  explanation: >-
+    No 30-minute decision window exists in the ranking code. Related time windows
+    are the cold-start lift for posts under 7,200 s old with fewer than 200 home
+    impressions, a 0.5-hour age floor in popular-posts view normalisation, and the
+    48-hour age cutoff. Absence here is not proof of absence in production.
+  evidence:
+    - path: home-mixer/params/param.rs
+      lines: [562, 567]
+      anchor: '"rust_home_mixer_cold_start_max_post_age_secs",'
+      note: Cold-start eligibility lasts up to 7,200 s by default.
+    - path: home-mixer/util/popular_posts.rs
+      lines: [36, 46]
+      anchor: "floor_hours: 0.5,"
+      note: 0.5h is only an age floor in a views-velocity formula.
+  searched: "rg -n '30 \\* 60|1800' home-mixer vm-ranker xai-value-model"
+
+- id: K13
+  claim: "An Author Diversity Scorer throttles accounts that post frequently"
+  verdict: partially_supported
+  explanation: >-
+    An author-diversity multiplier exists, but it applies within a single viewer's
+    candidate set: the k-th additional post from the same author is multiplied by
+    0.75 * 0.5^k + 0.25. It does not count how often an account posts overall.
+  evidence:
+    - path: xai-value-model/scoring.rs
+      lines: [183, 204]
+      anchor: "(1.0 - floor) * decay_factor.powf(exponent) + floor"
+      note: Per-request decay by author repetition.
+    - path: vm-ranker/params.rs
+      lines: [175, 186]
+      anchor: '"rust_home_mixer_author_diversity_floor",'
+      note: Defaults decay 0.5, floor 0.25.
+
+- id: K14
+  claim: "Grok reads every post and down-ranks negative sentiment"
+  verdict: not_found_in_repo
+  explanation: >-
+    Grox runs LLM/VLM classifiers for safety, spam, reply spam and a "banger" screen,
+    but no sentiment score or sentiment term appears in the ranking formula, and
+    Grox flows are gated (e.g. multimodal embedding uses an adaptive minimum like
+    count starting at 20,000). Prompts are withheld, so the exact criteria cannot be
+    checked.
+  evidence:
+    - path: grox/flows/ptos/prompts.py
+      lines: [11, 11]
+      anchor: "prompts are excluded to reduce gameability of the system"
+      note: Classifier criteria are not public.
+    - path: grox/flows/mm_emb/adaptive_min_fav.py
+      lines: [6, 19]
+      anchor: "start: int = 20_000,"
+      note: At least one Grox flow only processes posts above a like threshold.
+  searched: "rg -n -i sentiment grox home-mixer vm-ranker xai-value-model (no matches)"
+
+- id: K15
+  claim: "Spelling errors cause a deboost"
+  verdict: not_found_in_repo
+  explanation: >-
+    No spelling or typo check appears in the ranking or filtering code. Repo-wide
+    regex matches are unrelated substrings (e.g. "tyPo" inside identifiers in a Grox
+    file, a CLI-parsing test name in Phoenix). Not proof of absence in production;
+    Grox prompts are withheld.
+  evidence: []
+  searched: "rg -i -l 'spell(ing|check)|typo' home-mixer vm-ranker xai-value-model (no matches); same regex repo-wide gives only unrelated substrings"
+
+- id: K16
+  claim: "Mass unfollowing triggers a 3-month shadowban"
+  verdict: not_found_in_repo
+  explanation: >-
+    No unfollow-based penalty or 3-month restriction appears in home-mixer,
+    visibility-filtering or the published enforcement rules. bdsm's FollowBot head
+    targets automated follow behaviour, but its thresholds are redacted and no
+    duration like 3 months is published.
+  evidence:
+    - path: bdsm/runtime/sink_policy.yaml
+      lines: [15, 20]
+      anchor: "FollowBot:           [9.99, 9.99]"
+      note: Follow-bot thresholds are redacted sentinels.
+  searched: "rg -i -l unfollow . (proto/model files, a self-reply filter test, simclusters and a bdsm test fixture; no enforcement or duration rule)"
+
+- id: K17
+  claim: "SimClusters has about 145k communities"
+  verdict: partially_supported
+  explanation: >-
+    The SimClusters code refers to a model version named Model20M145K2020, which is
+    consistent with ~145K clusters, but no explicit cluster count constant was found.
+    SimClusters is used in home-mixer as one retrieval source.
+  evidence:
+    - path: simclusters/simclusters_v2/summingbird/common/SimClustersProfile.scala
+      lines: [145, 145]
+      anchor: "modelVersionStr = Model20M145K2020,"
+      note: Model version name implies 145K; the count itself is not stated.
+
+- id: K18
+  claim: "Video posts get 10x reach"
+  verdict: not_found_in_repo
+  explanation: >-
+    No video multiplier exists in the scoring code. Video heads carry small
+    weights by default (video_open 0.02 in home-mixer, video quality view 0.0).
+    Video can still affect predicted engagement and has dedicated carousel and
+    immersive surfaces, so effects on reach are not ruled out.
+  evidence:
+    - path: home-mixer/params/param.rs
+      lines: [366, 371]
+      anchor: '"rust_home_mixer_video_open_weight",'
+      note: Video-open weight default 0.02.
+    - path: home-mixer/params/param.rs
+      lines: [380, 380]
+      anchor: 'param!(VqvWeight, f64, "rust_home_mixer_vqv_weight", 0.0);'
+      note: Video quality view weight default 0.0.
+  searched: "rg -n -i 'video' xai-value-model/scoring.rs vm-ranker/params.rs"
+
+- id: K19
+  claim: "Replies between mutual followers get boosted"
+  verdict: partially_supported
+  explanation: >-
+    A bidirectional-follow boost exists (default +15 on the reply weight), but it
+    applies to original posts from authors the viewer mutually follows, raising the
+    weight on the predicted probability that the viewer replies. Replies and
+    reposts are explicitly excluded from eligibility.
+  evidence:
+    - path: xai-value-model/inputs.rs
+      lines: [19, 23]
+      anchor: "!self.is_reply && !self.is_retweet && self.is_mutual_follow_author"
+      note: Only original posts from mutual-follow authors are eligible.
+    - path: home-mixer/params/param.rs
+      lines: [347, 352]
+      anchor: '"rust_home_mixer_bidirectional_follow_reply_weight_boost",'
+      note: Boost default 15.0.
+    - path: docs/BIDIRECTIONAL_BOOST_CHANGE.md
+      lines: [5, 5]
+      anchor: "boosts original posts from people you mutually follow"
+      note: Repo doc describing the July 2026 change.
+
+- id: K20
+  claim: "Profile clicks are a major ranking signal"
+  verdict: contradicted
+  explanation: >-
+    ProfileClickWeight defaults to 0.0 and profile-visit seconds are weighted 0.0
+    (home-mixer hard-codes it to 0.0), so predicted profile clicks do not add to the
+    published weighted score at defaults. Experiments could set non-zero values.
+  evidence:
+    - path: home-mixer/params/param.rs
+      lines: [374, 379]
+      anchor: '"rust_home_mixer_profile_click_weight",'
+      note: Profile click weight default 0.0.
+    - path: home-mixer/scorers/value_model.rs
+      lines: [38, 40]
+      anchor: "profile_visit_secs: 0.0,"
+      note: Profile visit seconds weight fixed at 0.0 in home-mixer.
+
+- id: K21
+  claim: "Out-of-network posts are down-weighted"
+  verdict: supported
+  explanation: >-
+    Out-of-network candidates (and, by default, in-network replies and reposts) are
+    multiplied by effective_oon_weight, which defaults to OonWeightFactor 0.75 (0.5
+    for topic requests). Out-of-network posts also face extra visibility drop rules.
+  evidence:
+    - path: xai-value-model/scoring.rs
+      lines: [206, 215]
+      anchor: "Some(false) => true,"
+      note: OON candidates get the OON multiplier.
+    - path: vm-ranker/params.rs
+      lines: [211, 216]
+      anchor: '"rust_home_mixer_oon_weight_factor",'
+      note: Default factor 0.75.
+
+- id: K22
+  claim: "Posting too often cannibalises your own reach"
+  verdict: partially_supported
+  explanation: >-
+    Within one viewer's feed, repeated posts by the same author are discounted
+    (author diversity) and only one post per conversation is kept, so several
+    simultaneous posts compete with each other for that viewer. Nothing in the code
+    penalises posting frequency globally or across viewers.
+  evidence:
+    - path: xai-value-model/scoring.rs
+      lines: [183, 185]
+      anchor: "(1.0 - floor) * decay_factor.powf(exponent) + floor"
+      note: Same-author discount within a request.
+    - path: home-mixer/filters/dedup_conversation_filter.rs
+      lines: [19, 36]
+      anchor: "if score > *best_score {"
+      note: One post per conversation per feed.
+
+- id: K23
+  claim: "Mass blocking/reporting by bad actors suppresses an account's reach"
+  verdict: unverifiable
+  explanation: >-
+    For ranking, the code comment states that weights apply to each viewer's
+    predicted probabilities and that only actions on posts served in Home Timeline
+    count, so coordinated reports mainly affect similar users. However, Agatha
+    computes account-level blocks-per-fav and reports-per-fav rates that feed
+    account models, and the thresholds turning those into labels are not published.
+  evidence:
+    - path: home-mixer/params/param.rs
+      lines: [332, 344]
+      anchor: "mass blocking/reporting will significantly suppress reach. There"
+      note: Developers' stated reasons this has limited ranking impact.
+    - path: agatha/scalding/labels/rate_based_labels/RateBasedLabels.scala
+      lines: [80, 90]
+      anchor: "BlocksPerFav.labelName)"
+      note: Blocks and reports are aggregated into account-level rates.

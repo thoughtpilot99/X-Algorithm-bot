@@ -1,0 +1,905 @@
+# Findings for areas C (account & content quality) and D (feed-level behaviour).
+# Repo: x-algorithm @ 07d159b69109f069c85f84d39dd38e38adc040f0
+# Every anchor is copied verbatim from the cited line range. "verified" means the
+# behaviour is read directly from code at this commit; it does not prove that
+# production runs the same code or the same parameter values.
+
+# ---------------------------------------------------------------- AREA C ----
+
+- id: C01
+  area: C
+  title: user-cred-v2 turns PageRank mass into a 0-100 score
+  mechanism: >-
+    user-cred-v2 is an offline Scalding job that runs PageRank and converts each
+    account's resulting mass into a score of 165.2 + 7.07 * ln(mass), clamped to
+    [0, 100]; zero or negative mass maps to 0. The score is logarithmic in mass,
+    so large differences in mass translate into modest score differences.
+  path: user-cred-v2/UserCredV2.scala
+  lines: [9, 20]
+  symbol: UserCredV2.fromMass
+  anchor: "else ScoreIntercept + ScoreSlope * scala.math.log(mass)"
+  params: [ScoreSlope, ScoreIntercept]
+  status: verified
+  relevance: >-
+    The score is an account-level reputation number. In this repo it is used to
+    exempt high-scoring accounts from some automated spam labelling (see C05,
+    C06, C10, C11), not as a ranking feature in the For You value model (see C07).
+  observable_proxy: "none — not observable from public data (mass depends on the whole follow graph and on non-public engagement logs)"
+  limitations: >-
+    Only the job is published; the output dataset and the values any given
+    account receives are not. Slope/intercept are hard-coded here but production
+    could run a different build.
+
+- id: C02
+  area: C
+  title: user-cred-v2 PageRank defaults (jump 0.2, 50 iterations, beta 0.5)
+  mechanism: >-
+    Command-line defaults set the PageRank jump (teleport) probability to 0.2,
+    convergence threshold 0.001, at most 50 iterations, and an engagement
+    teleport blend beta of 0.5. Engagement edges are read over a 7-day window
+    (EngagementWindowDays), and the run is gated on row-count and mass-sum
+    sanity checks before publishing.
+  path: user-cred-v2/UserCredV2Config.scala
+  lines: [24, 45]
+  symbol: UserCredV2Config.fromArgs
+  anchor: 'args.getOrElse("jump_prob", "0.2").toDouble'
+  params: [jump_prob, threshold, max_iterations, engagement_teleport_beta, vit_threshold, EngagementWindowDays]
+  status: verified
+  relevance: >-
+    The 7-day engagement window means the engagement-driven part of an account's
+    score can move week to week; the follow-graph part changes more slowly.
+  observable_proxy: "none — not observable from public data"
+  limitations: >-
+    These are argument defaults; the production job may be launched with other
+    values. vit_threshold (55.0) is read but its use is outside this file.
+
+- id: C03
+  area: C
+  title: user-cred-v2 teleport set is premium/verified accounts plus engagement mass
+  mechanism: >-
+    The PageRank graph uses follow edges; the teleport (restart) distribution
+    blends (1 - beta) x uniform mass over premium accounts (blue, gold, gray
+    verified, verified organisations and their affiliates, excluding near-zero
+    state accounts) with beta x engagement mass, where each engager's prior mass
+    is split across the authors they liked or reposted in the window. Restricted,
+    deactivated, suspended and erased accounts are dropped from the user set.
+  path: user-cred-v2/UserCredV2App.scala
+  lines: [141, 193]
+  symbol: UserCredV2App.computeTeleportWeights
+  anchor: "validUserInfoPipe.filter(u => !u.isNearZero && u.isPremium)"
+  params: [engagement_teleport_beta]
+  status: verified
+  relevance: >-
+    Being followed by, or liked/reposted by, accounts that themselves hold mass
+    (premium accounts are seeded with mass) would plausibly raise an account's
+    score. This affects reach only through the consumers in C05/C06/C10/C11,
+    which use the score as an exemption from some spam actions.
+  observable_proxy: "Partial: whether followers/engagers are verified is visible publicly; their mass is not."
+  limitations: >-
+    isPremium is defined in user-cred-v2/ValidUserInfo.scala. The magnitude of
+    any individual account's mass cannot be reconstructed without the full graph.
+
+- id: C04
+  area: C
+  title: user-cred-v2 counts only likes/reposts and drops linked-account edges
+  mechanism: >-
+    Engagement edges are built only from Favorite and Retweet interactions where
+    the engager is not the author. Both follow and engagement edges are removed
+    when the (source, destination) pair appears in an account-expansion
+    investigations dataset of linked users, so edges between accounts flagged as
+    linked do not transfer mass.
+  path: user-cred-v2/UserCredV2App.scala
+  lines: [79, 118]
+  symbol: readEngagementEdges, filterLinkedUserEdges
+  anchor: "if event.engagingUserId != authorUserId"
+  params: [EngagementTypes]
+  status: verified
+  relevance: >-
+    Self-engagement and engagement from accounts identified as linked to the
+    author would plausibly not raise the author's score; replies, quotes and
+    bookmarks are not engagement edges here.
+  observable_proxy: "Partial: public like/repost counts exist, but who engaged and whether accounts are linked is not public."
+  limitations: >-
+    How AccountExpansionInvestigations identifies linked users is not in this repo.
+
+- id: C05
+  area: C
+  title: scarecrow rules treat high user-cred (>= 54) as an exemption
+  mechanism: >-
+    The botmaker derived feature IsHighPageRankUser is true when the UserCredV2
+    score is >= HighPageRankThreshold (54 in HighPageRankThreshold.df) or the
+    account carries a PREDICTED_HIGH_PAGE_RANK label; if neither is available it
+    falls back to follower count > 25,000. Many scarecrow rules (low-quality URL,
+    duplicate text, Grox reply flags, NSFW labelling) require
+    !IsHighPageRankUser before acting.
+  path: botmaker-rules/scarecrow/derived-feature/IsHighPageRankUser.df
+  lines: [1, 28]
+  symbol: IsHighPageRankUser
+  anchor: "val :fallbackFollowerCountCriteria = :followerCountFromGizmoduck > 25000;"
+  params: [HighPageRankThreshold]
+  status: verified
+  relevance: >-
+    Accounts below the threshold are eligible for these automated labels;
+    accounts above it are skipped by the rules that check it. Being below the
+    threshold does not by itself reduce reach.
+  observable_proxy: "Partial: follower count (> 25,000 fallback) is public; the user-cred score and PREDICTED_HIGH_PAGE_RANK label are not."
+  limitations: >-
+    Some botmaker rules are withheld from the repo (README "What's not in this
+    repo?"), so the full set of rules using this exemption is unknown.
+
+- id: C06
+  area: C
+  title: abuse-enforcement-service skips accounts with high cred, grey badge or many followers
+  mechanism: >-
+    In the published user and post enforcement rule files, an account is skipped
+    (no action) when cred.is_high is true (high-PageRank flag OR grey badge,
+    composed in strato.rs compose_cred) or cred.score >= 50.0, and also above
+    follower-count thresholds. The follower thresholds in the file are
+    explicitly mock values; production uses different ones.
+  path: abuse-enforcement-service/service-lib/rules/enforcement_user.yaml
+  lines: [18, 38]
+  symbol: very_high_follower_count, high_follower_count, pagerank_skipped
+  anchor: "|| cred.score >= 50.0"
+  params: [cred.score, cred.is_high, cred.follower_count]
+  status: verified
+  relevance: >-
+    Model-driven suspensions and labels (e.g. SpamHighRecall from anchor-campaign
+    scores) are not applied to accounts that clear these skips. Lower-cred,
+    smaller accounts are the ones exposed to these actions.
+  observable_proxy: "Partial: follower count is public but production thresholds are not; cred score is not public."
+  limitations: >-
+    The file is "mirrored from GrowthBook dynamic config"; production rules can
+    change without a code change. Follower thresholds are mock values.
+
+- id: C07
+  area: C
+  title: No user-cred input in the For You value-model scoring path
+  mechanism: >-
+    The per-candidate inputs to the value model are predicted engagement scores
+    plus author id, in-network, reply/retweet, mutual-follow and video
+    eligibility flags; there is no user-cred, PageRank or verification field. A
+    search of home-mixer, vm-ranker and xai-value-model finds no reference to
+    user cred or page rank. In bdsm the user_cred_norm feature is filled with zeros.
+  path: xai-value-model/inputs.rs
+  lines: [3, 17]
+  symbol: CandidateScoringInputs
+  anchor: "pub struct CandidateScoringInputs {"
+  status: inferred
+  relevance: >-
+    In this code, the final weighted score does not appear to apply a direct
+    reputation multiplier. Cred can still matter indirectly through labels whose
+    application it gates (C05/C06/C10/C11), which visibility filtering can act on.
+  observable_proxy: "none — not observable from public data"
+  limitations: >-
+    This is a negative result from searching the published code. The Phoenix
+    model's own input features are not fully audited here, and a TweetEmbedding
+    thrift struct in phoenix/crates/serving/xai-recsys-mm-server/src/events.rs
+    carries a user_credibility field whose use was not traced.
+
+- id: C08
+  area: C
+  title: Agatha rate-based labels (blocks, reports, spam reports per out-of-network fav)
+  mechanism: >-
+    Agatha's offline job computes per-account smoothed ratios of blocks, abuse
+    reports (180-day window, AbuseTriageTool reports only), legit spam reports
+    and all spam reports, each relative to out-of-network favorites received:
+    (interaction + 0.1) / (interaction + favs + 0.1 / prior). These are written
+    as user labels (BlocksPerFav, ReportsPerFav, SpamReportsPerFav,
+    AllSpamReportsPerFav) used in downstream account models.
+  path: agatha/scalding/labels/rate_based_labels/RateBasedLabels.scala
+  lines: [28, 118]
+  symbol: RateBasedLabels.computeScoresForInteractions, getUserLabels
+  anchor: "val denominator = interaction + favs + (smoothingParam / prior)"
+  params: [smoothingParam]
+  status: verified
+  relevance: >-
+    An account that draws many blocks or reports relative to the likes it gets
+    from non-followers would plausibly get a higher rate. How those rates turn
+    into labels or enforcement that affect reach is not shown here.
+  observable_proxy: "Partial: public like counts give a rough denominator; blocks and reports are not public."
+  limitations: >-
+    Thresholds and the models trained on these labels (e.g. Blink scores in
+    agatha/scalding/blink) are only partly published. Blocks are taken from a
+    graph snapshot filtered by update time and known-artificial users.
+
+- id: C09
+  area: C
+  title: BDSM behavioural sequence model for bots/spam/coordination (thresholds redacted)
+  mechanism: >-
+    BDSM is a transformer over an account's recent action sequence (timing-aware
+    position embeddings, action type, surface, dwell, device signals) with eight
+    heads: FollowBot, LikeBot, EngagementAmplifier, ReplySpamBot, TweetSpamBot,
+    RTBot, MultiActionBot and LegitimateUser. A results sink applies per-head
+    thresholds and graduated actions (challenge vs suspend).
+  path: bdsm/README.md
+  lines: [17, 40]
+  symbol: bdsm heads
+  anchor: "- **Eight task heads** (`runtime/heads.py`): FollowBot, LikeBot,"
+  params: [min_actions_for_enforcement, thresholds]
+  status: verified
+  relevance: >-
+    Automation-like patterns (mechanical cadence, bursts, repetitive engagement)
+    are what the model is designed to detect; an account flagged here could be
+    challenged or suspended, which would plausibly remove reach entirely.
+  observable_proxy: "Partial: post timestamps and posting cadence are public; likes, follows, dwell and device signals of the account are not."
+  limitations: >-
+    Operating points are redacted: bdsm/runtime/sink_policy.yaml ships 9.99 and
+    999999 sentinels. The backing sequence store and weights are not published.
+
+- id: C10
+  area: C
+  title: Grox PTOS spam verdicts apply SpamHighRecall post labels
+  mechanism: >-
+    When the Grox PTOS (post terms-of-service) classifier returns a Spam
+    violation, the sink applies the SpamHighRecall post label. Engagement
+    baiting, engagement farming and card manipulation are labelled for every
+    author; other spam policy types are skipped for high-PageRank authors.
+    Adult and violent-media verdicts apply NSFW/gore labels.
+  path: grox/flows/ptos/task_write_safety_post_annotations_result_sink.py
+  lines: [233, 248]
+  symbol: TaskWriteSafetyPostAnnotationsResultSink._apply_labels_for_annotation
+  anchor: "SafetyPolicyType.SpamEngagementBaiting,"
+  params: [SpamEngagementBaiting, SpamEngagementFarming, SpamCardManipulation]
+  status: verified
+  relevance: >-
+    A SpamHighRecall post label drops the post from out-of-network For You
+    recommendations to non-authors (see C17), while followers can still see it.
+    Engagement-bait style posts are labelled even for high-cred authors.
+  observable_proxy: "Partial: post text is public, so engagement-bait phrasing can be checked heuristically; the classifier verdict is not public."
+  limitations: >-
+    The LLM prompts defining each policy are withheld (C12). Which posts enter
+    the PTOS flow (rate limits, filters) is only partly visible.
+
+- id: C11
+  area: C
+  title: Grox reply spam flags replies with RiskyHighVizReply unless high cred (>= 66)
+  mechanism: >-
+    The reply_spam flow scores replies; when the reply-ranking score is 0.0 it
+    applies the RiskyHighVizReply post label unless the author's user-cred is >=
+    66 (or the high-PageRank flag when no score), the author has a grey badge,
+    or is a test user. Separately, scarecrow rule 25026 applies
+    RISKY_HIGH_VIZ_REPLY for 14 days when a Grox spamScore >= 0.97, unless the
+    reply is by the conversation author or the author is high-PageRank,
+    skip-listed or gray verified.
+  path: grox/flows/reply_spam/task_write.py
+  lines: [39, 80]
+  symbol: _is_label_exempt_high_page_rank, _apply_reply_spam_label
+  anchor: "return info.userCredScore >= RISKY_HIGH_VIZ_REPLY_EXEMPT_MIN_PAGE_RANK_SCORE"
+  params: [RISKY_HIGH_VIZ_REPLY_EXEMPT_MIN_PAGE_RANK_SCORE]
+  status: verified
+  relevance: >-
+    Low-cred accounts that leave replies judged spammy may have those replies
+    labelled; the rule name suggests a downrank of the reply, but where the
+    label is consumed is not in this repo.
+  observable_proxy: "Partial: an account's reply text and reply volume are public; scores and labels are not."
+  limitations: >-
+    The consumer of RiskyHighVizReply (e.g. conversation reply ordering) is not
+    present; the effect on reach is inferred from the label name only. Prompts
+    are withheld. See botmaker-rules/scarecrow/bot/GroxTweetProcessor.bot for rule 25026.
+
+- id: C12
+  area: C
+  title: Grox prompts withheld; UPA "banger" screen and multimodal embeddings
+  mechanism: >-
+    Grox runs LLM/VLM flows on posts: ptos (safety/spam policy), reply_spam,
+    upa (an initial "banger" screen and post-safety screen that send boolean
+    metadata to a labelling endpoint) and mm_emb (multimodal post embeddings).
+    The prompt templates (.j2) are excluded from the repo; each prompts.py says
+    so in a comment.
+  path: grox/flows/ptos/prompts.py
+  lines: [11, 11]
+  symbol: prompts.py
+  anchor: "prompts are excluded to reduce gameability of the system"
+  status: verified
+  relevance: >-
+    Grox outputs can become post labels that visibility filtering acts on, but
+    the classification criteria are not public, so a specific post's risk
+    cannot be predicted from code alone.
+  observable_proxy: "none — not observable from public data (criteria withheld; outputs not public except via the Under the Hood label tool)"
+  limitations: >-
+    The README lists Grox prompts among withheld files. How UPA labels are used
+    downstream (grok_upa_action_with_labels) is not shown. mm_emb gates
+    embedding by an adaptive minimum fav count (grox/flows/mm_emb/adaptive_min_fav.py).
+
+- id: C13
+  area: C
+  title: abuse-enforcement-service maps model labels to post/account actions
+  mechanism: >-
+    After the skip rules, enforcement rules map model score labels to actions,
+    for example llm_slop_post -> RiskyHighVizReply post label for 30 days,
+    gibberish_post and fast_reply_spam_post -> SpamHighRecall post label,
+    anchor_campaign_* -> SpamHighRecall user label or suspension. The post rules
+    also apply the follower/PageRank skips unless a score sets
+    skip_author_credibility_prechecks.
+  path: abuse-enforcement-service/service-lib/rules/enforcement_post.yaml
+  lines: [39, 58]
+  symbol: act_add_llm_slop_post_label, act_add_gibberish_post_label, act_add_fast_reply_spam_post_label
+  anchor: "when: '\"llm_slop_post\" in score.labels'"
+  params: [ttl_msec]
+  status: verified
+  relevance: >-
+    Posts classified as low-effort generated text, gibberish or fast reply spam
+    can receive labels that limit distribution (SpamHighRecall is a drop for
+    out-of-network recommendations, C17).
+  observable_proxy: "Partial: post text and reply timing are public; the upstream model scores are not."
+  limitations: >-
+    The models producing labels like llm_slop_post are not in this file and may
+    not be published. The rules are a mirror of GrowthBook config and may change.
+
+- id: C14
+  area: C
+  title: abuse-ledger appeal holds block re-applying overturned actions
+  mechanism: >-
+    abuse-ledger-service answers whether an account has an active (uncleared,
+    unexpired) enforcement hold for a suspension or for specific labels. Per
+    the README, when an enforcement is overturned on appeal,
+    abuse-enforcement-service does not re-apply that action for a fixed period
+    set per appeal queue.
+  path: abuse-ledger-service/src/sql.rs
+  lines: [3, 7]
+  symbol: PROBE_SQL
+  anchor: "cleared_at IS NULL AND expires_at > now()"
+  status: verified
+  relevance: >-
+    A successful appeal can temporarily protect an account from the same
+    automated label or suspension being re-applied.
+  observable_proxy: "none — not observable from public data"
+  limitations: >-
+    Hold durations per queue are not in the repo. The client side in
+    abuse-enforcement-service was only partly read.
+
+- id: C15
+  area: C
+  title: botmaker-rules label duplicate-text replies as COPYPASTA_SPAM (some rules withheld)
+  mechanism: >-
+    Rule 21599 consumes scheduled BigQuery jobs that cluster replies with
+    duplicate text (unigrams, or characters for CJK) and applies the
+    COPYPASTA_SPAM label to each reply, skipping test users, high-PageRank
+    users, a temporary skip list and gray-verified users. Some botmaker rules
+    are deliberately not published.
+  path: botmaker-rules/scarecrow/bot/BBQDuplicateTextRepliesProd.bot
+  lines: [25, 46]
+  symbol: BBQDuplicateTextRepliesProd
+  anchor: 'TweetRtfApplyLabel("COPYPASTA_SPAM", :tweetId);'
+  status: verified
+  relevance: >-
+    Posting the same or near-identical reply text repeatedly could plausibly get
+    replies labelled; the rule's own note calls this a downrank, but the label's
+    ranking effect is not shown in this repo.
+  observable_proxy: "Account's own reply texts are public, so repeated identical replies can be counted."
+  limitations: >-
+    README.md line 433 lists "Some botmaker rules" as withheld. The clustering
+    query and its similarity thresholds are not published.
+
+- id: C16
+  area: C
+  title: Visibility-filtering verdicts are Withheld (Drop/Tombstone) or Shown with notices
+  mechanism: >-
+    The visibility-filtering service returns either Withheld (Drop or Tombstone)
+    or Shown with optional notice (soft intervention, appealable notice, label
+    interstitial), media restriction and limited-engagement parts. Per the
+    README, the first rule that answers drop ends evaluation.
+  path: visibility-filtering/models/verdict.rs
+  lines: [8, 26]
+  symbol: Verdict, Notice
+  anchor: "Withheld(Decided<Withholding>),"
+  status: verified
+  relevance: >-
+    Only drop-type outcomes remove a post from For You in home-mixer (see D13);
+    notices and interstitials change presentation, not eligibility, in the
+    code read here.
+  observable_proxy: "Partial: interstitials/notices are visible on public posts; drops are not observable from public data."
+  limitations: >-
+    The mapping from Verdict to the client Action enum used by home-mixer
+    (Allow, Interstitial, Avoid, Downrank, Drop, Tombstone, NotEvaluated) was
+    not fully traced.
+
+- id: C17
+  area: C
+  title: Extra drop rules for out-of-network recommendations; README cites missing registry.rs
+  mechanism: >-
+    Home-mixer evaluates in-network posts at safety level TimelineHome and
+    out-of-network posts (plus ancestors and quotes) at
+    TimelineHomeRecommendations. The recommendations level adds author-label
+    drops (NSFW labels, SpamHighRecall, Compromised, ReadOnly, Impersonation,
+    AbusiveHighRecall, DoNotAmplify) and post-label drops (DMCA, NSFW, SoftNsfw
+    for new users, DoNotAmplify, MaliciousUrl, SpamHighRecall, abuse insults).
+    The README says these lists live in visibility-filtering/rules/registry.rs,
+    which does not exist; they are in rules/levels.rs.
+  path: visibility-filtering/rules/levels.rs
+  lines: [142, 213]
+  symbol: TIMELINE_HOME_RECOMMENDATIONS
+  anchor: "&DO_NOT_AMPLIFY_USER_LABEL_DROP_UNSPECIFIED,"
+  status: verified
+  relevance: >-
+    An account or post carrying one of these labels would plausibly lose
+    out-of-network For You distribution while remaining visible to followers in
+    their home timeline. DoNotAmplify user label applies to non-followers only.
+  observable_proxy: "none — not observable from public data (labels visible only to the account via the Under the Hood tool, per README)"
+  limitations: >-
+    README.md line 408 links to rules/registry.rs, which is absent at this
+    commit. Rule definitions are in rules/tweet_rules.rs and rules/author_rules.rs.
+
+- id: C18
+  area: C
+  title: safety-label-user-agg promotes repeated post labels to account labels
+  mechanism: >-
+    A config-driven Strato library aggregates post safety labels into user
+    labels. The default config includes, for example, applying the
+    NSFW_HIGH_PRECISION user label for 7 days when at least 3 of the account's
+    last 5 posts within 60 days carry NSFW_HIGH_PRECISION. Rules can exclude
+    high-PageRank or grey-badge accounts.
+  path: safety-label-user-agg/postToUserLabelRules.strato
+  lines: [395, 426]
+  symbol: defaultRulesJson (nsfw_high_precision)
+  anchor: '"applyUserLabel": "NSFW_HIGH_PRECISION",'
+  params: [windowSize, minimumMatchingPosts, maxPostAgeDays, userLabelTtlDays]
+  status: verified
+  relevance: >-
+    Repeated labelled posts can escalate to an account label; NSFW user labels
+    are drop rules for out-of-network recommendations (C17), affecting all of
+    the account's posts while the label lasts.
+  observable_proxy: "Partial: whether recent posts contain adult media is publicly visible; the labels are not."
+  limitations: >-
+    The live rules come from feature switch safety_understanding_post_to_user_label_rules
+    (line 430-432); the default JSON may not match production.
+
+- id: C19
+  area: C
+  title: Legal and local-law takedowns drop posts in the request country
+  mechanism: >-
+    Visibility rules drop a post for non-authors when it has a legal or
+    local-laws takedown in the viewer's request country. The tweet entity
+    service merges a post's own takedown reasons with its author's account-level
+    takedown reasons, so an account-level takedown applies to its posts.
+  path: visibility-filtering/rules/tweet_rules.rs
+  lines: [231, 243]
+  symbol: LEGAL_TAKEDOWN_DROP_UNSPECIFIED, LOCAL_LAWS_TAKEDOWN_DROP_UNSPECIFIED
+  anchor: "when: all![TweetLegalTakedownInRequestCountry],"
+  status: verified
+  relevance: >-
+    Reach in specific countries can be zero for withheld posts or accounts,
+    regardless of engagement. This is country-specific, not global.
+  observable_proxy: "Partial: country-withheld notices are sometimes visible publicly; README says Under the Hood reports show such withholding to the account."
+  limitations: >-
+    See takedowns/tweet-entity-service/TakedownReasonsTransform.scala for the
+    merge; how takedowns are decided is out of scope of the code.
+
+- id: C20
+  area: C
+  title: Adult-content scoring combines media models with account-level scores
+  mechanism: >-
+    The experimental pNSFW media model concatenates a CLIP image score with
+    account-level health scores, including Agatha's calibrated NSFW score, an
+    NSFW text user score and an NSFW consumer-follower score. Home-mixer also
+    drops SimClusters-sourced out-of-network posts from authors flagged NSFW
+    (OONNsfwSimclustersFilter).
+  path: pnsfwmedia/model_experimental.py
+  lines: [50, 60]
+  symbol: _get_final_feature_tensor
+  anchor: "user_health_scores.agatha_calibrated_nsfw_score"
+  status: verified
+  relevance: >-
+    An account's history (its own NSFW score and its audience) can influence
+    how its media is classified, and NSFW flags restrict out-of-network
+    recommendation (C17, D01).
+  observable_proxy: "Partial: posted media is public; account-level scores are not."
+  limitations: >-
+    The file is named "experimental"; whether it serves production is not stated.
+    adult-content/ holds training and calibration code only.
+
+# ---------------------------------------------------------------- AREA D ----
+
+- id: D01
+  area: D
+  title: Pre-scoring filter order in the Phoenix For You pipeline
+  mechanism: >-
+    Before scoring, candidates pass in order through DropDuplicates,
+    ZeroFavCodivert, CoreDataHydration, NewUserSoftNsfw, Age, SelfTweet,
+    OONRetweetReply, OONNsfwSimclusters, RetweetDeduplication,
+    IneligibleSubscription, PreviouslySeenPosts, PreviouslySeenPostsBackup,
+    PreviouslyServedPosts, ViewerMutedKeyword, AuthorSocialgraph,
+    Brazil2026Election, Video, TopicIds, NewUserMinEngagement, InventoryHoldout,
+    FavHoldout and FairShareRanking. Several are switched off by default params.
+  path: home-mixer/candidate_pipeline/phoenix_candidate_pipeline.rs
+  lines: [419, 453]
+  symbol: PhoenixCandidatePipeline filters
+  anchor: "Box::new(AgeFilter::new(Duration::from_secs(params::MAX_POST_AGE))),"
+  status: verified
+  relevance: >-
+    A post must survive all of these to be scored at all; most are viewer-
+    specific (seen, muted, blocked), so failing one for one viewer does not
+    affect other viewers.
+  observable_proxy: "Partial: post age, reply/repost type and author are public; viewer-side state is not."
+  limitations: >-
+    The README table (README.md lines 370-390) omits ZeroFavCodivert,
+    NewUserSoftNsfw and FairShareRanking; the code is the authority. Holdout and
+    new-user filters default to false in home-mixer/params/param.rs.
+
+- id: D02
+  area: D
+  title: 48-hour maximum post age for For You candidates
+  mechanism: >-
+    AgeFilter removes candidates whose snowflake-derived age exceeds
+    MAX_POST_AGE = 48 hours; candidates with undeterminable age are also
+    removed. TweetMixerSource applies the same 48-hour cut, and Thunder's
+    in-memory in-network post store defaults to 172,800 s (2 days) retention.
+  path: home-mixer/params/config.rs
+  lines: [40, 40]
+  symbol: MAX_POST_AGE
+  anchor: "pub const MAX_POST_AGE: u64 = 48 * 60 * 60;"
+  params: [MAX_POST_AGE]
+  status: verified
+  relevance: >-
+    A post plausibly stops receiving For You distribution through this pipeline
+    after 48 hours, regardless of performance.
+  observable_proxy: "Post created_at timestamps are public; impressions per hour after 48h can be compared if available."
+  limitations: >-
+    Other surfaces (search, profile, notifications, conversation views) are not
+    governed by this filter. Thunder retention is a CLI default (thunder/args.rs).
+
+- id: D03
+  area: D
+  title: SelfTweetFilter removes the viewer's own posts
+  mechanism: >-
+    Candidates authored by the requesting viewer are removed from that viewer's
+    For You candidate set.
+  path: home-mixer/filters/self_tweet_filter.rs
+  lines: [7, 20]
+  symbol: SelfTweetFilter
+  anchor: ".partition(|c| c.author_id != viewer_id);"
+  status: verified
+  relevance: >-
+    No effect on an account's reach to others; it only means an author never
+    sees their own post in their own For You feed from this pipeline.
+  observable_proxy: "none — not observable from public data"
+  limitations: "None material."
+
+- id: D04
+  area: D
+  title: Out-of-network reposts and replies are filtered out
+  mechanism: >-
+    Reposts from accounts the viewer does not follow are removed, as are
+    out-of-network replies unless EnablePhoenixOonReplies is on and the reply
+    came from Phoenix retrieval (optionally only replies to the root). Any reply
+    whose ancestors failed to hydrate is removed regardless of network.
+  path: home-mixer/filters/oon_retweet_reply_filter.rs
+  lines: [15, 28]
+  symbol: OONRetweetReplyFilter
+  anchor: "(c.in_network == Some(false) && (is_retweet || oon_reply_dropped))"
+  params: [EnablePhoenixOonReplies, PhoenixOonRepliesRootOnly]
+  status: verified
+  relevance: >-
+    Replies and reposts mostly reach For You only for the author's followers;
+    with EnablePhoenixOonReplies defaulting to false, an account's replies are
+    unlikely to be recommended to non-followers through this pipeline.
+  observable_proxy: "Post type (reply / repost / original) is public; compare impressions by type."
+  limitations: >-
+    EnablePhoenixOonReplies default (false) is from home-mixer/params/param.rs;
+    experiments can enable it for some viewers.
+
+- id: D05
+  area: D
+  title: Previously seen and previously served posts are removed
+  mechanism: >-
+    PreviouslySeenPostsFilter drops a candidate if it, or a related post id
+    (the reposted post or the parent it replies to), is in the viewer's seen ids or impression
+    bloom filters. PreviouslyServedPostsFilter drops ones already served in the
+    session (enabled for all requests by default via EnableServedFilterAllRequests).
+  path: home-mixer/filters/previously_seen_posts_filter.rs
+  lines: [16, 31]
+  symbol: PreviouslySeenPostsFilter, PreviouslyServedPostsFilter
+  anchor: "seen_ids.contains(&post_id)"
+  params: [EnableServedFilterAllRequests]
+  status: verified
+  relevance: >-
+    A post is generally shown to a given viewer once in For You; repeat
+    impressions to the same viewer are not expected from this pipeline. Bloom
+    filters can have false positives, so a small share of unseen posts may be
+    dropped.
+  observable_proxy: "none — not observable from public data"
+  limitations: >-
+    Bloom-filter sizes and false-positive rates come from request data, not code.
+
+- id: D06
+  area: D
+  title: AuthorSocialgraphFilter removes blocked/muted authors in either direction
+  mechanism: >-
+    Candidates are removed when the viewer mutes or blocks the author, the
+    author blocks the viewer, the quoted author blocks the viewer, or the viewer
+    blocks the quoted or reposted author.
+  path: home-mixer/filters/author_socialgraph_filter.rs
+  lines: [27, 56]
+  symbol: AuthorSocialgraphFilter
+  anchor: "let author_blocks_viewer = candidate.author_blocks_viewer.unwrap_or(false);"
+  status: verified
+  relevance: >-
+    Each block or mute removes that one viewer from the author's For You
+    audience; quoting or reposting an account a viewer blocks also hides the
+    quote/repost from that viewer.
+  observable_proxy: "none — not observable from public data"
+  limitations: "Block/mute lists are private."
+
+- id: D07
+  area: D
+  title: Duplicate posts and repeated reposts collapse to one candidate
+  mechanism: >-
+    DropDuplicatesFilter keeps the first copy of a tweet id returned by several
+    sources (merging retrieval sources). RetweetDeduplicationFilter keys
+    candidates on the reposted id (or own id) and keeps only the first, so an
+    original and its reposts collapse to whichever arrived first.
+  path: home-mixer/filters/retweet_deduplication_filter.rs
+  lines: [19, 30]
+  symbol: RetweetDeduplicationFilter, DropDuplicatesFilter
+  anchor: "let dedup_id = candidate.retweeted_tweet_id.unwrap_or(candidate.tweet_id);"
+  status: verified
+  relevance: >-
+    Many followers reposting the same post do not create multiple slots for it
+    in one viewer's feed.
+  observable_proxy: "Repost counts are public, but how many reached a given viewer is not."
+  limitations: "Ordering of candidates before the filter decides which copy survives."
+
+- id: D08
+  area: D
+  title: DedupConversationFilter keeps one post per conversation (highest score)
+  mechanism: >-
+    After selection, candidates are grouped by conversation (the smallest
+    ancestor id, or the original post id) and only the highest-scoring
+    candidate per conversation is kept.
+  path: home-mixer/filters/dedup_conversation_filter.rs
+  lines: [19, 49]
+  symbol: DedupConversationFilter
+  anchor: "if score > *best_score {"
+  status: verified
+  relevance: >-
+    An author's self-reply thread or several replies in the same conversation
+    compete for one slot per viewer feed request.
+  observable_proxy: "Conversation ids and reply structure are public."
+  limitations: "Applies per feed response; other surfaces are not covered."
+
+- id: D09
+  area: D
+  title: Author diversity multiplier decays repeated authors within one feed
+  mechanism: >-
+    Candidates are ordered by score; the k-th additional post from the same
+    author in that request (k = 0 for the first) is multiplied by
+    (1 - floor) * decay^k + floor. With defaults decay 0.5 and floor 0.25 this
+    gives 1.0, 0.625, 0.4375, ... approaching 0.25.
+  path: xai-value-model/scoring.rs
+  lines: [183, 204]
+  symbol: diversity_multiplier, author_pool_counts
+  anchor: "(1.0 - floor) * decay_factor.powf(exponent) + floor"
+  params: [EnableAuthorDiversity, AuthorDiversityDecay, AuthorDiversityFloor]
+  status: verified
+  relevance: >-
+    Several posts by the same author competing for one viewer's feed are
+    progressively discounted; this is per viewer per request, not a global
+    penalty on posting frequency.
+  observable_proxy: "Posting frequency is public; whether several posts reach the same viewer at once is not."
+  limitations: >-
+    Defaults are in vm-ranker/params.rs (lines 169-186). Home-mixer's local
+    fallback scoring disables author diversity (home-mixer/scorers/value_model.rs).
+
+- id: D10
+  area: D
+  title: Out-of-network discount (OonWeightFactor 0.75), also for in-network replies/reposts
+  mechanism: >-
+    The OON multiplier applies to out-of-network candidates and, when
+    EnableOonRescoreForInNetworkRepliesRetweets is true (default), to in-network
+    replies and reposts. The multiplier is the request's effective_oon_weight:
+    OonWeightFactor (0.75) normally, TopicOonWeightFactor (0.5) for topic
+    requests, or NewUserOonWeightFactor for eligible new viewers.
+  path: xai-value-model/scoring.rs
+  lines: [206, 251]
+  symbol: oon_applies, post_fusion_multipliers
+  anchor: "weights.oon_rescore_in_network_replies_retweets"
+  params: [OonWeightFactor, TopicOonWeightFactor, NewUserOonWeightFactor, EnableOonRescoreForInNetworkRepliesRetweets]
+  status: verified
+  relevance: >-
+    Reaching non-followers carries a 25% score discount at defaults, so
+    out-of-network posts need higher predicted engagement to rank equally.
+  observable_proxy: "Partial: follower vs non-follower impressions are not public; follower count gives the in-network ceiling."
+  limitations: >-
+    Defaults from vm-ranker/params.rs lines 205-228; production values can
+    differ per experiment bucket.
+
+- id: D11
+  area: D
+  title: New-viewer OON factor exists but default age threshold is 0
+  mechanism: >-
+    For a viewer younger than NewUserAgeThresholdSecs who follows at least 5
+    accounts, effective_oon_weight is NewUserOonWeightFactor (default 0.00001),
+    almost eliminating out-of-network posts. With the default threshold of 0
+    seconds, no viewer qualifies, so the branch is inactive unless configured.
+  path: vm-ranker/scoring/value_model.rs
+  lines: [118, 142]
+  symbol: scoring_context
+  anchor: ".is_some_and(|age| age < params.get(NewUserAgeThresholdSecs))"
+  params: [NewUserAgeThresholdSecs, NewUserOonWeightFactor]
+  status: verified
+  relevance: >-
+    If enabled in production, brand-new viewers would see almost only accounts
+    they follow, reducing out-of-network reach to new users.
+  observable_proxy: "none — not observable from public data"
+  limitations: "Whether production sets a non-zero threshold is unknown."
+
+- id: D12
+  area: D
+  title: DPP diversity rerank zeroes non-selected candidates
+  mechanism: >-
+    vm-ranker takes the top DppMaxSelectedRank (150) candidates by score and
+    greedily selects a subset maximising a determinant over a kernel combining
+    score (scaled by theta 0.65) with cosine similarity of multimodal post
+    embeddings. Selected posts keep their score; non-selected posts get score
+    0. Posts with missing embeddings get a random unit vector.
+  path: vm-ranker/scoring/dpp_model.rs
+  lines: [196, 207]
+  symbol: rank_with_memo, dpp::rescore
+  anchor: "if selected_ids.contains(&c.tweet_id) {"
+  params: [DppEnabled, DppTheta, DppMaxSelectedRank]
+  status: verified
+  relevance: >-
+    A post that is semantically similar to higher-scored posts in the same
+    viewer's candidate set can be dropped from the slate even with a good score.
+  observable_proxy: "Partial: post content is public; the embedding and competing candidates are not."
+  limitations: >-
+    Params default in vm-ranker/params.rs (DppEnabled true, theta 0.65, max rank
+    150); CLI defaults in vm-ranker/args.rs differ (dpp_enabled false, theta
+    0.5, top_k 50). The final top_k used in production is not shown.
+
+- id: D13
+  area: D
+  title: VFFilter drops only Drop/Tombstone/NotEvaluated; Downrank/Avoid kept
+  mechanism: >-
+    After selection, VFFilter removes candidates whose visibility action is
+    Drop, Tombstone or NotEvaluated. Allow, Interstitial, Avoid and Downrank are
+    kept, and no other home-mixer code was found that changes scores based on
+    Avoid or Downrank.
+  path: home-mixer/filters/vf_filter.rs
+  lines: [22, 27]
+  symbol: should_drop_action
+  anchor: "Action::Drop(_) | Action::Tombstone | Action::NotEvaluated => true,"
+  status: verified
+  relevance: >-
+    Visibility filtering affects For You reach mainly by dropping posts. A post
+    whose VF lookup failed (NotEvaluated) would also be dropped.
+  observable_proxy: "none — not observable from public data"
+  limitations: >-
+    The absence of Downrank/Avoid handling is from a search of home-mixer only;
+    other services could use them.
+
+- id: D14
+  area: D
+  title: Post-selection AncillaryVF, AncestorVideo and VideoCarousel filters
+  mechanism: >-
+    AncillaryVFFilter drops a candidate flagged drop_ancillary_posts, which the
+    VF hydrator sets when any non-tombstoned ancestor or the quoted post has a
+    drop-type visibility action. Ancestors and quoted posts are always evaluated
+    at the out-of-network safety level (TimelineHomeRecommendations), even for
+    in-network candidates. AncestorVideoFilter drops posts whose ancestor has
+    video when the request excludes video; VideoCarouselFilter runs last and
+    splits candidates for a video carousel.
+  path: home-mixer/candidate_hydrators/vf_candidate_hydrator.rs
+  lines: [140, 160]
+  symbol: should_drop_ancillary, AncillaryVFFilter, AncestorVideoFilter, VideoCarouselFilter
+  anchor: "if let Some(quoted_id) = candidate.quoted_tweet_id"
+  status: verified
+  relevance: >-
+    Replying to or quoting a post that carries out-of-network drop labels can
+    make the reply or quote ineligible for For You, even for the author's own
+    followers.
+  observable_proxy: "Partial: quoted/parent posts are public; their visibility labels are not."
+  limitations: >-
+    Filter in home-mixer/filters/ancillary_vf_filter.rs; the level assignment is
+    in vf_candidate_hydrator.rs lines 70-85. Tombstone handling of ancestors was
+    not traced in detail.
+
+- id: D15
+  area: D
+  title: No time-decay term in the weighted score
+  mechanism: >-
+    The weighted score is a sum of head predictions times weights (favorite,
+    reply, repost, clicks, dwell, shares, follow, negative feedback, etc.); none
+    of the terms is a function of post age. Freshness is enforced by hard
+    cutoffs (48h AgeFilter, D02) and by whatever the prediction model learns.
+  path: xai-value-model/scoring.rs
+  lines: [69, 140]
+  symbol: compute_weighted_score
+  anchor: "apply(scores.favorite_score, weights.favorite),"
+  status: verified
+  relevance: >-
+    There is no explicit half-life multiplier on the final score in this code.
+    Recency can still matter if the Phoenix model's predictions depend on post
+    age, which this finding does not establish.
+  observable_proxy: "Post timestamps are public."
+  limitations: >-
+    Phoenix model inputs were not audited for age features. Cold-start lift
+    (D19) has its own age cap.
+
+- id: D16
+  area: D
+  title: Popular-posts retrieval normalises views with an 8-hour half-life
+  mechanism: >-
+    A separate PopularPostsSource (enabled by default) selects up to 500 posts
+    from the last 24 hours, at most 5 per author, by a quality score that
+    divides views by an exponential saturation curve with an 8-hour half-life
+    and a 0.5-hour age floor, i.e. favouring view velocity.
+  path: home-mixer/util/popular_posts.rs
+  lines: [36, 53]
+  symbol: SelectionConfig, quality
+  anchor: "let lambda = std::f64::consts::LN_2 / config.half_life_hours;"
+  params: [half_life_hours, floor_hours, window_hours, per_author, budget, EnablePopularPostsSource]
+  status: verified
+  relevance: >-
+    Posts that gather views quickly are more likely to enter this candidate
+    pool for out-of-network viewers. This affects retrieval only; the post is
+    then scored like any other candidate.
+  observable_proxy: "View counts and post age are public for many posts."
+  limitations: >-
+    half_life_hours can be overridden by a CLI flag (home-mixer/main.rs, default 8.0).
+
+- id: D17
+  area: D
+  title: Debias payload with has_url is sent to vm-ranker only when enabled (default off)
+  mechanism: >-
+    When VMRankerSendDebiasInputs is true and the request has no cached posts,
+    home-mixer adds per-candidate content features to the vm-ranker request:
+    has_video, video duration, has_photo, media count, weighted text length,
+    newline count and has_url (external URLs in text). The parameter defaults
+    to false, and the value model shown here does not read these fields.
+  path: home-mixer/scorers/vm_ranker_request.rs
+  lines: [17, 24]
+  symbol: RequestShape::from_query
+  anchor: "query.params.get(VMRankerSendDebiasInputs)"
+  params: [VMRankerSendDebiasInputs]
+  status: verified
+  relevance: >-
+    No URL penalty appears in the published scoring formula; has_url is only an
+    experimental payload field whose use by vm-ranker is not shown.
+  observable_proxy: "Presence of links in post text is public."
+  limitations: >-
+    Default from home-mixer/params/param.rs lines 502-507. How vm-ranker
+    experiments consume experiment_payload is not in this repo.
+
+- id: D18
+  area: D
+  title: Embedding-based similarity de-duplication (DPP, video carousel)
+  mechanism: >-
+    Content similarity is handled with embeddings rather than text matching in
+    this pipeline: DPP (D12) penalises cosine-similar posts, and the video
+    carousel de-duplicates by author and by embedding similarity above a 0.72
+    threshold (both enabled by default).
+  path: home-mixer/params/param.rs
+  lines: [1165, 1175]
+  symbol: EnableVideoCarouselEmbeddingDedupe, VideoCarouselEmbeddingDedupeThreshold
+  anchor: '"rust_home_mixer_video_carousel_embedding_dedupe_threshold",'
+  params: [EnableVideoCarouselEmbeddingDedupe, VideoCarouselEmbeddingDedupeThreshold, EnableVideoCarouselAuthorDedupe]
+  status: verified
+  relevance: >-
+    Near-duplicate content competing for the same viewer is likely to be
+    thinned out; an author's own similar posts compete with each other.
+  observable_proxy: "Partial: content of posts is public; embeddings are not."
+  limitations: "The embedding models are not reproduced here."
+
+- id: D19
+  area: D
+  title: Cold-start lift for low-impression posts from smaller authors
+  mechanism: >-
+    AuthorColdStart can lift one eligible candidate per request to the score at
+    a randomly chosen target rank. Eligible posts are originals (not replies or
+    reposts) from authors with <= 50,000 followers, younger than 7,200 s, with
+    fewer than 200 home impressions, within an allowed position range, and in
+    the viewer's experiment arm's author corpus.
+  path: home-mixer/scorers/author_cold_start.rs
+  lines: [188, 193]
+  symbol: cold_start_base_eligible, apply_cold_start
+  anchor: ".is_some_and(|followers| (followers as i64) <= follower_cap)"
+  params: [EnableViewerColdStart, ColdStartFollowerCap, ColdStartImpressionThreshold, ColdStartMaxPostAgeSecs]
+  status: verified
+  relevance: >-
+    Small accounts' fresh original posts can get an exploratory boost early in
+    their life; replies and reposts are not eligible.
+  observable_proxy: "Follower count, post type and post age are public; home impressions are partly visible via view counts."
+  limitations: >-
+    Defaults from home-mixer/params/param.rs (lines 539-581); slot range and
+    corpus bucketing are experiment-controlled.

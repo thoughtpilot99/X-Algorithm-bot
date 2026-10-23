@@ -1,0 +1,11 @@
+# Collected data, labels, SQLite and the cloned algorithm repo stay local.
+data/
+.env
+*.sqlite
+*.sqlite-*
+__pycache__/
+.venv/
+.pytest_cache/
+.ruff_cache/
+node_modules/
+frontend/dist/
