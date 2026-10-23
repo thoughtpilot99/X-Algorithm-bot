@@ -71,6 +71,14 @@ def test_diagnostics_pass_guard_and_api_serves(seeded):
     assert items and all(d["evidence"] or d["status"] == "insufficient" for d in items)
     rec = rrun(h)
     assert len(rec["root_causes"]) <= 5
+    # Stop/Continue: only the format line may come from the full set; other lines exclude X Articles,
+    # and yes/no features appear once (never as their "False" mirror).
+    lines = [a["action"] for k in ("stop", "continue") for a in rec["actions"][k] if a["action"].startswith(("Reduce", "Keep"))]
+    assert lines and all("Content format" in x or x.endswith("(excluding X Articles)") for x in lines)
+    assert not any(": False (" in x for x in lines)
+    power = rec["plan"]["power"]
+    assert power["min_detectable_ratio_30_days"] and "In 30 days" in power["note"]
+    assert "cannot be detected within 30 days" not in power["note"]
 
     from xaudit.api.app import app
 

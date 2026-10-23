@@ -35,7 +35,9 @@ Standard errors use HC3. Hook type is left out because it is collinear with the 
 
 **Trend.** The Theil–Sen slope of log views against time, reported as a multiplier per 30 days with a 90% confidence interval.
 
-**Power.** Posts needed per arm for a two-sided test at α = 0.05 with 80% power on log views, using the model's residual standard deviation.
+**Power.** Posts needed per arm for a two-sided test at α = 0.05 with 80% power on log views, using the model's residual standard deviation. The plan also states the smallest change detectable in 30 days at the account's posting rate (about 13 posts per arm for Nicolas, 26 for Mich), so 30-day results are read as direction, not proof, unless the effect is large.
+
+**Stop / Continue lines.** Format lines come from all authored posts. Every other Reduce/Keep line is computed on posts other than X Articles: articles reach far more than anything else and are posted as bare links, so in the full set length, hook and narrative levels mostly re-measure the article effect. Yes/no features are reported once, by their "yes" level, with the multivariable multiplier (format, topic and month held fixed) where the model has the term.
 
 - At current posting rates, a 1.3× effect takes many months to detect.
 - So 30-day experiments are labelled *directional* unless the effect is roughly 2× or larger.

@@ -253,6 +253,7 @@ function Overview({ o, handle, open }: { o: any; handle: string; open: (d: Diagn
                   <Confidence level={r.confidence} />
                 </div>
                 <p className="mt-1 text-xs muted">{r.observation}</p>
+                <p className="mt-1 text-[11px] muted"><b>Published X algorithm:</b> {r.algo_findings?.length ? r.algo_findings.map((f) => `${f.id} ${f.title}`).join("; ") : "no direct mechanism in the published code; account data only"}</p>
               </button>
             </li>
           ))}
@@ -674,6 +675,7 @@ function Blockers({ handle, open }: { handle: string; open: (d: Diagnostic) => v
           </div>
           <p className="mt-1 text-xs">{d.observation}</p>
           <p className="mt-1 text-xs muted"><b>Recommendation:</b> {d.recommendation}</p>
+          <p className="mt-1 text-[11px] muted"><b>Published X algorithm:</b> {d.algo_findings?.length ? d.algo_findings.map((f) => `${f.id} ${f.title}`).join("; ") : "no direct mechanism in the published code; account data only"}</p>
         </button>
       ))}
     </div>

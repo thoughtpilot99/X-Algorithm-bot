@@ -114,5 +114,13 @@ def required_n_per_arm(sd_log: float, min_ratio: float = 1.3, alpha: float = 0.0
     return int(math.ceil(2 * (z * sd_log / delta) ** 2))
 
 
+def min_detectable_ratio(sd_log: float, n_per_arm: float, alpha: float = 0.05, power: float = 0.8) -> float | None:
+    """Smallest multiplicative change in median views detectable with n posts per arm (inverse of the above)."""
+    if not sd_log or sd_log <= 0 or n_per_arm < 2:
+        return None
+    z = stats.norm.ppf(1 - alpha / 2) + stats.norm.ppf(power)
+    return float(math.exp(z * sd_log * math.sqrt(2 / n_per_arm)))
+
+
 def fmt_ratio(r: float | None) -> str:
     return "n/a" if r is None else f"{r:.2f}x"

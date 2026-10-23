@@ -174,6 +174,7 @@ def run(handles: list[str] | None = None) -> dict:
             "reach_90d": reach.reach_report(last90, f),
             "engagement": engagement.engagement_report(df),
             "segments": segments.univariate(df),
+            "segments_ex_articles": segments.univariate_ex_articles(df),
             "multivariable": segments.multivariable(df),
             "strong_weak": segments.strong_weak_profile(df),
             "cadence": cadence.cadence_report(df),

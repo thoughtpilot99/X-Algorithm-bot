@@ -10,8 +10,9 @@ import numpy as np
 import pandas as pd
 
 from xaudit.analysis.pipeline import prepare
-from xaudit.analysis.stats import required_n_per_arm
+from xaudit.analysis.stats import min_detectable_ratio, required_n_per_arm
 from xaudit.db.session import load_artifact, save_artifact
+from xaudit.monitor.timeseries import follower_series
 from xaudit.settings import DATA_DIR, analysis_cfg
 
 REWRITES_DIR = DATA_DIR / "labels" / "rewrites"
@@ -63,6 +64,19 @@ def _arm_weeks(n_per_arm: int, posts_per_week: float, arms: int = 2) -> float | 
     return None if posts_per_week <= 0 else n_per_arm * arms / posts_per_week
 
 
+def power_summary(ppw: float, per_arm_30: float, mde30: float | None, n13: int) -> str:
+    base = ("Sample sizes assume a two-sided test at alpha 0.05 and 80% power on log views, using the residual "
+            "spread after month/format/topic controls. ")
+    if mde30 is None:
+        return base + "Too few authored posts to size a 30-day test."
+    w13 = _arm_weeks(n13, ppw)
+    return base + (f"In 30 days at {ppw:.1f} authored posts/week (~{per_arm_30:.0f} per arm), only changes of about "
+                   f"{mde30:.1f}x or larger in median views are detectable; detecting 1.3x would need ~{n13} posts "
+                   f"per arm" + (f" (~{w13:.0f} weeks)." if w13 is not None else ".") +
+                   " Smaller effects show up as direction only: read 30-day results as signals to keep testing, "
+                   "not as proof.")
+
+
 def experiment_plan(handle: str, df: pd.DataFrame, diags: list[dict]) -> dict:
     a = df[df["is_authored"] & df["mature"] & df["views"].notna()]
     sd = float(np.log1p(a["views"]).std()) if len(a) > 5 else None
@@ -75,6 +89,9 @@ def experiment_plan(handle: str, df: pd.DataFrame, diags: list[dict]) -> dict:
     n15 = required_n_per_arm(sd_resid, 1.5)
     n20 = required_n_per_arm(sd_resid, 2.0)
     d = {x["id"].split("-", 1)[1]: x for x in diags}
+    # A 30-day two-arm test splits about 30/7 weeks of authored posts between the arms.
+    per_arm_30 = ppw * (30 / 7) / 2
+    mde30 = min_detectable_ratio(sd_resid, per_arm_30)
 
     def power_note(n: int) -> str:
         w = _arm_weeks(n, ppw)
@@ -157,25 +174,55 @@ def experiment_plan(handle: str, df: pd.DataFrame, diags: list[dict]) -> dict:
             "log_view_sd": sd, "residual_sd_log": sd_resid,
             "posts_per_arm_for_1.3x": n13, "posts_per_arm_for_1.5x": n15, "posts_per_arm_for_2x": n20,
             "authored_posts_per_week": ppw, "replies_per_week": rpw,
-            "note": ("Sample sizes assume a two-sided test at alpha 0.05 and 80% power on log views, using the "
-                     "residual spread after month/format/topic controls. Effects smaller than ~1.3x cannot be "
-                     "detected within 30 days at current posting rates. " + power_note(n13)),
+            "posts_per_arm_in_30_days": per_arm_30, "min_detectable_ratio_30_days": mde30,
+            "note": power_summary(ppw, per_arm_30, mde30, n13),
         },
         "experiments": plan,
     }
 
 
-def stop_continue_start(handle: str, diags: list[dict], segments: list[dict]) -> dict:
-    hi = sorted([s for s in segments if s["signal"] == "higher"], key=lambda s: -s["ratio"])
-    lo = sorted([s for s in segments if s["signal"] == "lower"], key=lambda s: s["ratio"])
-    d = {x["id"].split("-", 1)[1]: x for x in diags}
+def _model_multiplier(mv: dict, feature: str, level: str) -> float | None:
+    """exp(b) for a yes/no feature in the multivariable model (holding format, topic and month fixed).
 
-    def seg_line(s: dict) -> str:
-        return f"{s['feature_label']}: {s['level']} ({s['ratio']:.2f}x median, n={s['n']})"
+    Categorical terms are left out: their multipliers are relative to an arbitrary reference level,
+    not to "all other posts", so they would not be comparable with the median ratio beside them.
+    """
+    if level != "True":
+        return None
+    return next((c["multiplier"] for c in mv.get("coefficients", []) if c["term"] == feature), None)
+
+
+def stop_continue_start(handle: str, diags: list[dict], segments: list[dict],
+                        segments_ex: list[dict] | None = None, mv: dict | None = None,
+                        monitoring_live: bool = False) -> dict:
+    mv = mv or {}
+    d = {x["id"].split("-", 1)[1]: x for x in diags}
+    # Format effects come from the full set; everything else from posts other than X Articles,
+    # because articles (bare links, tutorial-style) otherwise dominate length, hook and narrative levels.
+    fmt_segs = [s for s in segments if s["feature"] == "format"]
+    has_articles = any(s["level"] == "x_article" and s["n"] for s in fmt_segs)
+    other = (segments_ex if (has_articles and segments_ex) else
+             [s for s in segments if s["feature"] != "format"])
+    if has_articles and segments_ex:
+        other = [s for s in other if s["feature"] not in ("format", "tco_url_excl_articles")]
+    scope = " (excluding X Articles)" if has_articles and segments_ex else ""
+
+    def seg_line(s: dict, sc: str = "") -> str:
+        m = _model_multiplier(mv, s["feature"], s["level"])
+        adj = f"; model-adjusted {m:.2f}x" if m is not None else ""
+        level = "yes" if s["level"] == "True" else s["level"]
+        return f"{s['feature_label']}: {level} ({s['ratio']:.2f}x median, n={s['n']}{adj}){sc}"
+
+    def ranked(rows: list[dict], sig: str) -> list[dict]:
+        # A yes/no feature is reported once, by its "True" level; "False" is its mirror image.
+        rows = [s for s in rows if s["signal"] == sig and s["level"] != "False"]
+        return sorted(rows, key=lambda s: -s["ratio"] if sig == "higher" else s["ratio"])
 
     stop, cont, start = [], [], []
-    for s in lo[:5]:
-        stop.append({"action": f"Reduce: {seg_line(s)}", "evidence_class": "statistical_association"})
+    lo = [(s, "") for s in ranked(fmt_segs, "lower")] + [(s, scope) for s in ranked(other, "lower")]
+    hi = [(s, "") for s in ranked(fmt_segs, "higher")] + [(s, scope) for s in ranked(other, "higher")]
+    for s, sc in lo[:5]:
+        stop.append({"action": f"Reduce: {seg_line(s, sc)}", "evidence_class": "statistical_association"})
     if d.get("stacking", {}).get("status") == "supported":
         stop.append({"action": "Stop publishing a 3rd authored post on the same day", "evidence_class":
                      "statistical_association"})
@@ -185,11 +232,12 @@ def stop_continue_start(handle: str, diags: list[dict], segments: list[dict]) ->
     if d.get("fulfilment", {}).get("status") == "supported":
         stop.append({"action": "Stop mass identical public 'Sent' replies (test DM/pinned delivery)",
                      "evidence_class": "hypothesis"})
-    for s in hi[:5]:
-        cont.append({"action": f"Keep: {seg_line(s)}", "evidence_class": "statistical_association"})
+    for s, sc in hi[:5]:
+        cont.append({"action": f"Keep: {seg_line(s, sc)}", "evidence_class": "statistical_association"})
+    if not monitoring_live:
+        start.append({"action": "Start measuring: daily metric snapshots + follower history (monitoring)",
+                      "evidence_class": "account_observed"})
     start += [
-        {"action": "Start measuring: daily metric snapshots + follower history (monitoring)",
-         "evidence_class": "account_observed"},
         {"action": "Start the randomised hook and closing-prompt tests (see 30-day plan)", "evidence_class": "hypothesis"},
         {"action": "Start substantive comments on larger in-niche accounts within their first hour",
          "evidence_class": "hypothesis"},
@@ -207,7 +255,9 @@ def run(handle: str) -> dict:
     selected = select_rewrites(df)
     out = {
         "root_causes": rank_root_causes(diags),
-        "actions": stop_continue_start(handle, diags, segs),
+        "actions": stop_continue_start(handle, diags, segs, load_artifact("segments_ex_articles", handle) or [],
+                                       load_artifact("multivariable", handle) or {},
+                                       monitoring_live=len(follower_series(handle)) >= 2),
         "rewrites": load_rewrites(handle, selected),
         "plan": experiment_plan(handle, df, diags),
     }

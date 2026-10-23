@@ -77,6 +77,18 @@ def univariate(df: pd.DataFrame, metric: str = "views") -> list[dict]:
     return rows
 
 
+def univariate_ex_articles(df: pd.DataFrame, metric: str = "views") -> list[dict]:
+    """Univariate segments over authored posts other than X Articles.
+
+    X Articles reach far more than anything else and are posted as bare links, so
+    in the full set length, hook and narrative levels mostly re-measure the article
+    effect. Excluding them shows what is associated with reach in everyday posts.
+    """
+    if "format" not in df.columns:
+        return []
+    return univariate(df[df["format"] != "x_article"], metric)
+
+
 def multivariable(df: pd.DataFrame) -> dict:
     a = df[df["is_authored"] & df["mature"] & df["views"].notna()].copy()
     if len(a) < 40:

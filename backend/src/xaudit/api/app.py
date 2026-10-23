@@ -18,7 +18,7 @@ from xaudit.db.session import load_artifact, session
 from xaudit.recommend.compare import final_answers
 from xaudit.settings import REPO_ROOT, REPORTS_DIR, clients
 
-ARTIFACT_KINDS = {"profile", "reach", "reach_90d", "engagement", "segments", "multivariable", "strong_weak",
+ARTIFACT_KINDS = {"profile", "reach", "reach_90d", "engagement", "segments", "segments_ex_articles", "multivariable", "strong_weak",
                   "cadence", "comments", "benchmark", "completeness", "diagnostics", "recommendations"}
 
 app = FastAPI(title="X Account Intelligence & Algorithm Audit", version="0.1.0")

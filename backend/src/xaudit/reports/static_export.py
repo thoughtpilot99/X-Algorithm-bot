@@ -23,7 +23,7 @@ ACCOUNT_ROUTES = {
     "experiments.json": "/api/accounts/{h}/experiments",
     "followers.json": "/api/accounts/{h}/timeseries/followers",
 }
-ARTIFACTS = ["reach", "segments", "multivariable", "comments", "benchmark", "engagement", "diagnostics",
+ARTIFACTS = ["reach", "segments", "segments_ex_articles", "multivariable", "comments", "benchmark", "engagement", "diagnostics",
              "recommendations"]
 
 
