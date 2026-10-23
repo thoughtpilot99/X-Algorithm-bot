@@ -1,4 +1,4 @@
 weekly
 
 Push a change to this file to start a monitor run. First word = mode: daily | weekly | monthly | dry-run.
-Requested 2026-10-23T12:07Z: 12-month backfill + proofs.
+Requested 2026-10-23T16:09Z: retry Nicolas 12-month backfill, tag-free reports, dashboard data.
