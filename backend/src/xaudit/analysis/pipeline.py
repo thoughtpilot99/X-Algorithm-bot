@@ -52,7 +52,12 @@ def _merge_labels(df: pd.DataFrame) -> pd.DataFrame:
     for col in ("category", "relevant_to_icp", "substantive"):
         if f"r_{col}" in df:
             df[col] = df[f"r_{col}"]
-    return df.drop(columns=[c for c in df.columns if c.startswith(("c_", "r_"))])
+    df = df.drop(columns=[c for c in df.columns if c.startswith(("c_", "r_"))])
+    for col in ("topic", "subtopic", "hook_type", "narrative", "category", "relevant_to_icp", "uses_data",
+                "personal_experience", "promotional", "opinion_strength", "educational_value", "label_method"):
+        if col not in df:
+            df[col] = None
+    return df
 
 
 def _merge_threads(df: pd.DataFrame) -> pd.DataFrame:
@@ -65,11 +70,19 @@ def _merge_threads(df: pd.DataFrame) -> pd.DataFrame:
     return df.merge(t, on="tweet_id", how="left")
 
 
-def prepare(handle: str, window_days: int | None = None) -> pd.DataFrame:
+def prepare(handle: str, window_days: int | None = None, label_missing: bool = False) -> pd.DataFrame:
+    """Posts + features + labels + thread context + baselines + rates for one account.
+
+    ``label_missing`` labels any post without a current label first (Claude when
+    ANTHROPIC_API_KEY is set, heuristics otherwise); cached labels are reused.
+    """
     df = load_posts(handle, window_days=window_days)
     if df.empty:
         return df
     df = add_features(df)
+    if label_missing:
+        c = clients().get(handle, {})
+        classify.classify(df, context=f"{c.get('name', handle)}: {c.get('positioning_hint', '')}")
     df = _merge_labels(df)
     df = _merge_threads(df)
     df = reach.add_baseline(df)
@@ -146,7 +159,7 @@ def run(handles: list[str] | None = None) -> dict:
     followers = latest_followers()
     summary = {}
     for h in handles:
-        df = prepare(h, window_days=analysis_cfg()["extended_window_days"])
+        df = prepare(h, window_days=analysis_cfg()["extended_window_days"], label_missing=True)
         if df.empty:
             summary[h] = "no data"
             continue

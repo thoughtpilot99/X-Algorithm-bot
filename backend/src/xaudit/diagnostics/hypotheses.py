@@ -30,8 +30,10 @@ def _seg(art: dict, feature: str, level: str) -> dict | None:
     return next((s for s in art["segments"] if s["feature"] == feature and str(s["level"]) == level), None)
 
 
-def _r(x: float | None, nd: int = 2) -> float | None:
-    return None if x is None else round(float(x), nd)
+def _r(x: float | None, nd: int = 2) -> float | int | None:
+    if x is None:
+        return None
+    return int(round(float(x))) if nd == 0 else round(float(x), nd)
 
 
 def _ids(*terms: str) -> list[str]:

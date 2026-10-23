@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{ name }} X Audit</title><style>{{ css }}</style></head>
+<body><main>
+<div class="meta">Report {{ letter }} · X Account Intelligence & Algorithm Audit · generated {{ generated }}</div>
+<h1>{{ name }} (@{{ handle }}) — Complete X Account Audit</h1>
+<div class="sub">Window {{ window[0][:10] }} → {{ window[1][:10] }} (180 days; 90-day figures marked) · public data only ·
+algorithm repository <a href="{{ repo_url }}/tree/{{ sha }}">xai-org/x-algorithm@{{ sha[:7] }}</a></div>
+
+<div class="note">How to read this report: every finding carries an evidence class —
+{% for c in ["repo_verified","account_observed","statistical_association","hypothesis","unsupported","insufficient"] %}<span class="badge b-{{c}}">{{ c|replace('_',' ') }}</span> {% endfor %}.
+Associations are not causes; the published repository does not describe every live production system; no metric here is an X algorithm score.</div>
+
+<h2>1. Executive summary</h2>
+<div class="cards">
+  <div class="card"><div class="k">Followers</div><div class="v">{{ profile.followers|num }}</div><div class="n">snapshot 2026-10-23</div></div>
+  <div class="card"><div class="k">Median views / authored post</div><div class="v">{{ reach.segments['authored (original + quote)'].median|num }}</div><div class="n">n={{ reach.segments['authored (original + quote)'].n }} · 180d</div></div>
+  <div class="card"><div class="k">Trend per 30 days</div><div class="v">{{ reach.trend_authored.per_30d|r2 }}x</div><div class="n">90% CI {{ reach.trend_authored.lo|r2 }}–{{ reach.trend_authored.hi|r2 }}</div></div>
+  <div class="card"><div class="k">Median views / comment</div><div class="v">{{ comments.conversation.views.median|num }}</div><div class="n">n={{ comments.conversation.n }} conversational</div></div>
+</div>
+<h3>Top 5 potential barriers to organic growth</h3>
+<table><tr><th>#</th><th>Issue</th><th>Status</th><th>Confidence</th><th>Evidence class</th><th class="num">Priority</th></tr>
+{% for r in rec.root_causes %}<tr><td>{{ r.rank }}</td><td><a href="#{{ r.id }}">{{ r.issue }}</a></td><td>{{ r.status }}</td><td>{{ r.confidence }}</td><td><span class="badge b-{{ r.evidence_class }}">{{ r.evidence_class|replace('_',' ') }}</span></td><td class="num">{{ r.priority|r2 }}</td></tr>{% endfor %}</table>
+<p class="meta">Priority = 0.30·evidence strength + 0.25·likely impact + 0.20·business relevance + 0.15·confidence + 0.10·ease of testing (transparent internal weighting).</p>
+
+<h3>Stop / continue / start</h3>
+<div class="cols"><div><b>Stop</b><ul>{% for a in rec.actions.stop %}<li>{{ a.action }}</li>{% endfor %}</ul>
+<b>Continue</b><ul>{% for a in rec.actions.continue %}<li>{{ a.action }}</li>{% endfor %}</ul></div>
+<div><b>Start</b><ul>{% for a in rec.actions.start %}<li>{{ a.action }}</li>{% endfor %}</ul></div></div>
+
+<h2>2. Data completeness and confidence</h2>
+<table><tr><th>Data</th><th>Status</th><th>Detail</th></tr>
+{% for i in completeness["items"] %}<tr><td>{{ i.item }}</td><td>{{ i.status }}</td><td>{{ i.detail }}</td></tr>{% endfor %}</table>
+
+<h2>3. Historical performance</h2>
+<h3>Reach by post type (mature posts, 180 days)</h3>
+<table><tr><th>Segment</th><th class="num">n</th><th class="num">Median</th><th class="num">p25</th><th class="num">p75</th><th class="num">p90</th><th class="num">Mean</th><th class="num">Median / follower</th></tr>
+{% for k, s in reach.segments.items() %}{% if s.n %}<tr><td>{{ k }}</td><td class="num">{{ s.n }}</td><td class="num">{{ s.median|num }}</td><td class="num">{{ s.p25|num }}</td><td class="num">{{ s.p75|num }}</td><td class="num">{{ s.p90|num }}</td><td class="num">{{ s.mean|num }}</td><td class="num">{{ s.median_views_per_follower|pct(2) }}</td></tr>{% endif %}{% endfor %}</table>
+<p>90-day window: median authored views {{ reach90.segments['authored (original + quote)'].median|num }} (n={{ reach90.segments['authored (original + quote)'].n }}).
+The top 5% of authored posts produced {{ reach.concentration.top5pct_share_of_views|pct }} of authored views (top single post {{ reach.concentration.top1_share_of_views|pct }}), so medians, not totals, describe a typical post.
+Relative to each post's trailing 28-day baseline: {{ reach.vs_baseline.share_above_2x|pct }} exceeded 2x, {{ reach.vs_baseline.share_below_half|pct }} fell below 0.5x.</p>
+<h3>Monthly median views (authored) and posting volume</h3>
+{{ monthly_svg|safe }}
+<table><tr><th>Month</th><th class="num">Authored posts</th><th class="num">Median views</th><th class="num">Total views</th><th class="num">Replies to others</th><th class="num">Median reply views</th></tr>
+{% for m in reach.monthly %}<tr><td>{{ m.month }}</td><td class="num">{{ m.authored_n }}</td><td class="num">{{ m.authored_median_views|num }}</td><td class="num">{{ m.authored_total_views|num }}</td><td class="num">{{ m.replies_n }}</td><td class="num">{{ m.reply_median_views|num }}</td></tr>{% endfor %}</table>
+<h3>Engagement efficiency (per 1,000 views; observed outcomes, not ranking scores)</h3>
+<table><tr><th>Type</th>{% for m in ["likes","replies","reposts","quotes","bookmarks","eng"] %}<th class="num">{{ m }} /1k (median)</th>{% endfor %}</tr>
+{% for t, d in engagement.by_type.items() %}<tr><td>{{ t }}</td>{% for m in ["likes","replies","reposts","quotes","bookmarks","eng"] %}<td class="num">{{ d[m ~ '_per_1k'].median|r2 }}</td>{% endfor %}</tr>{% endfor %}</table>
+<p class="meta">Unavailable: {% for k, v in engagement.unavailable.items() %}{{ k|replace('_',' ') }} ({{ v }}){% if not loop.last %}; {% endif %}{% endfor %}.</p>
+
+<h2>4. Posting audit</h2>
+<h3>Characteristics associated with higher or lower reach</h3>
+<p class="meta">Each level vs all other authored posts. Ratio of medians with 90% bootstrap CI; q = Benjamini–Hochberg adjusted p across {{ segments|length }} comparisons. Only q &lt; 0.1 shown as signals. Associations only.</p>
+<table><tr><th>Feature</th><th>Level</th><th class="num">n</th><th class="num">Median views</th><th class="num">Ratio</th><th class="num">90% CI</th><th class="num">q</th><th>Signal</th></tr>
+{% for s in segments if s.signal in ["higher","lower"] %}<tr><td>{{ s.feature_label }}</td><td>{{ s.level }}</td><td class="num">{{ s.n }}</td><td class="num">{{ s.median|num }}</td><td class="num">{{ s.ratio|r2 }}x</td><td class="num">{{ s.lo|r2 }}–{{ s.hi|r2 }}</td><td class="num">{{ s.q|r3 }}</td><td>{{ s.signal }}</td></tr>{% endfor %}</table>
+{% if mv.fitted %}<h3>Multivariable model (controls: month fixed effects; HC3 robust errors)</h3>
+<p class="meta">{{ mv.formula }} · n={{ mv.n }} · R² {{ mv.r2|r2 }}. Multipliers are relative to the reference level of each factor.</p>
+<table><tr><th>Term</th><th class="num">Multiplier</th><th class="num">90% CI</th><th class="num">p</th></tr>
+{% for c in mv.coefficients[:14] %}<tr><td>{{ c.term }}</td><td class="num">{{ c.multiplier|r2 }}x</td><td class="num">{{ c.lo|r2 }}–{{ c.hi|r2 }}</td><td class="num">{{ c.p|r3 }}</td></tr>{% endfor %}</table>{% endif %}
+<h3>Time and frequency</h3>
+<p>{{ cadence.frequency.authored_per_week|r1 }} authored posts and {{ cadence.frequency.replies_per_week|r1 }} replies per week; active on {{ cadence.frequency.active_days_share|pct }} of days; up to {{ cadence.frequency.max_replies_in_a_day }} replies in a single day.</p>
+<div class="cols"><div><table><tr><th>Same-day order</th><th class="num">n</th><th class="num">Median vs baseline</th></tr>
+{% for k, v in cadence.same_day_order.items() %}<tr><td>{{ k }} post of the day</td><td class="num">{{ v.n }}</td><td class="num">{{ v.median|r2 }}x</td></tr>{% endfor %}</table></div>
+<div><table><tr><th>Gap since previous post</th><th class="num">n</th><th class="num">Median vs baseline</th></tr>
+{% for k, v in cadence.gap_since_previous.items() %}<tr><td>{{ k }}</td><td class="num">{{ v.n }}</td><td class="num">{{ v.median|r2 }}x</td></tr>{% endfor %}</table></div></div>
+<p class="meta">Reply volume vs authored reach (Spearman): same day ρ={{ cadence.reply_volume_vs_authored_reach.same_day.rho|r2 }} (p={{ cadence.reply_volume_vs_authored_reach.same_day.p|r3 }}); previous 3 days ρ={{ cadence.reply_volume_vs_authored_reach.previous_3_days.rho|r2 }} (p={{ cadence.reply_volume_vs_authored_reach.previous_3_days.p|r3 }}).</p>
+
+<h2>5. Commenting audit</h2>
+<p>Reply roles: {% for k, v in comments.roles.items() %}{{ k|replace('_',' ') }} {{ v }}{% if not loop.last %} · {% endif %}{% endfor %}.
+{{ comments.fulfilment.note }}</p>
+<table><tr><th>Category</th><th class="num">n</th><th class="num">Median views</th><th class="num">Median likes</th><th class="num">Share with a reply</th><th class="num">Median effectiveness</th></tr>
+{% for r in comments.by_category %}<tr><td>{{ r.category|replace('_',' ') }}</td><td class="num">{{ r.n }}</td><td class="num">{{ r.median_views|num }}</td><td class="num">{{ r.median_likes|r1 }}</td><td class="num">{{ r.share_with_reply|pct }}</td><td class="num">{{ r.median_effectiveness|r1 }}</td></tr>{% endfor %}</table>
+<p class="meta">{{ comments.score_label }}. Weights: {% for k, v in comments.score_weights.items() %}{{ k }} {{ v }}{% if not loop.last %}, {% endif %}{% endfor %} (timing unavailable → redistributed).</p>
+{% if comments.thread_sample %}<p>Thread-context sample (n={{ comments.thread_sample.n }}): median delay after the parent post {{ comments.thread_sample.latency_minutes.median|num }} min; {{ comments.thread_sample.share_within_60min|pct }} within the first hour; parent author replied to {{ comments.thread_sample.parent_author_responded_share|pct }}.</p>{% endif %}
+<h3>Commenting questions</h3>
+{% for q in comments.questions %}<div class="qa"><b>{{ q.q }}</b>{{ q.answer }} <span class="badge b-{{ q.evidence_class }}">{{ q.evidence_class }}</span></div>{% endfor %}
+<h3>Most-viewed comments</h3>
+<table><tr><th>Date</th><th>To</th><th>Comment</th><th>Category</th><th class="num">Views</th></tr>
+{% for r in comments.examples.most_viewed[:8] %}<tr><td>{{ r.created_at }}</td><td>@{{ r.parent_author }}</td><td><a href="{{ r.url }}">{{ r.text[:160] }}</a></td><td>{{ (r.category or '')|replace('_',' ') }}</td><td class="num">{{ r.views|num }}</td></tr>{% endfor %}</table>
+
+<h2>6. Audience and network</h2>
+<p>{{ comments.concentration.distinct_parent_authors }} distinct accounts received conversational comments; the top 5 received {{ comments.concentration.top5_share|pct }} (HHI {{ comments.concentration.hhi|r3 }}); {{ comments.concentration.repeat_targets_3plus }} accounts received 3+ comments.</p>
+<table><tr><th>Account commented on</th><th class="num">Comments</th><th class="num">Median views</th><th class="num">Total views</th><th class="num">Share with a reply</th><th>Peer/client</th></tr>
+{% for p in comments.partners[:15] %}<tr><td>@{{ p.parent_author }}</td><td class="num">{{ p.replies }}</td><td class="num">{{ p.median_views|num }}</td><td class="num">{{ p.total_views|num }}</td><td class="num">{{ p.share_with_reply|pct }}</td><td>{{ 'yes' if p.is_peer_or_client else '' }}</td></tr>{% endfor %}</table>
+{% if comments.engagers and comments.engagers.available %}<p>{{ comments.engagers.n_engagements }} public replies/quotes from {{ comments.engagers.distinct_engagers }} distinct accounts ({{ comments.engagers.window[0] }} → {{ comments.engagers.window[1] }}); {{ comments.engagers.one_time_share|pct }} engaged only once; the top 10 accounts made {{ comments.engagers.top10_share|pct }} of engagements; {{ comments.engagers.reciprocal_accounts }} engagers are also accounts @{{ handle }} comments on ({{ comments.engagers.reciprocal_share_of_engagements|pct }} of engagements). <span class="meta">{{ comments.engagers.note }}</span></p>{% endif %}
+{% if engagers %}<h3>Accounts that replied to or quoted @{{ handle }}</h3>
+<table><tr><th>Account</th><th class="num">Replies/quotes</th></tr>{% for e in engagers[:15] %}<tr><td>@{{ e.handle }}</td><td class="num">{{ e.n }}</td></tr>{% endfor %}</table>{% endif %}
+<p class="note">Private social-graph relationships (who follows whom, mutual follows) are not inferred from public replies.</p>
+
+<h2>7. Potential reach barriers — full diagnostics</h2>
+{% for d in diagnostics %}<div class="diag" id="{{ d.id }}"><h3>{{ d.issue }} <span class="badge b-{{ d.evidence_class }}">{{ d.evidence_class|replace('_',' ') }}</span> <span class="badge">{{ d.status }}</span> <span class="badge">confidence: {{ d.confidence }}</span></h3>
+<dl><dt>Observation</dt><dd>{{ d.observation }}</dd>
+<dt>Evidence</dt><dd>{% for e in d.evidence %}{% if e.url %}<a href="{{ e.url }}">{{ e.label }}</a>{% else %}{{ e.label }}{% if e.value is not none %}: <b>{{ e.value|ev }}</b>{% endif %}{% endif %}{% if not loop.last %} · {% endif %}{% endfor %}</dd>
+<dt>Algorithm connection</dt><dd>{{ d.algo_connection }}{% for f in d.algo_findings %}<br><a href="{{ f.permalink }}">{{ f.id }} · {{ f.title }} ({{ f.path }}:{{ f.lines[0] }}-{{ f.lines[1] }})</a>{% endfor %}</dd>
+<dt>Alternative explanations</dt><dd>{{ d.alternatives|join('; ') }}</dd>
+<dt>Impact</dt><dd>{{ d.impact }}</dd>
+<dt>Recommendation</dt><dd>{{ d.recommendation }}</dd>
+<dt>Validation</dt><dd>{{ d.validation }}</dd>
+{% if d.success_criteria %}<dt>Success criteria</dt><dd>{{ d.success_criteria }}</dd>{% endif %}
+{% if d.confounders %}<dt>Confounders</dt><dd>{{ d.confounders|join(', ') }}</dd>{% endif %}</dl></div>{% endfor %}
+
+<h2>8. Algorithm connections</h2>
+<p>Findings from the published repository referenced in this audit (status: verified = read in code; inferred = reasoned from code). Repository code is not a complete description of live production systems; published parameter defaults are cron-synced but experiments may override them.</p>
+<table><tr><th>ID</th><th>Finding</th><th>Location</th><th>Status</th></tr>
+{% for f in used_findings %}<tr><td>{{ f.id }}</td><td><b>{{ f.title }}</b><br>{{ f.mechanism }}<br><span class="meta">Relevance: {{ f.relevance }} · Limitations: {{ f.limitations }}</span></td><td><a href="{{ f.permalink }}">{{ f.path }}:{{ f.lines[0] }}-{{ f.lines[1] }}</a></td><td>{{ f.status }}</td></tr>{% endfor %}</table>
+
+<h2>9. Competitive comparison</h2>
+<p class="meta">Same slice for client and peers: authored posts, last {{ bench.window_days }} days, mature only.</p>
+<table><tr><th>Account</th><th class="num">Followers</th><th class="num">Posts/wk</th><th class="num">Median views</th><th class="num">Views / 1k followers</th><th class="num">Eng /1k views</th><th class="num">Replies /1k</th><th class="num">Bookmarks /1k</th><th class="num">Article share</th></tr>
+{% for h, a in bench.accounts.items() %}{% if a.n %}<tr{% if h == handle %} style="font-weight:650"{% endif %}><td>@{{ h }}</td><td class="num">{{ a.followers|num }}</td><td class="num">{{ a.authored_per_week|r1 }}</td><td class="num">{{ a.median_views|num }}</td><td class="num">{{ a.median_views_per_1k_followers|r1 }}</td><td class="num">{{ a.median_eng_per_1k_views|r1 }}</td><td class="num">{{ a.median_replies_per_1k|r2 }}</td><td class="num">{{ a.median_bookmarks_per_1k|r2 }}</td><td class="num">{{ a.share_article|pct }}</td></tr>{% endif %}{% endfor %}</table>
+<ul class="meta">{% for n in bench.notes %}<li>{{ n }}</li>{% endfor %}</ul>
+
+<h2>10. Post rewrites (editorial proposals to test)</h2>
+<p class="note">A rewrite is an editorial proposal; it is not predicted to receive more distribution. Each comes with a measurable test.</p>
+{% for r in rec.rewrites %}<div class="diag"><h3>{{ loop.index }}. {{ r.format|replace('_',' ') }} · {{ r.created_at }} · {{ r.views|num }} views ({{ r.vs_baseline|r2 }}x baseline)</h3>
+<div class="post"><a href="{{ r.url }}">Original</a>: {{ r.text }}</div>
+{% if r.rewrite %}<dl><dt>Observed issue</dt><dd>{{ r.observed_issue }}</dd><dt>Can conclude</dt><dd>{{ r.can_conclude }}</dd><dt>Cannot conclude</dt><dd>{{ r.cannot_conclude }}</dd></dl>
+<div class="post new">{{ r.rewrite }}</div>
+<dl><dt>Editorial changes</dt><dd><ul>{% for c in r.editorial_changes %}<li>{{ c }}</li>{% endfor %}</ul></dd><dt>Test</dt><dd>{{ r.test }}</dd><dt>Drafted by</dt><dd>{{ r.drafted_by }}</dd></dl>{% else %}<p class="meta">Rewrite not drafted yet.</p>{% endif %}</div>{% endfor %}
+
+<h2>11. 30-day growth plan</h2>
+<p class="note">{{ rec.plan.power.note }}</p>
+<table><tr><th>Week</th><th>Experiment</th><th>Hypothesis · intervention · control</th><th>Primary metric</th><th>Decision rule</th><th>Power</th></tr>
+{% for e in rec.plan.experiments %}<tr><td>{{ e.week }}</td><td><b>{{ e.title }}</b>{% if e.diagnostic_status %}<br><span class="meta">diagnostic: {{ e.diagnostic_status }}, {{ e.diagnostic_confidence }}</span>{% endif %}</td>
+<td>{{ e.hypothesis }}<br><i>Do:</i> {{ e.intervention }}<br><i>Compare:</i> {{ e.control }}<br><span class="meta">Secondary: {{ e.secondary_metrics|join(', ') }} · Confounders: {{ e.confounders|join(', ') }} · Minimum period: {{ e.minimum_period }}</span></td>
+<td>{{ e.primary_metric }}</td><td>{{ e.decision_rule }}</td>
+<td>{% if e.required_n_per_arm %}{{ e.required_n_per_arm }} posts/arm{% if e.underpowered_in_30_days %}<br><b style="color:var(--bad)">underpowered in 30 days (~{{ e.weeks_needed_at_current_rate }} wks)</b> — read as directional{% endif %}{% else %}n/a{% endif %}</td></tr>{% endfor %}</table>
+
+<h2>12. The fourteen questions</h2>
+{% for q in answers %}<div class="qa"><b>{{ loop.index }}. {{ q.q }}</b>{{ q.a }} <span class="badge b-{{ q.class }}">{{ q.class|replace('_',' ') }}</span></div>{% endfor %}
+
+<h2>Appendix — common algorithm claims checked against the repository</h2>
+<table><tr><th>Claim</th><th>Verdict</th><th>Explanation</th></tr>
+{% for c in claims %}<tr><td>{{ c.claim }}</td><td>{{ c.verdict|replace('_',' ') }}</td><td>{{ c.explanation }}{% for e in c.evidence or [] %}<br><a href="{{ e.permalink }}">{{ e.path }}:{{ e.lines[0] }}-{{ e.lines[1] }}</a>{% endfor %}</td></tr>{% endfor %}</table>
+</main></body></html>

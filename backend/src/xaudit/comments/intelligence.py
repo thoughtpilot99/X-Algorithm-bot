@@ -114,6 +114,24 @@ def comment_report(df: pd.DataFrame, handle: str, followers: dict[str, int] | No
                          "median_effectiveness": float(g["effectiveness"].median())})
         return sorted(rows, key=lambda r: -r["n"])
 
+    # Thread context (tweet-detail sample): latency to parent, whether the parent author replied.
+    if "latency_minutes" in conv and conv["latency_minutes"].notna().any():
+        t = conv[conv["latency_minutes"].notna()]
+        out["thread_sample"] = {
+            "n": int(len(t)),
+            "latency_minutes": robust_summary(t["latency_minutes"]),
+            "share_within_60min": float((t["latency_minutes"] <= 60).mean()),
+            "share_after_24h": float((t["latency_minutes"] > 1440).mean()),
+            "parent_author_responded_share": float(t["parent_author_responded"].fillna(False).astype(bool).mean()),
+            "parent_views": robust_summary(t["parent_views"]),
+            "reply_views_vs_parent_views_median": float((t["views"] / t["parent_views"].replace(0, np.nan)).median()),
+            "early_vs_late_views": {
+                "within_60min": robust_summary(t.loc[t["latency_minutes"] <= 60, "views"]),
+                "after_60min": robust_summary(t.loc[t["latency_minutes"] > 60, "views"]),
+            },
+            "note": "Sample of the most recent conversational comments with tweet-detail context; the parent author "
+                    "reply check only sees replies returned on the first page of the thread.",
+        }
     out["by_category"] = by("category") if "category" in conv else []
     out["by_topic"] = by("topic") if "topic" in conv else []
     out["by_length"] = by("length_bucket")
@@ -165,6 +183,7 @@ def comment_report(df: pd.DataFrame, handle: str, followers: dict[str, int] | No
     # Answers to the brief's commenting questions, with data availability.
     out["questions"] = _answers(out, conv, df)
     out["scored_replies"] = rows(conv.sort_values("created_at"))
+    out["engagers"] = engager_report(handle, conv)
     return out
 
 
@@ -178,8 +197,17 @@ def _answers(out: dict, conv: pd.DataFrame, df: pd.DataFrame) -> list[dict]:
                                             "(judged from reply text; parent post unavailable).",
          "evidence_class": "account_observed"},
         {"q": "Are replies early enough to participate in active discussions?",
-         "answer": "Insufficient data: parent post timestamps are not available, so reply latency cannot be "
-                   "measured.", "evidence_class": "insufficient"},
+         "answer": (f"In a sample of {out['thread_sample']['n']} recent comments with thread context, the median "
+                    f"delay after the parent post was {out['thread_sample']['latency_minutes']['median']:.0f} "
+                    f"minutes; {out['thread_sample']['share_within_60min']:.0%} were within the first hour.")
+         if out.get("thread_sample") else
+         "Insufficient data: parent post timestamps are not available, so reply latency cannot be measured.",
+         "evidence_class": "account_observed" if out.get("thread_sample") else "insufficient"},
+        {"q": "Do parent authors respond?",
+         "answer": (f"{out['thread_sample']['parent_author_responded_share']:.0%} of sampled comments got a visible "
+                    "reply from the parent author.") if out.get("thread_sample") else
+         "Not observable without thread context.",
+         "evidence_class": "account_observed" if out.get("thread_sample") else "insufficient"},
         {"q": "Are comments substantive or repetitive?",
          "answer": None if sub is None else f"{sub:.0%} substantive (insight, expertise, question, "
                                             "disagreement, experience); see category mix.",
@@ -196,3 +224,37 @@ def _answers(out: dict, conv: pd.DataFrame, df: pd.DataFrame) -> list[dict]:
          "answer": f"median {c['views']['median']:.0f} views per conversational comment (n={c['n']}).",
          "evidence_class": "account_observed"},
     ]
+
+
+def engager_report(handle: str, conv: pd.DataFrame | None = None) -> dict:
+    """Who publicly replied to / quoted the account (likes are not exposed), and reciprocity."""
+    from sqlalchemy import select
+
+    from xaudit.db.models import Engager
+    from xaudit.db.session import session
+
+    with session() as s:
+        rows = s.execute(select(Engager.engager_handle, Engager.created_at, Engager.kind)
+                         .where(Engager.client_handle == handle)).all()
+    if not rows:
+        return {"available": False, "note": "No engager data collected."}
+    e = pd.DataFrame(rows, columns=["engager", "created_at", "kind"])
+    counts = e["engager"].value_counts()
+    targets = set(conv["parent_author"].dropna()) if conv is not None else set()
+    top = []
+    for h, n in counts.head(25).items():
+        top.append({"handle": h, "engagements": int(n), "account_comments_on_them": bool(h in targets)})
+    return {
+        "available": True,
+        "n_engagements": int(len(e)),
+        "distinct_engagers": int(counts.size),
+        "one_time_share": float((counts == 1).sum() / counts.size),
+        "repeat_engagers_3plus": int((counts >= 3).sum()),
+        "top10_share": float(counts.head(10).sum() / counts.sum()),
+        "reciprocal_accounts": int(len(set(counts.index) & targets)),
+        "reciprocal_share_of_engagements": float(e["engager"].isin(targets).mean()),
+        "top": top,
+        "window": [str(e["created_at"].min())[:10], str(e["created_at"].max())[:10]],
+        "note": "Public replies/quotes that mention the account (since 2026-07-25), from the console store; "
+                "includes replies to the account's comments elsewhere. Likes and reposts are not exposed.",
+    }

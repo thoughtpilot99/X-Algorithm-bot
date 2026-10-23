@@ -1,0 +1,254 @@
+tweet_id,url,created_at,format,topic,hook_type,text,views,likes,replies,reposts,bookmarks,baseline_views,vs_baseline,eng_per_1k,quadrant,observed_issue,can_conclude,cannot_conclude,rewrite,editorial_changes,test,drafted_by,disclaimer
+2108972078485414197,https://x.com/nifinet/status/2108972078485414197,2026-10-10 17:25 UTC,quote_post,AI industry & tools news,contrarian,"the scariest competitor for a saas in 2026 is your own customer opening claude code on a saturday.
+
+if your price isn't tied to the value, someone will vibe code the gap.",181.0,0,1,0,0,2670.0,0.06779026217228465,5.524861878453039,neither,"Reached 0.07x of the trailing baseline (181 views vs a 2670 median for the account's previous 28 days). It drew 0 like(s), 1 reply, 0 reposts and 0 bookmark(s) (5.5 engagements and 5.5 replies per 1k views).",It underperformed this account's own baseline on views. Its engagement rate (5.5/1k) was below the median of the 12 posts in this rewrite set (12.5/1k); the input does not include the full-account engagement median. Quadrant label: 'neither'.,"Why it underperformed. Timing (posted Saturday 17:25 UTC, post 2 of 3 from this sample that day; other posts that day are not in the input), audience mix, competing posts and ranking internals are unobserved, and one post is not evidence of a pattern. With view counts this small, the engagement rate rests on very few actions.","The scariest competitor for a SaaS in 2026 is your own customer opening Claude Code on a Saturday.
+
+If your price isn't tied to value, someone will vibe code the gap.
+
+Check your pricing:
+1. Does it move when the customer's outcome moves?
+2. Could they rebuild it in a weekend?","['Turned the quote post into a standalone post so it does not depend on the quoted tweet for context', ""Kept the original hook and both of Nicolas's claims word for word in substance"", ""Added a two-question self-check so the reader leaves with a concrete step, matching the audit's finding that how-to posts do better on this account"", 'Capitalised the opening for readability; no new numbers or claims added']","Publish as a standalone post (not a quote post) as the first post of the day on a weekday between 12:00 and 17:00 UTC, with no other post within the prior few hours. After 7 days compare views/baseline and replies per 1k against the original (0.07x, 5.5 replies/1k), plus bookmarks per 1k. Text, format and timing all change at once, so a single rerun cannot attribute any difference to the copy alone; treat it as one data point.",claude-sonnet (session reviewer),A rewrite is an editorial proposal to test; it is not predicted to receive more distribution.
+2074984375100285100,https://x.com/nifinet/status/2074984375100285100,2026-07-08 22:30 UTC,long_post,AI agents & GTM automation,contrarian,"Most AI outbound is just bad outbound with a bigger engine.
+
+If your sequence did not book meetings when you sent it manually, automating it will not change that. 
+
+You just send the same thing to more people, faster. 
+
+Automating it cannot add judgment you do not have. It will not notice that your offer is weak, or that you are reaching out three months too late. Those are still your calls to get right, and the agent assumes you already did.
+
+So get the sequence working by hand first. Find the angle and the timing that convert, and automate it once it does. 
+
+Whatever you hand the agent is what it scales, so hand it something that already works.",202.0,4,0,0,1,2942.0,0.06866077498300475,24.752475247524753,resonance without reach,"Reached 0.07x of the trailing baseline (202 views vs a 2942 median for the account's previous 28 days). It drew 4 like(s), 0 replies, 0 reposts and 1 bookmark(s) (24.8 engagements and 0.0 replies per 1k views).",It underperformed this account's own baseline on views. Its engagement rate (24.8/1k) was above the median of the 12 posts in this rewrite set (12.5/1k); the input does not include the full-account engagement median. Quadrant label: 'resonance without reach'.,"Why it underperformed. Timing (posted Wednesday 22:30 UTC), audience mix, competing posts and ranking internals are unobserved, and one post is not evidence of a pattern. With view counts this small, the engagement rate rests on very few actions.","Automating a sequence that never booked meetings by hand just sends the same thing to more people, faster.
+
+The agent can't add judgment you don't have. It won't notice that your offer is weak, or that you're reaching out three months too late. It assumes you already got those calls right.
+
+So here's the order I'd run it in:
+
+1. Send the sequence by hand first.
+2. Find the angle that gets replies.
+3. Find the timing that converts.
+4. Only then hand it to the agent.
+
+Whatever you hand the agent is what it scales. Hand it something that already works.","[""Replaced the opinion-only opener ('Most AI outbound is just bad outbound...') with the concrete consequence, since opinion-led openers underperform on this account"", 'Converted the closing advice into four numbered steps so the post reads as a how-to (the format the audit found strongest here)', ""Kept every original fact and phrase that carries the argument (weak offer, three months too late, 'whatever you hand the agent is what it scales')"", 'Shortened slightly and removed repetition; no numbers or results added']","Publish as a long post as the first post of the day on a weekday between 12:00 and 17:00 UTC, with no other post within the prior few hours. After 7 days compare views/baseline and replies per 1k against the original (0.07x, 0.0 replies/1k), plus bookmarks per 1k. Text, format and timing all change at once, so a single rerun cannot attribute any difference to the copy alone; treat it as one data point.",claude-sonnet (session reviewer),A rewrite is an editorial proposal to test; it is not predicted to receive more distribution.
+2074176554104742297,https://x.com/nifinet/status/2074176554104742297,2026-07-06 17:00 UTC,long_post,buying signals & intent data,contrarian,"Bought lead lists are the most overrated asset in B2B. The data is fine the day you buy it. It goes stale the moment after, and you keep working it like it is still live.
+
+Think about what a list actually is. 
+
+A name, a title, a company, and a timestamp from whenever someone scraped it. It tells you who a person was on the day they got added, and nothing about what is happening in their market today.
+
+And this week is what matters. 
+
+Someone who looked perfect six months ago might have just signed with your competitor. 
+
+Someone who ghosted you last quarter might have raised a round on Tuesday and is buying everything in sight. 
+
+The list knows none of it. It cannot. It is a photo of a moment that already passed.
+
+Watch how the buy side of a market behaves and you notice what a list cannot show. 
+
+Demand never sits still. 
+
+Companies start looking for a vendor every day, well before they land on anyone's radar. That motion is the only real signal, and a bought list has none of it.
+
+So with a list you do the only thing it lets you do. You blast everyone and hope. You send 1,000 emails to reach the 20 people who happen to be ready, and you burn the other 980 to get there.
+
+Signal-based outbound runs the other way. 
+
+You start from the motion. 
+
+Someone opens a role they only open right before they buy. Someone drops the tool you replace. Someone closes a round. 
+
+That is the moment a stranger becomes worth a message.
+
+Then the real work starts, and the work is restraint more than anything else. Score the why-now, pick the handful that matter, let the rest be. Only then does someone get an email, written off the real trigger. 
+
+TL;DR: A bought lead list just tells you who people were. The market tells you who is ready now. Build from the second one.",239.0,4,0,0,1,2956.5,0.08083882969727718,20.920502092050206,resonance without reach,"Reached 0.08x of the trailing baseline (239 views vs a 2956.5 median for the account's previous 28 days). It drew 4 like(s), 0 replies, 0 reposts and 1 bookmark(s) (20.9 engagements and 0.0 replies per 1k views).",It underperformed this account's own baseline on views. Its engagement rate (20.9/1k) was above the median of the 12 posts in this rewrite set (12.5/1k); the input does not include the full-account engagement median. Quadrant label: 'resonance without reach'.,"Why it underperformed. Timing (posted Monday 17:00 UTC), audience mix, competing posts and ranking internals are unobserved, and one post is not evidence of a pattern. With view counts this small, the engagement rate rests on very few actions.","A bought lead list makes you send 1,000 emails to reach the 20 people who happen to be ready. You burn the other 980 to get there.
+
+The data is fine the day you buy it. It goes stale right after, and you keep working it like it's still live. A list is a name, a title, a company, and a timestamp from whenever someone scraped it. It tells you who a person was, and nothing about what's happening in their market this week.
+
+And this week is what matters. Someone who looked perfect six months ago might have just signed with your competitor. Someone who ghosted you last quarter might have raised a round on Tuesday and is buying everything in sight.
+
+Here's how to build from the motion instead of the list:
+
+1. Pick the moments that come right before a purchase. Someone opens a role they only open right before they buy. Someone drops the tool you replace. Someone closes a round.
+
+2. Watch for those moments. Demand never sits still, and companies start looking for a vendor well before they land on anyone's radar.
+
+3. Score the why-now on every account that moves.
+
+4. Pick the handful that matter and let the rest be. This is where most of the work is: restraint.
+
+5. Only then send an email, written off the real trigger.
+
+TL;DR: A bought lead list tells you who people were. The market tells you who is ready now. Build from the second one.","['Moved the most concrete line (1,000 emails to reach 20, burning 980) from mid-body to the opening', 'Restructured the signal-based half into five numbered steps, turning an opinion essay into a how-to', 'Kept the original examples (role opened, tool dropped, round closed, signed with competitor, raised on Tuesday) and the TL;DR', ""Cut the 'most overrated asset' framing, an opinion-led opener of the type that underperforms on this account"", 'Kept similar long-form length; no new numbers, clients or results']","Publish as a long post as the first post of the day on a weekday between 12:00 and 17:00 UTC, with no other post within the prior few hours. After 7 days compare views/baseline and replies per 1k against the original (0.08x, 0.0 replies/1k), plus bookmarks per 1k. Text, format and timing all change at once, so a single rerun cannot attribute any difference to the copy alone; treat it as one data point.",claude-sonnet (session reviewer),A rewrite is an editorial proposal to test; it is not predicted to receive more distribution.
+2108859340836790603,https://x.com/nifinet/status/2108859340836790603,2026-10-10 09:57 UTC,quote_post,founder journey & leadership,question,"Imagine tu as le choix entre:
+
+- try hard sur vendre et build du produit pour faire du MRR
+
+- try hard d’économiser 99€/mois (3€/jours)
+
+quel est le meilleur ROI?",330.0,1,1,0,0,2671.5,0.12352610892756878,6.0606060606060606,neither,"Reached 0.12x of the trailing baseline (330 views vs a 2671.5 median for the account's previous 28 days). It drew 1 like(s), 1 reply, 0 reposts and 0 bookmark(s) (6.1 engagements and 3.0 replies per 1k views).",It underperformed this account's own baseline on views. Its engagement rate (6.1/1k) was below the median of the 12 posts in this rewrite set (12.5/1k); the input does not include the full-account engagement median. Quadrant label: 'neither'.,"Why it underperformed. Timing (posted Saturday 09:57 UTC, post 1 of 3 from this sample that day; other posts that day are not in the input), audience mix, competing posts and ranking internals are unobserved, and one post is not evidence of a pattern. With view counts this small, the engagement rate rests on very few actions.","Tu passes combien de temps à économiser 99€/mois (3€/jour)?
+
+Ce temps ne va ni à la vente ni au produit, alors que c'est ça qui fait le MRR.
+
+L'économie est plafonnée à 99€/mois. Le MRR, non.
+
+Ton dernier abonnement sur lequel tu as perdu une heure, c'était lequel?","['Kept the post in French, as in the original', 'Made it standalone instead of a quote post, so the trade-off is readable without the quoted tweet', 'Stated the implied answer (selling and building beat cutting a 99€ cost) instead of leaving a bare poll-style question; Nicolas should confirm this is the answer he meant', ""Ended on a specific, easy-to-answer question to invite replies, since replies per 1k are below peers; no generic 'what do you think' closer"", 'Kept only the original numbers (99€/mois, 3€/jour)']","Publish as a standalone post (not a quote post) as the first post of the day on a weekday between 12:00 and 17:00 UTC, with no other post within the prior few hours. After 7 days compare views/baseline and replies per 1k against the original (0.12x, 3.0 replies/1k), plus bookmarks per 1k. Text, format and timing all change at once, so a single rerun cannot attribute any difference to the copy alone; treat it as one data point.",claude-sonnet (session reviewer),A rewrite is an editorial proposal to test; it is not predicted to receive more distribution.
+2109007886424895852,https://x.com/nifinet/status/2109007886424895852,2026-10-10 19:47 UTC,quote_post,buying signals & intent data,contrarian,"the next buying signal isn't a human on your pricing page.
+it's their agent comparing you to 4 competitors at 2am.
+whoever learns to read agent visits first eats everyone's outbound lunch.",278.0,0,1,0,0,2059.0,0.13501699854298202,3.5971223021582737,neither,"Reached 0.14x of the trailing baseline (278 views vs a 2059 median for the account's previous 28 days). It drew 0 like(s), 1 reply, 0 reposts and 0 bookmark(s) (3.6 engagements and 3.6 replies per 1k views).",It underperformed this account's own baseline on views. Its engagement rate (3.6/1k) was below the median of the 12 posts in this rewrite set (12.5/1k); the input does not include the full-account engagement median. Quadrant label: 'neither'.,"Why it underperformed. Timing (posted Saturday 19:47 UTC, post 3 of 3 from this sample that day; other posts that day are not in the input), audience mix, competing posts and ranking internals are unobserved, and one post is not evidence of a pattern. With view counts this small, the engagement rate rests on very few actions. The claim that agent visits are a readable signal is Nicolas's opinion, not something this data tests.","A buying signal most teams aren't reading yet: a buyer's agent comparing you to 4 competitors at 2am.
+
+Whoever learns to read agent visits first eats everyone's outbound lunch.
+
+Where I'd start: check which of your pages get read by agents, and when.","[""Removed the 'isn't a human... it's their agent' construction, which the voice rules ban as an AI tell"", 'Opened with the concrete scene (agent, 4 competitors, 2am) instead of the contrarian setup', 'Added one concrete first step so the post ends with an action, in line with the how-to finding', 'Standalone instead of a quote post; no new numbers or capability claims (it does not claim any tool detects agent visits)']","Publish as a standalone post (not a quote post) as the first post of the day on a weekday between 12:00 and 17:00 UTC, with no other post within the prior few hours. After 7 days compare views/baseline and replies per 1k against the original (0.14x, 3.6 replies/1k), plus bookmarks per 1k. Text, format and timing all change at once, so a single rerun cannot attribute any difference to the copy alone; treat it as one data point.",claude-sonnet (session reviewer),A rewrite is an editorial proposal to test; it is not predicted to receive more distribution.
+2069884019647590653,https://x.com/nifinet/status/2069884019647590653,2026-06-24 20:43 UTC,thread,buying signals & intent data,contrarian,"Not every buying signal deserves a human.
+
+Most teams treat every signal the same. A content download and a week of pricing-page visits land in the same queue, a rep works them in whatever order, and the hot accounts go cold while someone writes a careful note to a tire-kicker.
+
+The solution is a routing rule. Score each account by readiness, then send it to the right responder.
+
+Human, today: the pricing page hit repeatedly this week, a competitor or review-site comparison, or an inbound reply. High intent and time-sensitive. A person sends a short, specific note.
+
+Agent: a role opened that maps to a pain you solve, or a tech or integration change. Real but early. An agent runs a value-first touch, no pitch.
+
+Nurture: a single download or a newsletter open. Curiosity, not intent. It goes on an educational drip until something stronger shows up.
+
+Ignore: no fit, or every signal is stale. Suppress it so it stops eating attention.
+
+A couple of rules keep it honest. When signals conflict, route to the higher tier and say why. And never act on a signal that isn't actually there.
+
+That's the whole rubric. Here's a simple prompt to help you get started (check the next tweet):",315.0,2,3,0,1,2261.0,0.1393188854489164,19.04761904761905,resonance without reach,"Reached 0.14x of the trailing baseline (315 views vs a 2261 median for the account's previous 28 days). It drew 2 like(s), 3 replies, 0 reposts and 1 bookmark(s) (19.0 engagements and 9.5 replies per 1k views).",It underperformed this account's own baseline on views. Its engagement rate (19.0/1k) was above the median of the 12 posts in this rewrite set (12.5/1k); the input does not include the full-account engagement median. Quadrant label: 'resonance without reach'.,"Why it underperformed. Timing (posted Wednesday 20:43 UTC), audience mix, competing posts and ranking internals are unobserved, and one post is not evidence of a pattern. With view counts this small, the engagement rate rests on very few actions. It was a thread; whether the 'check the next tweet' hand-off affected views of the first tweet is not observable from these fields.","Not every buying signal deserves a human. Here's a routing rule to decide who responds to each one.
+
+Score each account by readiness, then send it to one of four responders:
+
+1. Human, today. The pricing page hit repeatedly this week, a competitor or review-site comparison, or an inbound reply. High intent and time-sensitive. A person sends a short, specific note.
+
+2. Agent. A role opened that maps to a pain you solve, or a tech or integration change. Real but early. An agent runs a value-first touch, no pitch.
+
+3. Nurture. A single download or a newsletter open. Curiosity, without intent yet. It goes on an educational drip until something stronger shows up.
+
+4. Ignore. No fit, or every signal is stale. Suppress it so it stops eating attention.
+
+Two rules keep it honest. When signals conflict, route to the higher tier and say why. And never act on a signal that isn't actually there.
+
+Without a rule, a content download and a week of pricing-page visits land in the same queue, and the hot accounts go cold while someone writes a careful note to a tire-kicker.
+
+The prompt to run this rubric is in the reply below.","['Promised the routing rule in the opening so the reader knows a usable framework follows', 'Numbered the four tiers so the post scans as a step-by-step rubric', ""Moved the 'everything in one queue' problem after the rubric so the useful part comes first"", 'Kept the original tiers, examples and the two honesty rules unchanged in substance', 'Kept the prompt as a reply but made the main post self-contained, so it reads fine even if the reply is not opened; the prompt text itself is not in the input and must come from the original thread']","Publish as a long post as the first post of the day on a weekday between 12:00 and 17:00 UTC, with no other post within the prior few hours. After 7 days compare views/baseline and replies per 1k against the original (0.14x, 9.5 replies/1k), plus bookmarks per 1k. Text, format and timing all change at once, so a single rerun cannot attribute any difference to the copy alone; treat it as one data point.",claude-sonnet (session reviewer),A rewrite is an editorial proposal to test; it is not predicted to receive more distribution.
+2051574229456306379,https://x.com/nifinet/status/2051574229456306379,2026-05-05 08:06 UTC,quote_post,AI industry & tools news,observation,"Package this into a prompt or a .md, it’s not even the point.
+
+@pmarca post if more about the substance, uncovering blind spots, and guiding the LLM into the best outcomes. Give it to any AI and they’ll figure it out",157.0,0,0,0,0,1123.0,0.13980409617097062,0.0,neither,"Reached 0.14x of the trailing baseline (157 views vs a 1123 median for the account's previous 28 days). It drew 0 like(s), 0 replies, 0 reposts and 0 bookmark(s) (0.0 engagements and 0.0 replies per 1k views).","It underperformed this account's own baseline on views and drew no engagement at all (0.0/1k), the lowest in this rewrite set. Quadrant label: 'neither'.","Why it underperformed. Timing (posted Tuesday 08:06 UTC), audience mix, competing posts and ranking internals are unobserved, and one post is not evidence of a pattern. With view counts this small, the engagement rate rests on very few actions. The original relied on the quoted post for context; how much that limited reach is not observable here.","Prompt or .md file, the packaging is not the point.
+
+The substance: uncover blind spots, guide the LLM to the best outcome.
+
+Before formatting, write down what you want, what you're likely missing, and what a great answer looks like. Any AI will figure out the rest.","[""Made it standalone so the insight does not depend on the quoted @pmarca post (if kept as a quote post, fix the 'post if more' typo to 'post is more')"", 'Led with the claim instead of the observation-style reaction, a format that underperforms on this account', ""Turned 'blind spots' and 'best outcomes' into a short, concrete pre-prompt checklist"", 'No numbers, names or results added']","Publish as a standalone post (not a quote post) as the first post of the day on a weekday between 12:00 and 17:00 UTC, with no other post within the prior few hours. After 7 days compare views/baseline and replies per 1k against the original (0.14x, 0.0 replies/1k), plus bookmarks per 1k. Text, format and timing all change at once, so a single rerun cannot attribute any difference to the copy alone; treat it as one data point.",claude-sonnet (session reviewer),A rewrite is an editorial proposal to test; it is not predicted to receive more distribution.
+2088333249453949416,https://x.com/nifinet/status/2088333249453949416,2026-08-14 18:33 UTC,long_post,buying signals & intent data,observation,"Two signals at the same account beat any single signal. Only when they are different kinds, though.
+
+Say someone at a target account starts engaging your competitor's posts. On its own, mild. Now a role opens on that team to own the exact problem you solve. Also mild.
+
+Together they stop being mild. One says they are shopping. The other says somebody is now accountable for fixing it. 
+
+Two different questions, both answered in the same month.
+
+Compare that to two social signals. One person likes a post, someone else comments a week later. It feels like momentum, and it is the same fact twice. 
+
+So how do you know which signals to act on and which ones to ignore? Simple heuristic: Do your two signals answer different questions, or the same question louder?
+
+Most setups reward the second kind, because social fires constantly and a pair of them is easy to find.
+
+Building the instinct for your own market doesn't take much time, honestly. 
+
+> Just take your last ten closed deals. 
+> Go back thirty days before the first real conversation and write down everything that was happening at that account.
+ 
+You are sure to find patterns and signals that may appear in pairs. Make a note of those, and maybe try watching out for such signals that come in combinations.",422.0,4,1,0,3,2874.5,0.14680814054618194,18.95734597156398,resonance without reach,"Reached 0.15x of the trailing baseline (422 views vs a 2874.5 median for the account's previous 28 days). It drew 4 like(s), 1 reply, 0 reposts and 3 bookmark(s) (19.0 engagements and 2.4 replies per 1k views).",It underperformed this account's own baseline on views. Its engagement rate (19.0/1k) was above the median of the 12 posts in this rewrite set (12.5/1k); the input does not include the full-account engagement median. Quadrant label: 'resonance without reach'.,"Why it underperformed. Timing (posted Friday 18:33 UTC), audience mix, competing posts and ranking internals are unobserved, and one post is not evidence of a pattern. With view counts this small, the engagement rate rests on very few actions.","How to find the signal pairs worth acting on, using your own closed deals:
+
+1. Take your last ten closed deals.
+2. Go back thirty days before the first real conversation at each account.
+3. Write down everything that was happening there.
+4. Mark the signals that showed up together.
+5. For each pair, ask: do these two answer different questions, or the same question louder?
+
+Step 5 is the one that matters. Two signals at the same account beat any single signal, but only when they are different kinds.
+
+Say someone at a target account starts engaging your competitor's posts. On its own, mild. Then a role opens on that team to own the exact problem you solve. Also mild. Together, one says they are shopping and the other says somebody is now accountable for fixing it. Two different questions, both answered in the same month.
+
+Two social signals work differently. One person likes a post, someone else comments a week later. It feels like momentum, and it is the same fact twice. Most setups reward this kind, because social fires constantly and a pair is easy to find.
+
+Keep the pairs that answer different questions, and watch for those combinations going forward.","[""Opened with the method (the audit's best-performing format here) instead of an observation-style opener"", 'Moved the closed-deals exercise from the end to the top and split it into five numbered steps', ""Kept the competitor-engagement + new-role example and the 'same fact twice' contrast as the explanation for step 5"", ""Replaced the hedged ending ('maybe try watching out') with one direct instruction"", 'Kept similar long-form length; only the original quantities (ten deals, thirty days, a week, same month) are used']","Publish as a long post as the first post of the day on a weekday between 12:00 and 17:00 UTC, with no other post within the prior few hours. After 7 days compare views/baseline and replies per 1k against the original (0.15x, 2.4 replies/1k), plus bookmarks per 1k. Text, format and timing all change at once, so a single rerun cannot attribute any difference to the copy alone; treat it as one data point.",claude-sonnet (session reviewer),A rewrite is an editorial proposal to test; it is not predicted to receive more distribution.
+2061915551371538799,https://x.com/nifinet/status/2061915551371538799,2026-06-02 20:59 UTC,long_post,outbound & cold email,contrarian,"If you're running cold outbound on AI tools right now and your reply rates are flat, you're probably building the stack in the wrong order. 
+
+Here's the order that actually works:
+
+1. Signals first.
+
+> The triggers worth watching: reposted jobs, fundraising rounds, M&A filings, tenders and RFPs, competitor engagement. 
+> Each one marks a different buying moment. 
+> Pick four and wire them in before you touch anything else.
+
+2. Scoring next.
+
+> ICP fit x signal recency x buying-stage weight. 
+> A reposted job in the last seven days at an ICP-fit account beats a job posting from six weeks ago at a non-ICP account. 
+> Decide who to act on this week, then who falls into next month.
+
+3. Message context last.
+
+> Pass the exact role being reposted, the exact funding amount, the exact tender description into whatever writes the first line. 
+> Generic ""fits your ICP"" filler tells the model nothing useful.
+
+Each layer of this stack feeds the next.
+
+Signal triggers scoring > scoring filters who matters this week > context shapes the message itself 
+
+Run this loop.",193.0,2,0,0,2,1302.0,0.14823348694316435,20.72538860103627,resonance without reach,"Reached 0.15x of the trailing baseline (193 views vs a 1302 median for the account's previous 28 days). It drew 2 like(s), 0 replies, 0 reposts and 2 bookmark(s) (20.7 engagements and 0.0 replies per 1k views).",It underperformed this account's own baseline on views. Its engagement rate (20.7/1k) was above the median of the 12 posts in this rewrite set (12.5/1k); the input does not include the full-account engagement median. Quadrant label: 'resonance without reach'.,"Why it underperformed. Timing (posted Tuesday 20:59 UTC), audience mix, competing posts and ranking internals are unobserved, and one post is not evidence of a pattern. With view counts this small, the engagement rate rests on very few actions. This post was already a how-to with steps, so format alone does not explain the gap here.","Build your AI outbound stack in this order. If reply rates are flat, check whether you started at the wrong end.
+
+1. Signals first.
+Pick four triggers and wire them in before you touch anything else. Options: reposted jobs, fundraising rounds, M&A filings, tenders and RFPs, competitor engagement. Each one marks a different buying moment.
+
+2. Scoring next.
+ICP fit x signal recency x buying-stage weight. A job reposted in the last seven days at an ICP-fit account beats a job posting from six weeks ago at a non-ICP account. Decide who you act on this week, and who falls into next month.
+
+3. Message context last.
+Pass the exact role being reposted, the exact funding amount, the exact tender description into whatever writes the first line. Generic ""fits your ICP"" filler tells the model nothing useful.
+
+Each layer feeds the next: the signal triggers scoring, scoring filters who matters this week, context shapes the message.
+
+Run this loop.","[""Opening now states the instruction first; the conditional 'if you're running... you're probably...' setup moved to a short second sentence"", ""Put the action ('pick four and wire them in') at the start of step 1 instead of the end"", 'Kept the three-step structure, the scoring formula and the seven-days vs six-weeks example unchanged in substance', 'Tightened the closing loop line; no new numbers or claims']","Publish as a long post as the first post of the day on a weekday between 12:00 and 17:00 UTC, with no other post within the prior few hours. After 7 days compare views/baseline and replies per 1k against the original (0.15x, 0.0 replies/1k), plus bookmarks per 1k. Text, format and timing all change at once, so a single rerun cannot attribute any difference to the copy alone; treat it as one data point.",claude-sonnet (session reviewer),A rewrite is an editorial proposal to test; it is not predicted to receive more distribution.
+2088667827515359722,https://x.com/nifinet/status/2088667827515359722,2026-08-15 16:43 UTC,quote_post,founder journey & leadership,other,"good reminder
+
+it doesn’t matter where you start 
+
+what matters is that you keep showing up and shipping for the customers",443.0,0,0,0,0,2873.0,0.15419422206752523,0.0,neither,"Reached 0.15x of the trailing baseline (443 views vs a 2873 median for the account's previous 28 days). It drew 0 like(s), 0 replies, 0 reposts and 0 bookmark(s) (0.0 engagements and 0.0 replies per 1k views).","It underperformed this account's own baseline on views and drew no engagement at all (0.0/1k), the lowest in this rewrite set. Quadrant label: 'neither'.","Why it underperformed. Timing (posted Saturday 16:43 UTC), audience mix, competing posts and ranking internals are unobserved, and one post is not evidence of a pattern. With view counts this small, the engagement rate rests on very few actions. With zero engagements, there is no signal at all about how readers received the content.","It doesn't matter where you start.
+
+What matters is that you keep showing up and shipping for the customers.
+
+What did you ship for a customer this week?","['Standalone instead of a quote post, so it reads without the quoted tweet', ""Dropped the 'good reminder' preamble so the first line carries the idea"", 'Added a specific question to give readers an easy reason to reply', 'Editor note: this stays an opinion-only short post, the format that underperforms here; it is stronger if Nicolas adds one real thing Sortlist shipped this week (not invented in this draft)']","Publish as a standalone post (not a quote post) as the first post of the day on a weekday between 12:00 and 17:00 UTC, with no other post within the prior few hours. After 7 days compare views/baseline and replies per 1k against the original (0.15x, 0.0 replies/1k), plus bookmarks per 1k. Text, format and timing all change at once, so a single rerun cannot attribute any difference to the copy alone; treat it as one data point.",claude-sonnet (session reviewer),A rewrite is an editorial proposal to test; it is not predicted to receive more distribution.
+2109672162353123682,https://x.com/nifinet/status/2109672162353123682,2026-10-12 15:46 UTC,quote_post,sales process & pipeline,number_result,"Just did a cold call session on the warm intent list 
+
+80% connection rate (I dial twice every time).
+
+15% meeting booked 😳
+
+this is strooooong",209.0,3,0,0,1,1133.5,0.18438464931627702,19.138755980861244,resonance without reach,"Reached 0.18x of the trailing baseline (209 views vs a 1133.5 median for the account's previous 28 days). It drew 3 like(s), 0 replies, 0 reposts and 1 bookmark(s) (19.1 engagements and 0.0 replies per 1k views).",It underperformed this account's own baseline on views. Its engagement rate (19.1/1k) was above the median of the 12 posts in this rewrite set (12.5/1k); the input does not include the full-account engagement median. Quadrant label: 'resonance without reach'.,"Why it underperformed. Timing (posted Monday 15:46 UTC), audience mix, competing posts and ranking internals are unobserved, and one post is not evidence of a pattern. With view counts this small, the engagement rate rests on very few actions. The original does not state how many calls were made, so the 80% and 15% figures cannot be judged for reliability.","Just did a cold call session on the warm intent list.
+
+80% connection rate
+15% meeting booked 😳
+
+What I did:
+1. Called only accounts on the warm intent list
+2. Dialed twice every time
+
+This is strong. Do you call intent accounts before or after the first email?","['Kept both original results (80% connection, 15% meeting booked) and put them on their own lines up top', ""Turned the method that was buried in parentheses ('I dial twice every time') into explicit steps, so the post shows how, not just what"", 'Ended with a specific question to invite replies, since replies per 1k are below peers', 'Standalone instead of a quote post; kept the single emoji; no sample size or other numbers added (the original gives none, so the rates should be read as one session)']","Publish as a standalone post (not a quote post) as the first post of the day on a weekday between 12:00 and 17:00 UTC, with no other post within the prior few hours. After 7 days compare views/baseline and replies per 1k against the original (0.18x, 0.0 replies/1k), plus bookmarks per 1k. Text, format and timing all change at once, so a single rerun cannot attribute any difference to the copy alone; treat it as one data point.",claude-sonnet (session reviewer),A rewrite is an editorial proposal to test; it is not predicted to receive more distribution.
+2109177244157387249,https://x.com/nifinet/status/2109177244157387249,2026-10-11 07:00 UTC,quote_post,AI agents & GTM automation,observation,"been running a marketplace for 12 years that's literally this
+
+humans pick the prettiest profile on page 1
+agents gonna read all 400 case studies at 2am and pick the one that actually fits
+
+kinda terrifying. also kinda fair ngl",252.0,0,0,0,1,1358.5,0.18549871181450128,3.968253968253968,neither,"Reached 0.19x of the trailing baseline (252 views vs a 1358.5 median for the account's previous 28 days). It drew 0 like(s), 0 replies, 0 reposts and 1 bookmark(s) (4.0 engagements and 0.0 replies per 1k views).",It underperformed this account's own baseline on views. Its engagement rate (4.0/1k) was below the median of the 12 posts in this rewrite set (12.5/1k); the input does not include the full-account engagement median. Quadrant label: 'neither'.,"Why it underperformed. Timing (posted Sunday 07:00 UTC), audience mix, competing posts and ranking internals are unobserved, and one post is not evidence of a pattern. With view counts this small, the engagement rate rests on very few actions.","Been running a marketplace for 12 years. It's literally this.
+
+Humans pick the prettiest profile on page 1.
+Agents read all 400 case studies at 2am and pick the one that fits.
+
+Kinda terrifying. Also fair.
+
+Selling on a marketplace? Write for the reader who reads everything.","['Standalone instead of a quote post; first line keeps his unique vantage (12 years running a marketplace)', ""Kept the human-vs-agent contrast and his 'terrifying / fair' reaction"", 'Added one concrete takeaway for agencies and vendors so the post ends with an action instead of an observation', ""Dropped 'ngl' and 'gonna' for readability; no new numbers or claims""]","Publish as a standalone post (not a quote post) as the first post of the day on a weekday between 12:00 and 17:00 UTC, with no other post within the prior few hours. After 7 days compare views/baseline and replies per 1k against the original (0.19x, 0.0 replies/1k), plus bookmarks per 1k. Text, format and timing all change at once, so a single rerun cannot attribute any difference to the copy alone; treat it as one data point.",claude-sonnet (session reviewer),A rewrite is an editorial proposal to test; it is not predicted to receive more distribution.

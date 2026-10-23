@@ -1,0 +1,241 @@
+tweet_id,url,created_at,format,topic,hook_type,text,views,likes,replies,reposts,bookmarks,baseline_views,vs_baseline,eng_per_1k,quadrant,observed_issue,can_conclude,cannot_conclude,rewrite,editorial_changes,test,drafted_by,disclaimer
+2112212835967349127,https://x.com/MichLieben/status/2112212835967349127,2026-10-19 16:02 UTC,quote_post,content & personal brand,number_result,"24 people on our team posted on LinkedIn using @PierreReddot's playbook. In 85 days, that helped us sign 27 new clients & $151K in new MRR.
+
+We were clients of his agency at one point. It worked so well we took it in-house, and got him to teach the team too.
+
+I had him on my YouTube a few months ago to go through how he makes his posts. What I took from it:
+
+- A lot of his infographics are comparisons. B2B vs B2C, marketing vs sales lead systems, that kind of thing. He says ""people love comparing stuff"" and it helps them pick what's right for them
+
+- On the episode we started an outbound one live in Canva. We kept the wrong side super basic on purpose (send a lot of emails, ask for a demo in email 1, big list) because he wanted it really obvious that's the wrong way, and the right side was supposed to be the long technical stuff. We didn't finish it but you get the idea
+
+- Title as big as possible. People usually read the title, go top to bottom, and only read the caption if the graphic got them interested
+
+- He adds a small note on the graphic for context. On his 4 levels of B2B marketing one, it just says ""most businesses start here"". Most people skip strategy and go straight to tactics, that's the point of it
+
+- He guessed 60-70% of his posts start with a problem, agitate it, then give the fix. When he starts positive, he uses what he calls an ""authority mark"", like ""I've been doing marketing for 10 years""
+
+- No ""comment to get the guide"" posts. He wants his profile to feel like a safe place to learn. I still run plenty of those haha so not following this one
+
+- Last one, probably the most true. He told us ""you can have the best frameworks, best systems, but if people don't do it... the posts don't go live."" For us the thing that made the team actually post was a quarterly competition with cash prizes (plus $500 for anyone who posted 20+ times in a quarter)
+
+He's back on X now and says he'll teach this stuff here. Go give him a follow 👇",118.0,3,1,2,1,3855.0,0.03060959792477302,59.32203389830509,resonance without reach,"118 views against a 3,855-view baseline (0.03x, the lowest in this set). The 59.3 engagements per 1k views come from only 7 interactions (3 likes, 1 reply, 2 reposts, 1 bookmark).","This quote post reached about 3% of the account's recent median, and the few people who saw it interacted at a high rate. It sits in 'resonance without reach'.","With 118 views, 7 interactions is too small a sample to trust the engagement rate. We can't tell whether the quote format, the length, the shout-out framing (promoting another creator) or timing caused the low reach. This is a single post, so it is not a pattern. Posting time, who was online, competing posts that day, how the post was distributed and ranking internals are unobserved, so the gap to baseline cannot be attributed to the copy, the format or the topic.","24 people on our team posted on LinkedIn using @PierreReddot's playbook. In 85 days, that helped us sign 27 new clients & $151K in new MRR.
+
+We were clients of his agency first. It worked so well we took it in-house.
+
+What I took from having him on my YouTube:
+
+- Comparisons work. ""People love comparing stuff"" and it helps them pick what's right for them
+- Title as big as possible. People read the title, go top to bottom, and only read the caption if the graphic got them
+- Add a small note on the graphic for context, like ""most businesses start here""
+- He guessed 60-70% of his posts start with a problem, agitate it, then give the fix
+
+Honestly the thing that made our team actually post was a quarterly competition with cash prizes (plus $500 for anyone who posted 20+ times in a quarter).
+
+He's back on X teaching this. Which one would you try first?","[""Published as a standalone post so the result and the takeaways don't depend on the quoted tweet."", ""Cut from 7 takeaways to 4 plus the team-incentive point, cutting it from about 385 words to about 160 (the audit found long posts underperform this account's baseline)."", 'Kept the personal hook (our team, our clients, my YouTube) and every original figure unchanged. Fact flag: the original says 85 days and $151K, while other ColdIQ material says 87 days and $153K. Verify before publishing.', ""Replaced the 'go give him a follow' close with a single question to invite replies, keeping the @PierreReddot credit in the first line.""]","Publish as the first post of the day. After 48h compare views/baseline against the original's 0.03x, replies per 1k (original 8.5) and bookmarks per 1k (original 8.5). Treat the result as one data point.",claude-sonnet (session reviewer),A rewrite is an editorial proposal to test; it is not predicted to receive more distribution.
+2105340823969878477,https://x.com/MichLieben/status/2105340823969878477,2026-09-30 16:55 UTC,quote_post,marketing & demand gen,number_result,"Our gtm funnel turns 40,000 visitors a month into 100+ meetings
+
+how:
+
+one video a week becomes shorts, linkedin posts, x posts and a newsletter
+
+search brings about 12,000 visits a month across 4 kinds of pages, from articles to free mini tools
+
+identify the silent visitors, the ones who read and leave (rb2b, instantly, coldiq visitor id)
+
+land every lead as a card in folk and have claude code score it against your icp file
+
+a top-band lead gets a rep the same day. an opted-in lead in a lower band gets a sequence or the newsletter
+
+run every sales call through claap, and let a claude skill turn the transcript into a proposal
+
+start with 3 of the 40 tools: claude code, the coldiq mcp and folk
+
+full stack, stage by stage, in the article below",281.0,1,1,0,1,4046.5,0.06944272828370196,10.676156583629894,neither,"281 views against a 4,046.5-view baseline (0.07x). Only 3 interactions (1 like, 1 reply, 1 bookmark), 10.7 per 1k views.",The post reached about 7% of the recent median and drew low engagement from the people who saw it ('neither' quadrant).,"We can't tell whether the quote-of-own-article format, the dense stage-by-stage walkthrough, the lowercase style or the posting slot drove the result, or whether the linked article got clicks we don't observe. This is a single post, so it is not a pattern. Posting time, who was online, competing posts that day, how the post was distributed and ranking internals are unobserved, so the gap to baseline cannot be attributed to the copy, the format or the topic.","Our gtm funnel turns 40,000 visitors a month into 100+ meetings.
+
+The step I'd copy first: identify the silent visitors, the ones who read and leave, land each one as a card in folk, and have claude code score it against your icp file.
+
+A top-band lead gets a rep the same day.","[""Turned the quote post into a standalone post that carries one insight instead of a 7-stage list (the audit found very dense lists underperform this account's baseline)."", 'Picked the single most transferable step (scoring silent visitors against the icp file) and framed it as what Mich would copy first.', 'Kept the original numbers (40,000 visitors, 100+ meetings) and tool names, and kept his lowercase style.', ""Dropped the 'article below' close. If the article link matters, put it in a reply instead of the main post.""]","Publish as the first post of the day, standalone, with the article link in the first reply. After 48h compare views/baseline against the original's 0.07x and engagements per 1k against 10.7. Also log article clicks from the reply if available.",claude-sonnet (session reviewer),A rewrite is an editorial proposal to test; it is not predicted to receive more distribution.
+2092945463330951514,https://x.com/MichLieben/status/2092945463330951514,2026-08-27 12:00 UTC,short_post,content & personal brand,how_to,Here's the right way to copy a viral format on LinkedIn for your own account. https://t.co/GN6fpk4RbR,455.0,0,0,0,5,6093.0,0.074675857541441,10.989010989010989,neither,"455 views against a 6,093-view baseline (0.07x). Zero likes, replies and reposts. All 5 interactions were bookmarks (11.0 per 1k views).","People who saw it saved it but didn't respond publicly. The text gives no detail on the method itself, which sits in the attachment.","We can't see the attached media, so we can't judge its quality or whether people opened it. With 5 interactions on 455 views, the bookmark rate is a small sample. This is a single post, so it is not a pattern. Posting time, who was online, competing posts that day, how the post was distributed and ranking internals are unobserved, so the gap to baseline cannot be attributed to the copy, the format or the topic.","Here's how I'd copy a viral LinkedIn format for my own account, the right way.
+
+Full walkthrough attached.
+
+Which format have you been wanting to copy?","[""Switched from a generic 'here's the right way' to a first-person how-to ('how I'd copy'), in line with the audit's finding that personal experience is associated with higher reach."", ""Re-attach the same media. The text says outright that the walkthrough is attached, so readers know there's something to open."", 'Added a reply prompt, since the original got 0 replies.', ""Didn't add any steps from the walkthrough. We can't see the media, so a human should add one concrete step from it before publishing rather than having it invented here.""]",Publish as the first post of the day with the same media. After 48h compare views/baseline against the original's 0.07x and replies per 1k against 0. Keep an eye on whether the bookmark rate stays near 11.0 per 1k.,claude-sonnet (session reviewer),A rewrite is an editorial proposal to test; it is not predicted to receive more distribution.
+2056368330098065643,https://x.com/MichLieben/status/2056368330098065643,2026-05-18 13:36 UTC,long_post,outbound & cold email,credential,"I've sent 10M+ cold messages last year via my $7M ARR GTM agency. Now I spend more time cleaning my inbox than launching campaigns.
+
+200+ pitches hit my inbox this month. I reply to almost none of them. But for a change, I went through this month's pile and pulled out the few I would actually engaged with. Four clear patterns showed up:
+
+WHAT EARNS A REPLY
+
+1. Real work, already done.
+Some people offered to rewrite our landing pages. Others offered to draft sample scripts for our YouTube. We used to run this play in ColdIQ's early days, giving away custom lead lists for free, and got back more replies than we knew what to do with. Pro tip: imagine the prospect already signed. What's the first thing you'd ship for them? Do it already.
+
+2. A specific internal referral ask.
+If you've actually researched what we're working on at ColdIQ and figured out who owns it, I'll happily route you to the right person. You can scale this play by stacking buying signals in @clay with their ""find person"" feature to surface a colleague in a specific department.
+
+3. A free insight, not a ""free consultation.""
+The sharpest take on this came from Jihad Iqbal: the best ""free work"" isn't work, it's insights. A 5-minute technical audit. 3 specific optimization opportunities. No strings attached. Something like: ""Your checkout flow has a 23% drop-off at payment verification. Here's why + 2 quick fixes."" Takes 10 minutes. Shows instant value. Demonstrates expertise without asking for anything.
+
+4. A notorious sender.
+A bit unfair, but who sends the message matters as much as the message itself. If a public figure in your space (e.g. Alex Hormozi) sent you the worst LinkedIn DM ever, you'd still want to reply. I watched my own reply rates greatly increase as I built up my personal brand. Pro tip: if you're in B2B, build up your LinkedIn profile.
+
+WHAT KILLS THE PITCH
+
+1. ""Can I pick your brain?""
+I'd love to, but time is tight and there's little to no upside for me.
+
+2. Copy-pasted templates.
+Plenty of teams still run pure-volume plays, blasting the same template to everyone. Appealing to everyone = appealing to no one. You're wasting your DMs.
+
+3. ""Got 30 min for a quick sync?""
+If the first thing you do is ask me for 30 min of my time, I'll find a way out.",893.0,8,1,0,16,10058.0,0.08878504672897196,27.99552071668533,resonance without reach,"893 views against a 10,058-view baseline (0.09x). 16 bookmarks against 8 likes, 1 reply and 0 reposts (28.0 engagements per 1k).","Saves outnumbered every other interaction, so readers treated it as reference material, but reach was under a tenth of the recent median ('resonance without reach').","We can't tell whether the length (about 400 words), the credential opener, the two-part list structure or the timing held reach back. This is a single post, so it is not a pattern. Posting time, who was online, competing posts that day, how the post was distributed and ranking internals are unobserved, so the gap to baseline cannot be attributed to the copy, the format or the topic.","Now I spend more time cleaning my inbox than launching campaigns. 200+ pitches hit it this month and I reply to almost none.
+
+So I went through the pile and pulled out the few I'd actually engage with. Four patterns:
+
+1. Real work, already done. Some people offered to rewrite our landing pages. We ran this play in ColdIQ's early days, giving away custom lead lists for free, and got back more replies than we knew what to do with.
+
+2. A specific internal referral ask. If you've figured out who owns it at ColdIQ, I'll happily route you to the right person.
+
+3. A free insight, not a ""free consultation."" Jihad Iqbal put it best: the best free work is insights. A 5-minute technical audit, no strings attached.
+
+4. A notorious sender. A bit unfair, but I watched my own reply rates go up as I built my personal brand.
+
+What kills it for me: ""Can I pick your brain?"", copy-pasted templates, and ""Got 30 min for a quick sync?"" as the first ask.
+
+Which of these has actually worked on you?","['Opened on the personal inbox observation instead of the 10M+ / $7M ARR credential, which keeps it first-person and shortens the hook.', ""Cut the length from about 400 words to about 180 by trimming the pro tips and folding the 'what kills it' list into one line (the audit found long posts underperform this account's baseline)."", ""Removed the hypothetical '23% drop-off' example so the post contains no illustrative stat that could read as a real client result."", 'Ended with a question to invite replies (the original got 1 reply on 893 views).']","Publish as the first post of the day. After 48h compare views/baseline against the original's 0.09x, replies per 1k (original 1.1) and bookmarks per 1k (original 17.9).",claude-sonnet (session reviewer),A rewrite is an editorial proposal to test; it is not predicted to receive more distribution.
+2090750457069335035,https://x.com/MichLieben/status/2090750457069335035,2026-08-21 10:38 UTC,short_post,outbound & cold email,contrarian,"Stop blasting emails to 10,000 leads before you know what a good lead looks like.
+
+Send 50 by hand first.
+
+Open every profile, and note what the ones who reply have in common.
+
+Those shared data points are your filter, and you cannot guess them in advance. https://t.co/W4ORVKg6jP",779.0,7,1,2,6,7117.0,0.10945623155824083,20.53915275994865,resonance without reach,"779 views against a 7,117-view baseline (0.11x). 16 interactions (7 likes, 1 reply, 2 reposts, 6 bookmarks), 20.5 per 1k views.","Engagement from viewers was decent for its reach ('resonance without reach'), but views were about a tenth of the recent median.","We can't tell whether the 'Stop...' contrarian opener (an underperforming hook type for this account across the audit, not proven for this post), the attachment or the timing explains the gap. This is a single post, so it is not a pattern. Posting time, who was online, competing posts that day, how the post was distributed and ranking internals are unobserved, so the gap to baseline cannot be attributed to the copy, the format or the topic.","How I'd figure out what a good lead looks like before blasting emails to 10,000 of them:
+
+Send 50 by hand first. Open every profile, and note what the ones who reply have in common.
+
+Those shared data points become your filter. You can't guess them in advance.","[""Swapped the 'Stop blasting' contrarian opener for a first-person how-to opener. The audit found how-to posts outperform and contrarian openers underperform this account's baseline."", 'Kept the method and both numbers (10,000 and 50) unchanged.', 'Merged two lines so the steps read as one flow instead of stacked commands.', 'Re-attach the same media.']",Publish as the first post of the day with the same media. After 48h compare views/baseline against the original's 0.11x and engagements per 1k against 20.5. This isolates the opener change (contrarian vs how-to) as far as one post can.,claude-sonnet (session reviewer),A rewrite is an editorial proposal to test; it is not predicted to receive more distribution.
+2049836332487508182,https://x.com/MichLieben/status/2049836332487508182,2026-04-30 13:00 UTC,long_post,LinkedIn & social selling,number_result,"The exact 8-step system that helps us generate 20M+ impressions on LinkedIn (while also adding ~ $5M in ARR along the way):
+
+1. Pick your ideal buyer.
+> A lot of ""viral"" content doesn't convert because it's written for the creator's competitors, not their buyers. Understand your ICP and write content that serves them.
+
+2. Map who actually surfaces it.
+> Your buyer might not scroll. Their team does. Make something the team forwards up to them.
+
+3. Audit before you write.
+> Your own posts: which ones outperformed? Make more of those + variations.
+> Competitor posts: how do you make them sharper, simpler, or better looking?
+> Thought leaders in your niche: what's the quality gap, and how fast can you close it?
+
+4. Build a swipe file.
+> Pull outlier posts in your niche by author, keyword, or adjacent vertical. Taplio and Scripe do this in seconds.
+> Adapt the format to your subject.
+
+5. Lock 2-3 topics + a few recurring formats.
+> Topics: AI agents, GTM tech.
+> Formats: tools carousel, schema infographic.
+> Run them weekly. Same topics, same formats, every week.
+> Content doesn't need to be new. It needs to be shown to people who haven't seen it.
+
+6. Rotate TOF / MOF / BOF.
+> TOF: brings new people in
+> MOF: piques interest in your offer
+> BOF: drives action
+> A single post rarely does all 3. Pick the goal before you publish.
+
+7. Strong visuals = more reach.
+> An image is worth 1,000 words. A video is thousands of images. Attention-grabbing designs always improve reach.
+
+8. Hand the playbook to your team.
+> You can't post 2+ times a day from one account without losing reach. But more posts = more total impressions.
+> The fix: get your team posting too.",1452.0,16,1,0,23,12681.0,0.11450201088242253,27.548209366391184,resonance without reach,"1,452 views against a 12,681-view baseline (0.11x). 23 bookmarks against 16 likes, 1 reply and 0 reposts (27.5 per 1k views).","Readers saved it at a high rate relative to other actions, but it reached about 11% of the recent median ('resonance without reach').","We can't tell whether the 8-step dense list, the length, the result-number hook or the posting slot caused the low reach. This is a single post, so it is not a pattern. Posting time, who was online, competing posts that day, how the post was distributed and ranking internals are unobserved, so the gap to baseline cannot be attributed to the copy, the format or the topic.","We've done 20M+ impressions on LinkedIn (and added ~$5M in ARR along the way). Here's what it actually comes down to.
+
+We picked our ideal buyer and wrote for them. A lot of ""viral"" content doesn't convert because it's written for the creator's competitors, not their buyers.
+
+We locked 2-3 topics (AI agents, GTM tech) and a few recurring formats (tools carousel, schema infographic) and ran them every week. Content doesn't need to be new. It needs to be shown to people who haven't seen it.
+
+We pick the goal before each post: bring new people in, get them interested in the offer, or drive action. A single post rarely does all 3.
+
+And we handed the playbook to the team. You can't post 2+ times a day from one account without losing reach, so more people posting means more total impressions.
+
+Which part would you start with?","[""Cut the 8 numbered steps with nested '>' bullets down to 4 short paragraphs, keeping the steps that carry Mich's own experience (buyer focus, fixed topics and formats, TOF/MOF/BOF, team posting)."", ""Rewrote in 'we' so it reads as what ColdIQ did, not a generic checklist (the audit associates personal experience with higher reach)."", 'Dropped the tool mentions (Taplio, Scripe) and the visuals step to bring the length down from about 300 words to about 150.', 'Kept every original figure (20M+, ~$5M ARR, 2-3 topics, 2+ posts a day) and ended with a reply question.']","Publish as the first post of the day. After 48h compare views/baseline against the original's 0.11x, replies per 1k (original 0.7) and bookmarks per 1k (original 15.8).",claude-sonnet (session reviewer),A rewrite is an editorial proposal to test; it is not predicted to receive more distribution.
+2091842977341878388,https://x.com/MichLieben/status/2091842977341878388,2026-08-24 11:00 UTC,short_post,outbound & cold email,number_result,"Going from an 8/10 cold email to a 9/10 can mean up to 100x more replies.
+
+Score the timing, relevance, and ask separately.
+
+Fix the lowest score first. Then send a small batch and grade it again. https://t.co/QDSqEyUUHk",831.0,8,1,1,11,6376.5,0.13032227711126793,25.27075812274368,resonance without reach,"831 views against a 6,376.5-view baseline (0.13x). 11 bookmarks against 8 likes, 1 reply and 1 repost (25.3 per 1k views).","Bookmarks led the interactions, so it was saved as a how-to, but reach was about 13% of the recent median ('resonance without reach').","The '100x more replies' claim was not tested, and we can't tell whether the hook, the attachment or the timing affected reach. This is a single post, so it is not a pattern. Posting time, who was online, competing posts that day, how the post was distributed and ranking internals are unobserved, so the gap to baseline cannot be attributed to the copy, the format or the topic.","How I'd grade a cold email before sending it:
+
+Score the timing, relevance, and ask separately. Fix the lowest score first. Then send a small batch and grade it again.
+
+Going from an 8/10 to a 9/10 can mean up to 100x more replies.
+
+Which of the three do you usually score lowest?","[""Led with a first-person how-to line and moved the '8/10 to 9/10' claim after the method, so the post opens on the process (how-to posts outperform for this account)."", ""Kept the claim word for word, including its 'can mean up to' hedge, and added no new figures."", 'Added a question tied to the three scoring dimensions to invite replies (the original got 1 reply on 831 views).', 'Re-attach the same media.']","Publish as the first post of the day with the same media. After 48h compare views/baseline against the original's 0.13x, replies per 1k (original 1.2) and bookmarks per 1k (original 13.2).",claude-sonnet (session reviewer),A rewrite is an editorial proposal to test; it is not predicted to receive more distribution.
+2094432685930565974,https://x.com/MichLieben/status/2094432685930565974,2026-08-31 14:30 UTC,short_post,company & product news,announcement,Your outbound data already knows your best persona. We're building the engine that tells you exactly that. https://t.co/miJAN0E4Ft,750.0,6,2,0,1,5688.0,0.13185654008438819,12.0,neither,"750 views against a 5,688-view baseline (0.13x). 9 interactions (6 likes, 2 replies, 0 reposts, 1 bookmark), 12.0 per 1k views.",This announcement reached about 13% of the recent median and got few saves (1 bookmark) compared with the account's how-to posts in this set.,"We can't tell whether announcement posts underperform in general from one post, or whether the attachment, the vague product description or timing played a role. This is a single post, so it is not a pattern. Posting time, who was online, competing posts that day, how the post was distributed and ranking internals are unobserved, so the gap to baseline cannot be attributed to the copy, the format or the topic.","Your outbound data already knows your best persona.
+
+We're building the engine that tells you exactly that, and I'd love input while we build it: what's the first thing you'd want it to show you?","['Kept the original claim and announcement word for word, with no product details, dates or results added.', 'Turned the announcement into an open request for input, since this post already drew 2 replies, the most of any short post in this set.', 'Moved the hook onto its own line so it reads as a standalone statement.', 'Re-attach the same media.']",Publish as the first post of the day with the same media. After 48h compare views/baseline against the original's 0.13x and replies per 1k against 2.7. Read the replies as qualitative product input.,claude-sonnet (session reviewer),A rewrite is an editorial proposal to test; it is not predicted to receive more distribution.
+2090401778055745872,https://x.com/MichLieben/status/2090401778055745872,2026-08-20 11:33 UTC,short_post,buying signals & intent data,contrarian,"Stop emailing everyone who just raised. They got 100 identical congrats emails that same week and replied to none of them.
+
+What you could do instead: https://t.co/VHvtCFFIlW",1160.0,9,1,2,9,7117.0,0.16299002388646902,18.10344827586207,resonance without reach,"1,160 views against a 7,117-view baseline (0.16x). 21 interactions (9 likes, 1 reply, 2 reposts, 9 bookmarks), 18.1 per 1k views.","Viewers engaged and saved it at a moderate rate, but it reached about 16% of the recent median ('resonance without reach').","The alternative play lives in the attachment, which we can't see, so we can't judge it. We also can't tell whether the 'Stop...' opener or timing contributed. This is a single post, so it is not a pattern. Posting time, who was online, competing posts that day, how the post was distributed and ranking internals are unobserved, so the gap to baseline cannot be attributed to the copy, the format or the topic.","Everyone who just raised gets 100 identical congrats emails that same week, and replies to none of them.
+
+Here's what you could do instead 👇
+
+Have you ever had a funding email actually land?","[""Dropped the 'Stop emailing' imperative and led with the observation behind it. The audit found contrarian openers underperform this account's baseline, and the mich-voice-checker flags 'Stop X' as off-voice."", 'Kept the original fact (100 identical congrats emails) and the attachment-led structure.', 'Added a reply question for people who run funding-trigger outbound.', 'Re-attach the same media.']",Publish as the first post of the day with the same media. After 48h compare views/baseline against the original's 0.16x and replies per 1k against 0.9.,claude-sonnet (session reviewer),A rewrite is an editorial proposal to test; it is not predicted to receive more distribution.
+2089860572464472507,https://x.com/MichLieben/status/2089860572464472507,2026-08-18 23:42 UTC,quote_post,other,contrarian,"no one in the history of money has read ""comfort is the enemy of growth"" and then booked a sales call https://t.co/vL0P3fZgtc",1191.0,7,3,0,8,7185.0,0.16576200417536535,15.113350125944583,neither,"1,191 views against a 7,185-view baseline (0.17x). 18 interactions (7 likes, 3 replies, 0 reposts, 8 bookmarks), 15.1 per 1k views. It was posted at 23:42 UTC.","This one-liner drew the most replies in this set (3), but it reached about 17% of the recent median.","We can't see the quoted tweet, so we don't know how much of the meaning or the reach depended on it. The late-night UTC posting time is observed, but its effect is not. This is a single post, so it is not a pattern. Posting time, who was online, competing posts that day, how the post was distributed and ranking internals are unobserved, so the gap to baseline cannot be attributed to the copy, the format or the topic.","no one in the history of money has read ""comfort is the enemy of growth"" and then booked a sales call.
+
+what's the last post that actually made you book one?","[""Made it standalone so the joke doesn't need the quoted tweet for context."", 'Kept the original line and lowercase style unchanged.', 'Added a follow-up question that turns the joke into a prompt about content that converts, building on the 3 replies it already got.', ""Didn't add any claim about what does convert for ColdIQ, since the original makes none.""]","Publish standalone as the first post of the day, at a daytime UTC slot rather than near midnight. After 48h compare views/baseline against the original's 0.17x and replies per 1k against 2.5. Timing and format both change, so treat the result as directional only.",claude-sonnet (session reviewer),A rewrite is an editorial proposal to test; it is not predicted to receive more distribution.
+2049254904007712799,https://x.com/MichLieben/status/2049254904007712799,2026-04-28 22:30 UTC,quote_post,LinkedIn & social selling,observation,"if you post on linkedin, your cheapest pipeline is sitting in the likes and comments. wrote the 5-step process for turning it into meetings. https://t.co/8IaWP9dPAN",3565.0,14,0,1,26,20345.5,0.17522302228994127,11.50070126227209,neither,"3,565 views against a 20,345.5-view baseline (0.18x). 0 replies, with 26 bookmarks, 14 likes and 1 repost (11.5 per 1k views).",It got the most views in this set but still under a fifth of its own (high) baseline. Saves outnumbered likes and it got no replies.,"We can't tell how many people clicked through to the quoted article, which is where the 5-step process lives. The 22:30 UTC posting time is observed, but its effect is not. This is a single post, so it is not a pattern. Posting time, who was online, competing posts that day, how the post was distributed and ranking internals are unobserved, so the gap to baseline cannot be attributed to the copy, the format or the topic.","If you post on LinkedIn, your cheapest pipeline is sitting in the likes and comments.
+
+I wrote up the 5-step process I'd use to turn those people into meetings.
+
+Is anyone actually doing something with their post engagers right now?","[""Kept it as a quote of the article, since X Articles are this account's strongest format and the 5 steps live there."", 'Kept the original hook unchanged and made the second line first-person.', 'Added a direct question to invite replies (the original got 0 replies on 3,565 views).', ""Didn't summarise the 5 steps, because they aren't in the post text and shouldn't be invented.""]","Publish as a quote of the same article, as the first post of the day at a daytime UTC slot. After 48h compare views/baseline against the original's 0.18x, replies per 1k against 0 and bookmarks per 1k against 7.3. Log article views if available.",claude-sonnet (session reviewer),A rewrite is an editorial proposal to test; it is not predicted to receive more distribution.
+2054569878796005452,https://x.com/MichLieben/status/2054569878796005452,2026-05-13 14:30 UTC,long_post,agency business & scaling,observation,"Most people see one part of ColdIQ, usually the LinkedIn content, and assume that's the engine. It's not. The thing that pulls 55,000+ visits a month and supports $7M ARR has four layers:
+
+marketing brings traffic in > lead capture turns it into pipeline > sales closes > and delivery scales the work without breaking.
+
+1. Marketing (55,000+ visits/mo)
+
+This is where the traffic enters. Five channels carry the load.
+
+> LinkedIn (~15,000 visits/mo). The heaviest lifter. We have 20+ teammates publishing 150+ posts a month across outbound, AI, and GTM, with a combined audience of about 300K, designed in-house. Stack: Taplio, Scripe.
+
+> SEO (~10,000 visits/mo). Yevhen runs programmatic SEO. Long-form blogs, programmatic landing pages on AirOps, and free micro-tools that Sacha builds in Claude Code. Stack: AirOps, Ahrefs, Claude Code, Webflow.
+
+> Paid (~6,000 visits/mo). Ivan runs roughly $10K/mo across LinkedIn, Meta, and Google, mostly to test new channels rather than scale a winner. Stack: Claude Code, Fibbler, Usermaven.
+
+> Cold outreach (~4,000 visits/mo). Kenny runs internal campaigns off tight lists of fewer than 5,000 deeply enriched contacts at a time, rotating between value-driven lead magnets, lookalike account targeting, social engagement plays, and inbound-led outbound. Stack: Clay, Claude Code, Apollo, Instantly, lemlist, Prospeo, FullEnrich, CompanyEnrich, PredictLeads.
+
+> Newsletter, webinars, and emerging channels (~11,000 visits/mo). Monika ships the beehiiv newsletter. Harry runs the webinars. TikTok, Instagram, and X are newer experiments growing share fast.
+
+2. Lead capture
+
+Traffic alone doesn't convert, so lead capture is its own layer sitting on top of marketing.
+
+> Midbound and Vector surface anonymous visitors.
+> Customer .io handles lifecycle emails.
+> Micro-tools and pop-up lead magnets quietly collect emails.
+> Everything routes through n8n and gets scored in real time by Clay, OpenAI, and PredictLeads before a salesperson ever sees it.
+
+3. Sales
+
+> Sales-led motion, 2 to 3 Google Meet calls, $5K to $10K/month retainers.
+> The qualifying happens before discovery. Case studies, VSL, and free content do the weeding.
+> Once a call is booked, Clay enriches the account on funding, headcount, tech stack, tenure, and reports, and the proposal goes out shortly after.
+> Stack: Attio for CRM, Attention for AI notes, Hyperline for CPQ, Qwilr for proposals, Stripe for payments.
+
+4. Client delivery
+
+> n8n runs the kickoff workflow.
+> GSuite, Supabase, Stripe, and Slack are synced so admin tasks like Slack invites, onboarding links, and domain provisioning happen without anyone in the loop.
+> Our GTM engineers only touch what moves the needle for clients: custom ICP matrix, creative campaign concepts, copy.
+
+(bookmark for later)",2340.0,26,1,1,52,13239.5,0.17674383473696137,34.188034188034194,resonance without reach,"2,340 views against a 13,239.5-view baseline (0.18x). 52 bookmarks (the most in this set) against 26 likes, 1 reply and 1 repost (34.2 per 1k views).",Readers treated it as reference material: bookmarks were double the likes. Reach was still under a fifth of the recent median ('resonance without reach').,"We can't tell whether the length (about 430 words), the stack-heavy list format or the timing held reach back, or whether a shorter version would keep the save rate. This is a single post, so it is not a pattern. Posting time, who was online, competing posts that day, how the post was distributed and ranking internals are unobserved, so the gap to baseline cannot be attributed to the copy, the format or the topic.","People usually see our LinkedIn content and assume that's the engine behind ColdIQ. It's one of four layers that pull 55,000+ visits a month and support $7M ARR:
+
+1. Marketing. LinkedIn does the heaviest lifting (~15,000 visits/mo, 20+ teammates posting). Then SEO run by Yevhen, paid run by Ivan, cold outreach run by Kenny, and the newsletter and webinars from Monika and Harry.
+
+2. Lead capture. Midbound and Vector surface anonymous visitors, and everything routes through n8n to get scored by Clay, OpenAI and PredictLeads before a salesperson sees it.
+
+3. Sales. 2 to 3 Google Meet calls, $5K to $10K/month retainers. Case studies, VSL and free content do the qualifying before discovery.
+
+4. Delivery. n8n runs the kickoff, and GSuite, Supabase, Stripe and Slack are synced so admin happens without anyone in the loop. Our GTM engineers only touch the ICP matrix, campaign concepts and copy.
+
+Which layer is the weakest in yours right now?","[""Cut it from about 430 words to about 155 by dropping most per-channel stats and tool lists while keeping the four-layer structure and the team members' names (the audit found 400+ word posts underperform this account's baseline)."", ""Rewrote the 'Most people see... It's not.' opener, which is a banned contrast pattern in the ColdIQ SOP, as a plain first-person observation."", ""Replaced '(bookmark for later)' with a reply question. Bookmarks are already strong here and replies are the weak metric."", ""Fact flag: the original's channel figures (~15K + ~10K + ~6K + ~4K + ~11K) add up to about 46K, not 55,000+, and post 2105340823969878477 says 40,000 visitors a month. Confirm the current figure before publishing.""]","Publish as the first post of the day. After 48h compare views/baseline against the original's 0.18x, bookmarks per 1k (original 22.2) and replies per 1k (original 0.4), to see whether the shorter version keeps the save rate.",claude-sonnet (session reviewer),A rewrite is an editorial proposal to test; it is not predicted to receive more distribution.
