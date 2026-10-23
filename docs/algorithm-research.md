@@ -52,12 +52,6 @@ Every finding records: the mechanism, repository path and line range, symbol, co
 
 | Date | Commit | File | Parameter | From | To |
 |---|---|---|---|---|---|
-| 2026-08-25 | 0d3cdd8 | home-mixer/params/param.rs | ColdStartTsTopK | 5 | 2 |
-| 2026-08-25 | 0d3cdd8 | home-mixer/params/param.rs | DwellWeight | 0.0 | 0.05 |
-| 2026-08-25 | 0d3cdd8 | home-mixer/params/param.rs | VideoOpenWeight | 0.05 | 0.07 |
-| 2026-08-25 | 0d3cdd8 | home-mixer/params/param.rs | VqvWeight | 0.05 | 0.0 |
-| 2026-09-17 | 42266f3 | home-mixer/params/param.rs | ColdStartMaxPostAgeSecs | 86400 | 172800 |
-| 2026-09-23 | 1b3fec2 | home-mixer/params/param.rs | PhoenixMoeColdStartMaxResults | 0 | 200 |
 | 2026-09-29 | a707cc2 | home-mixer/params/param.rs | ClickWeight | 0.4 | 0.3 |
 | 2026-09-29 | a707cc2 | home-mixer/params/param.rs | ContClickDwellTimeWeight | 0.0 | 0.4 |
 | 2026-09-29 | a707cc2 | home-mixer/params/param.rs | NotInterestedWeight | -43.2 | -47.52 |
