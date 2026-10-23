@@ -126,3 +126,5 @@ The primary metric is compared as the ratio of treatment and control medians, wi
 | `met (directional)` | Ratio ≥ rule after the end date, but the CI includes 1 |
 | `not_met` | Ended and the rule was not met |
 | `underpowered` | Ended without the minimum sample |
+
+**Plain-English summary ("the short version").** `recommend/plain.py` turns the stored analysis into a summary without statistical terms: "typical post" for the median, "usual" for the account's trailing baseline, certainty in words. It covers where the account stands, what's working and not (with real example posts), why reach isn't coming (what we see, what X's published code does, what to do, how we'll know), and next steps. Every number is read from the artifacts; weights quoted from X's code are read from the parameter extract (home-mixer defaults first). Topic and hook comparisons set X Articles aside when Articles clearly out-reach other formats. Tests check the summary carries no jargon, quotes the published weights exactly, and links only to real posts.

@@ -1,6 +1,7 @@
 """Synthetic data through import -> analysis -> diagnostics -> API."""
 
 import json
+import re
 from datetime import UTC, datetime, timedelta
 
 import numpy as np
@@ -121,3 +122,47 @@ def test_slack_digest_builds_from_stored_data(seeded):
     headers = [b["text"]["text"] for b in d["blocks"] if b["type"] == "header"]
     assert any("@nifinet" in h for h in headers) and any("@MichLieben" in h for h in headers)
     assert len(d["blocks"]) <= 50
+
+
+
+JARGON = re.compile(r"\b(median|baseline|n=|CI|q-value|p-value|statistical association|regression)\b", re.I)
+BLOCKED = re.compile(r"shadow ?ban|suppress", re.I)
+
+
+def _texts(b: dict) -> list[str]:
+    out = list(b["stand"]) + [b["test_note"]]
+    for w in b["working"] + b["not_working"]:
+        out += [w["headline"], w["detail"], w["based_on"]] + [e["text"] for e in w["examples"]]
+    for w in b["why"]:
+        out += [w["title"], w["we_see"], w["x_code"], w["do"], w["check"]]
+    return out
+
+
+@pytest.mark.skipif(not (ALGO_REPO_DIR / ".git").exists(), reason="algorithm repo not cloned")
+def test_brief_is_plain_complete_and_traceable(seeded):
+    from xaudit.algo import param_extract
+    from xaudit.analysis.pipeline import prepare
+    from xaudit.diagnostics.engine import run as drun
+    from xaudit.recommend.engine import run as rrun
+    from xaudit.recommend.plain import algo_plain
+
+    for h in clients():
+        drun(h)
+        rrun(h)
+        from xaudit.db.session import load_artifact
+
+        b = load_artifact("brief", h)
+        assert b["stand"] and b["why"] and b["todo"] and (b["working"] or b["not_working"])
+        own = [t for t in _texts(b) if t]
+        # Generated wording carries no jargon (post texts excluded: they are the client's own words).
+        generated = [t for t in own if t not in {e["text"] for w in b["working"] + b["not_working"]
+                                                 for e in w["examples"]}]
+        assert not [t for t in generated if JARGON.search(t)], [t for t in generated if JARGON.search(t)][:3]
+        assert not any(BLOCKED.search(t) for t in generated)
+        urls = set(prepare(h, window_days=180)["url"])
+        assert all(e["url"] in urls for w in b["working"] + b["not_working"] for e in w["examples"])
+
+    # Weights quoted in plain words are the published home-mixer values.
+    hm = {p["name"]: p["value"] for p in param_extract.current() if p["path"].startswith("home-mixer")}
+    reply_text = algo_plain("efficiency", {**hm})
+    assert f"counts {hm['ReplyWeight']:g}" in reply_text and f"({hm['FavoriteWeight']:g})" in reply_text

@@ -7,6 +7,49 @@
 <div class="sub">Window {{ window[0][:10] }} → {{ window[1][:10] }} (180 days; 90-day figures marked) · public data only ·
 algorithm repository <a href="{{ repo_url }}/tree/{{ sha }}">xai-org/x-algorithm@{{ sha[:7] }}</a></div>
 
+
+{% if brief %}
+<h2>The short version</h2>
+<p class="meta">Plain-English summary. Every number comes from the detailed sections that follow. "Typical post" means
+the middle post (half got more views, half fewer); "usual" means what the account was getting in the weeks just before.</p>
+<h3>Where the account stands</h3>
+<ul>{% for x in brief.stand %}<li>{{ x }}</li>{% endfor %}</ul>
+
+<div class="cols"><div>
+<h3 class="good">What's working</h3>
+{% for w in brief.working %}<div class="plain good">
+<b>{{ w.headline }}</b><br>{{ w.detail }} <span class="meta">{{ w.based_on }} · {{ w.label }}</span>
+{% for e in w.examples %}<div class="ex"><a href="{{ e.url }}">{{ e.text }}</a> — <b>{{ e.views|num }} views</b> · {{ e.date }}</div>{% endfor %}
+</div>{% else %}<p class="meta">No clear pattern yet.</p>{% endfor %}
+</div><div>
+<h3 class="bad">What's not working</h3>
+{% for w in brief.not_working %}<div class="plain bad">
+<b>{{ w.headline }}</b><br>{{ w.detail }} <span class="meta">{{ w.based_on }} · {{ w.label }}</span>
+{% for e in w.examples %}<div class="ex"><a href="{{ e.url }}">{{ e.text }}</a> — <b>{{ e.views|num }} views</b> · {{ e.date }}</div>{% endfor %}
+</div>{% else %}<p class="meta">No clear pattern yet.</p>{% endfor %}
+</div></div>
+
+<h3>Why reach isn't coming</h3>
+{% for w in brief.why %}<div class="diag">
+<h3>{{ loop.index }}. {{ w.title }} <span class="badge">{{ w.sure }}</span></h3>
+<dl>
+<dt>What we see</dt><dd>{{ w.we_see }} <span class="meta">({{ w.we_see_label }})</span></dd>
+<dt>What X's algorithm does</dt><dd>{{ w.x_code }} <span class="meta">({{ w.x_code_label }}{% for f in w.x_code_refs %}{% if loop.first %}: {% endif %}<a href="{{ f.url }}">{{ f.id }}</a>{% if not loop.last %}, {% endif %}{% endfor %})</span></dd>
+<dt>What to do</dt><dd>{{ w.do }}</dd>
+<dt>How we'll know it worked</dt><dd>{{ w.check }}</dd>
+</dl></div>{% endfor %}
+
+<h3>What to do next, in order</h3>
+<ol>{% for t in brief.todo %}<li><b>{{ t.action }}</b><br><span class="meta">Why: {{ t.why }} · Check: {{ t.check }}</span></li>{% endfor %}</ol>
+{% if brief.test_note %}<div class="note">{{ brief.test_note }}</div>{% endif %}
+
+<h3>Words used in this report</h3>
+<table>{% for g in brief.glossary %}<tr><td><b>{{ g.term }}</b></td><td>{{ g.meaning }}</td></tr>{% endfor %}</table>
+
+<h2 class="appendix">Details for analysts</h2>
+<p class="meta">The full evidence behind the short version: statistics, confidence intervals, every diagnostic and
+its citations into X's published code.</p>
+{% endif %}
 <div class="note">How to read this report: every finding carries an evidence class —
 {% for c in ["repo_verified","account_observed","statistical_association","hypothesis","unsupported","insufficient"] %}<span class="badge b-{{c}}">{{ c|replace('_',' ') }}</span> {% endfor %}.
 Associations are not causes; the published repository does not describe every live production system; no metric here is an X algorithm score.</div>
@@ -14,9 +57,9 @@ Associations are not causes; the published repository does not describe every li
 <h2>1. Executive summary</h2>
 <div class="cards">
   <div class="card"><div class="k">Followers</div><div class="v">{{ profile.followers|num }}</div><div class="n">snapshot 2026-10-23</div></div>
-  <div class="card"><div class="k">Median views / authored post</div><div class="v">{{ reach.segments['authored (original + quote)'].median|num }}</div><div class="n">n={{ reach.segments['authored (original + quote)'].n }} · 180d</div></div>
+  <div class="card"><div class="k">Typical views per post (median)</div><div class="v">{{ reach.segments['authored (original + quote)'].median|num }}</div><div class="n">n={{ reach.segments['authored (original + quote)'].n }} · 180d</div></div>
   <div class="card"><div class="k">Trend per 30 days</div><div class="v">{{ reach.trend_authored.per_30d|r2 }}x</div><div class="n">90% CI {{ reach.trend_authored.lo|r2 }}–{{ reach.trend_authored.hi|r2 }}</div></div>
-  <div class="card"><div class="k">Median views / comment</div><div class="v">{{ comments.conversation.views.median|num }}</div><div class="n">n={{ comments.conversation.n }} conversational</div></div>
+  <div class="card"><div class="k">Typical views per comment (median)</div><div class="v">{{ comments.conversation.views.median|num }}</div><div class="n">n={{ comments.conversation.n }} conversational</div></div>
 </div>
 <h3>Top 5 potential barriers to organic growth</h3>
 <table><tr><th>#</th><th>Issue</th><th>Status</th><th>Confidence</th><th>Evidence class</th><th class="num">Priority</th></tr>
@@ -34,14 +77,14 @@ Associations are not causes; the published repository does not describe every li
 
 <h2>3. Historical performance</h2>
 <h3>Reach by post type (mature posts, 180 days)</h3>
-<table><tr><th>Segment</th><th class="num">n</th><th class="num">Median</th><th class="num">p25</th><th class="num">p75</th><th class="num">p90</th><th class="num">Mean</th><th class="num">Median / follower</th></tr>
+<table><tr><th>Segment</th><th class="num">n</th><th class="num">Typical (median)</th><th class="num">p25</th><th class="num">p75</th><th class="num">p90</th><th class="num">Mean</th><th class="num">Median / follower</th></tr>
 {% for k, s in reach.segments.items() %}{% if s.n %}<tr><td>{{ k }}</td><td class="num">{{ s.n }}</td><td class="num">{{ s.median|num }}</td><td class="num">{{ s.p25|num }}</td><td class="num">{{ s.p75|num }}</td><td class="num">{{ s.p90|num }}</td><td class="num">{{ s.mean|num }}</td><td class="num">{{ s.median_views_per_follower|pct(2) }}</td></tr>{% endif %}{% endfor %}</table>
 <p>90-day window: median authored views {{ reach90.segments['authored (original + quote)'].median|num }} (n={{ reach90.segments['authored (original + quote)'].n }}).
 The top 5% of authored posts produced {{ reach.concentration.top5pct_share_of_views|pct }} of authored views (top single post {{ reach.concentration.top1_share_of_views|pct }}), so medians, not totals, describe a typical post.
 Relative to each post's trailing 28-day baseline: {{ reach.vs_baseline.share_above_2x|pct }} exceeded 2x, {{ reach.vs_baseline.share_below_half|pct }} fell below 0.5x.</p>
 <h3>Monthly median views (authored) and posting volume</h3>
 {{ monthly_svg|safe }}
-<table><tr><th>Month</th><th class="num">Authored posts</th><th class="num">Median views</th><th class="num">Total views</th><th class="num">Replies to others</th><th class="num">Median reply views</th></tr>
+<table><tr><th>Month</th><th class="num">Authored posts</th><th class="num">Typical views (median)</th><th class="num">Total views</th><th class="num">Replies to others</th><th class="num">Median reply views</th></tr>
 {% for m in reach.monthly %}<tr><td>{{ m.month }}</td><td class="num">{{ m.authored_n }}</td><td class="num">{{ m.authored_median_views|num }}</td><td class="num">{{ m.authored_total_views|num }}</td><td class="num">{{ m.replies_n }}</td><td class="num">{{ m.reply_median_views|num }}</td></tr>{% endfor %}</table>
 <h3>Engagement efficiency (per 1,000 views; observed outcomes, not ranking scores)</h3>
 <table><tr><th>Type</th>{% for m in ["likes","replies","reposts","quotes","bookmarks","eng"] %}<th class="num">{{ m }} /1k (median)</th>{% endfor %}</tr>
@@ -51,7 +94,7 @@ Relative to each post's trailing 28-day baseline: {{ reach.vs_baseline.share_abo
 <h2>4. Posting audit</h2>
 <h3>Characteristics associated with higher or lower reach</h3>
 <p class="meta">Each level vs all other authored posts. Ratio of medians with 90% bootstrap CI; q = Benjamini–Hochberg adjusted p across {{ segments|length }} comparisons. Only q &lt; 0.1 shown as signals. Associations only.</p>
-<table><tr><th>Feature</th><th>Level</th><th class="num">n</th><th class="num">Median views</th><th class="num">Ratio</th><th class="num">90% CI</th><th class="num">q</th><th>Signal</th></tr>
+<table><tr><th>Feature</th><th>Level</th><th class="num">n</th><th class="num">Typical views (median)</th><th class="num">Ratio</th><th class="num">90% CI</th><th class="num">q</th><th>Signal</th></tr>
 {% for s in segments if s.signal in ["higher","lower"] %}<tr><td>{{ s.feature_label }}</td><td>{{ s.level }}</td><td class="num">{{ s.n }}</td><td class="num">{{ s.median|num }}</td><td class="num">{{ s.ratio|r2 }}x</td><td class="num">{{ s.lo|r2 }}–{{ s.hi|r2 }}</td><td class="num">{{ s.q|r3 }}</td><td>{{ s.signal }}</td></tr>{% endfor %}</table>
 {% if mv.fitted %}<h3>Multivariable model (controls: month fixed effects; HC3 robust errors)</h3>
 <p class="meta">{{ mv.formula }} · n={{ mv.n }} · R² {{ mv.r2|r2 }}. Multipliers are relative to the reference level of each factor.</p>
@@ -68,7 +111,7 @@ Relative to each post's trailing 28-day baseline: {{ reach.vs_baseline.share_abo
 <h2>5. Commenting audit</h2>
 <p>Reply roles: {% for k, v in comments.roles.items() %}{{ k|replace('_',' ') }} {{ v }}{% if not loop.last %} · {% endif %}{% endfor %}.
 {{ comments.fulfilment.note }}</p>
-<table><tr><th>Category</th><th class="num">n</th><th class="num">Median views</th><th class="num">Median likes</th><th class="num">Share with a reply</th><th class="num">Median effectiveness</th></tr>
+<table><tr><th>Category</th><th class="num">n</th><th class="num">Typical views (median)</th><th class="num">Median likes</th><th class="num">Share with a reply</th><th class="num">Median effectiveness</th></tr>
 {% for r in comments.by_category %}<tr><td>{{ r.category|replace('_',' ') }}</td><td class="num">{{ r.n }}</td><td class="num">{{ r.median_views|num }}</td><td class="num">{{ r.median_likes|r1 }}</td><td class="num">{{ r.share_with_reply|pct }}</td><td class="num">{{ r.median_effectiveness|r1 }}</td></tr>{% endfor %}</table>
 <p class="meta">{{ comments.score_label }}. Weights: {% for k, v in comments.score_weights.items() %}{{ k }} {{ v }}{% if not loop.last %}, {% endif %}{% endfor %} (timing unavailable → redistributed).</p>
 {% if comments.thread_sample %}<p>Thread-context sample (n={{ comments.thread_sample.n }}): median delay after the parent post {{ comments.thread_sample.latency_minutes.median|num }} min; {{ comments.thread_sample.share_within_60min|pct }} within the first hour; parent author replied to {{ comments.thread_sample.parent_author_responded_share|pct }}.</p>{% endif %}
@@ -80,7 +123,7 @@ Relative to each post's trailing 28-day baseline: {{ reach.vs_baseline.share_abo
 
 <h2>6. Audience and network</h2>
 <p>{{ comments.concentration.distinct_parent_authors }} distinct accounts received conversational comments; the top 5 received {{ comments.concentration.top5_share|pct }} (HHI {{ comments.concentration.hhi|r3 }}); {{ comments.concentration.repeat_targets_3plus }} accounts received 3+ comments.</p>
-<table><tr><th>Account commented on</th><th class="num">Comments</th><th class="num">Median views</th><th class="num">Total views</th><th class="num">Share with a reply</th><th>Peer/client</th></tr>
+<table><tr><th>Account commented on</th><th class="num">Comments</th><th class="num">Typical views (median)</th><th class="num">Total views</th><th class="num">Share with a reply</th><th>Peer/client</th></tr>
 {% for p in comments.partners[:15] %}<tr><td>@{{ p.parent_author }}</td><td class="num">{{ p.replies }}</td><td class="num">{{ p.median_views|num }}</td><td class="num">{{ p.total_views|num }}</td><td class="num">{{ p.share_with_reply|pct }}</td><td>{{ 'yes' if p.is_peer_or_client else '' }}</td></tr>{% endfor %}</table>
 {% if comments.engagers and comments.engagers.available %}<p>{{ comments.engagers.n_engagements }} public replies/quotes from {{ comments.engagers.distinct_engagers }} distinct accounts ({{ comments.engagers.window[0] }} → {{ comments.engagers.window[1] }}); {{ comments.engagers.one_time_share|pct }} engaged only once; the top 10 accounts made {{ comments.engagers.top10_share|pct }} of engagements; {{ comments.engagers.reciprocal_accounts }} engagers are also accounts @{{ handle }} comments on ({{ comments.engagers.reciprocal_share_of_engagements|pct }} of engagements). <span class="meta">{{ comments.engagers.note }}</span></p>{% endif %}
 {% if engagers %}<h3>Accounts that replied to or quoted @{{ handle }}</h3>
@@ -106,7 +149,7 @@ Relative to each post's trailing 28-day baseline: {{ reach.vs_baseline.share_abo
 
 <h2>9. Competitive comparison</h2>
 <p class="meta">Same slice for client and peers: authored posts, last {{ bench.window_days }} days, mature only.</p>
-<table><tr><th>Account</th><th class="num">Followers</th><th class="num">Posts/wk</th><th class="num">Median views</th><th class="num">Views / 1k followers</th><th class="num">Eng /1k views</th><th class="num">Replies /1k</th><th class="num">Bookmarks /1k</th><th class="num">Article share</th></tr>
+<table><tr><th>Account</th><th class="num">Followers</th><th class="num">Posts/wk</th><th class="num">Typical views (median)</th><th class="num">Views / 1k followers</th><th class="num">Eng /1k views</th><th class="num">Replies /1k</th><th class="num">Bookmarks /1k</th><th class="num">Article share</th></tr>
 {% for h, a in bench.accounts.items() %}{% if a.n %}<tr{% if h == handle %} style="font-weight:650"{% endif %}><td>@{{ h }}</td><td class="num">{{ a.followers|num }}</td><td class="num">{{ a.authored_per_week|r1 }}</td><td class="num">{{ a.median_views|num }}</td><td class="num">{{ a.median_views_per_1k_followers|r1 }}</td><td class="num">{{ a.median_eng_per_1k_views|r1 }}</td><td class="num">{{ a.median_replies_per_1k|r2 }}</td><td class="num">{{ a.median_bookmarks_per_1k|r2 }}</td><td class="num">{{ a.share_article|pct }}</td></tr>{% endif %}{% endfor %}</table>
 <ul class="meta">{% for n in bench.notes %}<li>{{ n }}</li>{% endfor %}</ul>
 

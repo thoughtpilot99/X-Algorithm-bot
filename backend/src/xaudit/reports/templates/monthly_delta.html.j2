@@ -5,7 +5,7 @@
 <div class="meta">Monthly growth audit · generated {{ generated }}</div>
 <h1>{{ delta.month }} — month over month</h1>
 <div class="sub">Full Reports A/B/C for this month are in the same folder. {% if not delta.previous %}This is the first monthly snapshot; deltas start next month.{% else %}Compared with {{ delta.previous.month }}.{% endif %}</div>
-{% set keys = [("authored_median_views_90d","Median views / authored post (90d)","num"),("median_views_per_1k_followers","Views per 1k followers","r1"),("median_replies_per_1k","Replies per 1k views","r2"),("median_bookmarks_per_1k","Bookmarks per 1k views","r2"),("authored_per_week","Authored posts / week","r1"),("followers","Followers","num"),("trend_per_30d","Trend per 30 days","r2"),("median_views_per_comment","Median views / comment","num"),("substantive_comment_share","Substantive comment share","pct")] %}
+{% set keys = [("authored_median_views_90d","Typical views per post (90 days)","num"),("median_views_per_1k_followers","Views per 1k followers","r1"),("median_replies_per_1k","Replies per 1k views","r2"),("median_bookmarks_per_1k","Bookmarks per 1k views","r2"),("authored_per_week","Authored posts / week","r1"),("followers","Followers","num"),("trend_per_30d","Trend per 30 days","r2"),("median_views_per_comment","Typical views per comment","num"),("substantive_comment_share","Substantive comment share","pct")] %}
 {% for h, cur in delta.current.items() %}
 <h2>{{ names[h] }} (@{{ h }})</h2>
 <table><tr><th>Metric</th><th class="num">This month</th><th class="num">Previous</th></tr>

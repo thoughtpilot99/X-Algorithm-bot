@@ -36,5 +36,9 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:now
 a{color:var(--accent);text-decoration:none;word-break:break-word}
 .cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}
 svg text{font:10px sans-serif;fill:var(--muted)}
+.plain{border:1px solid var(--line);border-left:4px solid var(--line);border-radius:8px;padding:9px 12px;margin:8px 0;break-inside:avoid}
+.plain.good{border-left-color:var(--good)}.plain.bad{border-left-color:var(--bad)}h3.good{color:var(--good)}h3.bad{color:var(--bad)}
+.plain .ex{font-size:12px;margin-top:5px;padding-left:10px;border-left:2px solid var(--line)}
+h2.appendix{margin-top:56px}
 @media print{main{padding:0 6mm}h2{break-after:avoid}.diag,.qa,table{break-inside:avoid}a{color:var(--ink)}}
 @media (max-width:700px){.cards{grid-template-columns:1fr 1fr}.cols{grid-template-columns:1fr}main{padding:24px 16px}}

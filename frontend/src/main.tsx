@@ -23,7 +23,7 @@ function Shell() {
         <div className="page-gutter mx-auto flex max-w-7xl flex-wrap items-center gap-2 py-2">
           <span className="mr-3 text-sm font-semibold">X Audit</span>
           {accounts.data?.map((a) => (
-            <NavLink key={a.handle} to={`/a/${a.handle}/overview`} className={link}>{a.name}</NavLink>
+            <NavLink key={a.handle} to={`/a/${a.handle}/summary`} className={link}>{a.name}</NavLink>
           ))}
           <NavLink to="/compare" className={link}>Compare</NavLink>
           <NavLink to="/algorithm" className={link}>Algorithm research</NavLink>
@@ -35,7 +35,7 @@ function Shell() {
               ))}
               <div className="mt-1 border-t border-slate-200 pt-1 muted dark:border-slate-700">CSV</div>
               {reports.data?.filter((r) => r.name.endsWith(".csv")).map((r) => (
-                <a key={r.url} className="block rounded px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800" href={r.url}>{r.name}</a>
+                <a key={r.url} className="block rounded px-2 py-1 hover:bg-slate-100 dark:hover:bg-slate-800" href={r.url} target="_blank" rel="noreferrer">{r.name}</a>
               ))}
             </div>
           </details>
@@ -49,8 +49,8 @@ function Shell() {
       )}
       <main className="page-gutter mx-auto max-w-7xl py-5">
         <Routes>
-          <Route path="/" element={first ? <Navigate to={`/a/${first}/overview`} replace /> : <div className="muted text-sm">Loading…</div>} />
-          <Route path="/a/:handle" element={<Navigate to="overview" replace />} />
+          <Route path="/" element={first ? <Navigate to={`/a/${first}/summary`} replace /> : <div className="muted text-sm">Loading…</div>} />
+          <Route path="/a/:handle" element={<Navigate to="summary" replace />} />
           <Route path="/a/:handle/:section" element={<AccountPage />} />
           <Route path="/compare" element={<ComparePage />} />
           <Route path="/algorithm" element={<AlgorithmPage />} />

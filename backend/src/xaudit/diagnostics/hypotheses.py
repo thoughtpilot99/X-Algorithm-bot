@@ -30,6 +30,18 @@ def _seg(art: dict, feature: str, level: str) -> dict | None:
     return next((s for s in art["segments"] if s["feature"] == feature and str(s["level"]) == level), None)
 
 
+def _content_segs(art: dict) -> tuple[list[dict], str]:
+    """Segments for content questions (topic, hook, structure) and a note on their scope.
+
+    When X Articles clearly out-reach other formats, topic and hook levels in the full set mostly
+    re-measure the article effect, so these questions are answered on posts other than Articles.
+    """
+    art_seg = _seg(art, "format", "x_article")
+    if art_seg and art_seg.get("signal") == "higher" and art.get("segments_ex_articles"):
+        return art["segments_ex_articles"], " (X Articles set aside)"
+    return art["segments"], ""
+
+
 def _r(x: float | None, nd: int = 2) -> float | int | None:
     if x is None:
         return None
@@ -350,12 +362,15 @@ def topic_alignment(ctx: Ctx) -> Diagnostic:
     a = df[df["is_authored"]]
     mix = a["topic"].value_counts(normalize=True)
     top2 = float(mix.head(2).sum()) if len(mix) else 0.0
-    higher = [s for s in art["segments"] if s["feature"] == "topic" and s["signal"] == "higher"]
-    lower = [s for s in art["segments"] if s["feature"] == "topic" and s["signal"] == "lower"]
+    segs, scope = _content_segs(art)
+    higher = [s for s in segs if s["feature"] == "topic" and s["signal"] == "higher"]
+    lower = [s for s in segs if s["feature"] == "topic" and s["signal"] == "lower"]
     ev = [Evidence(kind="metric", ref="topic.top2_share", label="share of authored posts in top-2 topics", value=_r(top2))]
     ev += [Evidence(kind="comparison", ref=f"topic={s['level']}", label=f"{s['level']} (n={s['n']}) median ratio",
                     value=_r(s["ratio"]), evidence_class="statistical_association") for s in higher + lower]
     obs = f"The top two topics account for {_r(top2 * 100, 0)}% of authored posts."
+    if scope and (higher or lower):
+        obs += f" Topic comparisons{scope}:"
     if higher:
         obs += " Topics associated with higher reach: " + ", ".join(f"{s['level']} {_r(s['ratio'])}x" for s in higher) + "."
     if lower:
@@ -385,14 +400,18 @@ def topic_alignment(ctx: Ctx) -> Diagnostic:
 # 8. Hooks / opening line
 def hooks(ctx: Ctx) -> Diagnostic:
     h, art = ctx["handle"], ctx["art"]
-    rows = [s for s in art["segments"] if s["feature"] in ("hook_type", "narrative", "educational_value")
+    segs, scope = _content_segs(art)
+    rows = [s for s in segs if s["feature"] in ("hook_type", "narrative", "educational_value")
             and s["signal"] in ("higher", "lower")]
     ev = [Evidence(kind="comparison", ref=f"{s['feature']}={s['level']}",
                    label=f"{s['feature_label']}: {s['level']} (n={s['n']}) median ratio", value=_r(s["ratio"]),
                    evidence_class="statistical_association") for s in rows]
+    tested = [s for s in segs if s["feature"] in ("hook_type", "narrative", "educational_value") and s.get("tested")]
+    ev.append(Evidence(kind="metric", ref="hooks.levels_tested", label=f"opening/structure levels compared{scope}",
+                       value=len(tested), evidence_class="statistical_association"))
     hi = [s for s in rows if s["signal"] == "higher"]
     lo = [s for s in rows if s["signal"] == "lower"]
-    obs = "Opening/structure patterns with clear differences: "
+    obs = f"Opening/structure patterns with clear differences{scope}: "
     obs += "; ".join(f"{s['feature_label']} = {s['level']}: {_r(s['ratio'])}x (n={s['n']})" for s in hi + lo) or "none"
     return Diagnostic(
         id=f"{h}-hooks", handle=h, issue="Weak openings / low-utility structures",

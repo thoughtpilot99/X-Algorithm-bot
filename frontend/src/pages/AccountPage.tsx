@@ -10,6 +10,7 @@ import EvidenceDrawer from "../components/EvidenceDrawer";
 import { ClassBadge, Completeness, Confidence, ErrorBox, fmt, Loading, Panel, Stat } from "../components/ui";
 
 export const SECTIONS: [string, string][] = [
+  ["summary", "Summary (plain English)"],
   ["overview", "Executive overview"],
   ["trends", "Reach & engagement"],
   ["posts", "Original posts"],
@@ -58,7 +59,7 @@ function applyFilters(posts: Post[], f: Filters): Post[] {
 }
 
 export default function AccountPage() {
-  const { handle = "", section = "overview" } = useParams();
+  const { handle = "", section = "summary" } = useParams();
   const [filters, setFilters] = useState<Filters>({ start: "", end: "", types: [], topic: "", segment: "" });
   const [drawer, setDrawer] = useState<Diagnostic | null>(null);
   const overview = useQuery({ queryKey: ["overview", handle], queryFn: () => api.overview(handle) });
@@ -101,6 +102,7 @@ export default function AccountPage() {
           <FilterBar filters={filters} setFilters={setFilters} topics={topics} count={filtered.length} handle={handle} rows={filtered} />
         )}
         {posts.error && <ErrorBox error={posts.error} />}
+        {section === "summary" && <Summary handle={handle} />}
         {section === "overview" && <Overview o={o} handle={handle} open={setDrawer} />}
         {section === "trends" && <Trends handle={handle} posts={filtered} />}
         {section === "posts" && <OriginalPosts handle={handle} posts={filtered} />}
@@ -235,10 +237,10 @@ function Overview({ o, handle, open }: { o: any; handle: string; open: (d: Diagn
   return (
     <>
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <Stat k="Median views / authored post" v={fmt.n(a.median)} n={`n=${a.n} · 180 days`} />
-        <Stat k="Trend per 30 days" v={fmt.x(t.per_30d)} n={`90% CI ${fmt.r(t.lo)}–${fmt.r(t.hi)}`} />
-        <Stat k="Posts above 2x baseline" v={fmt.pct(o.reach.vs_baseline?.share_above_2x)} n={`below 0.5x: ${fmt.pct(o.reach.vs_baseline?.share_below_half)}`} />
-        <Stat k="Median views / comment" v={fmt.n(c.views?.median)} n={`n=${c.n} conversational`} />
+        <Stat k="Typical views per post" v={fmt.n(a.median)} n={`n=${a.n} · 180 days`} />
+        <Stat k="Change per month" v={fmt.x(t.per_30d)} n={`1.00x = steady · likely range ${fmt.r(t.lo)}–${fmt.r(t.hi)}`} />
+        <Stat k="Posts at 2x+ usual" v={fmt.pct(o.reach.vs_baseline?.share_above_2x)} n={`under half of usual: ${fmt.pct(o.reach.vs_baseline?.share_below_half)}`} />
+        <Stat k="Typical views per comment" v={fmt.n(c.views?.median)} n={`n=${c.n} conversational`} />
       </div>
       <AlertsPanel handle={handle} />
       <Panel title="Top 5 potential barriers to organic growth" right={<span className="text-xs muted">click for evidence</span>}>
@@ -830,5 +832,74 @@ function DataSection({ completeness }: { completeness: any }) {
         </table>
       </Panel>
     </>
+  );
+}
+
+function Example({ e }: { e: any }) {
+  return (
+    <a href={e.url} target="_blank" rel="noreferrer" className="mt-1.5 block rounded-md border-l-2 border-slate-300 py-0.5 pl-2.5 text-xs hover:border-slate-500 dark:border-slate-700">
+      <span className="line-clamp-2">{e.text}</span>
+      <span className="muted tabular-nums"><b className="text-slate-900 dark:text-slate-100">{fmt.n(e.views)} views</b> · {e.date}</span>
+    </a>
+  );
+}
+
+function PlainItem({ w, tone }: { w: any; tone: "good" | "bad" }) {
+  return (
+    <div className={`rounded-lg border border-l-4 border-slate-200 p-3 dark:border-slate-800 ${tone === "good" ? "border-l-emerald-600" : "border-l-rose-600"}`}>
+      <div className="text-sm font-semibold">{w.headline}</div>
+      <p className="mt-0.5 text-sm">{w.detail}</p>
+      <p className="mt-0.5 text-xs muted">{w.based_on} · {w.label}</p>
+      {w.examples.map((e: any) => <Example key={e.url} e={e} />)}
+    </div>
+  );
+}
+
+function Summary({ handle }: { handle: string }) {
+  const b = useQuery({ queryKey: ["brief", handle], queryFn: () => api.artifact<any>(handle, "brief") });
+  if (b.error) return <ErrorBox error={b.error} />;
+  if (!b.data) return <Loading what="summary" />;
+  const d = b.data;
+  return (
+    <div className="space-y-4">
+      <Panel title="Where the account stands">
+        <ul className="list-disc space-y-1 pl-5 text-sm">{d.stand.map((x: string) => <li key={x}>{x}</li>)}</ul>
+      </Panel>
+      <div className="grid gap-4 md:grid-cols-2">
+        <Panel title={<span className="text-emerald-700 dark:text-emerald-400">What's working</span>}>
+          <div className="space-y-2">{d.working.length ? d.working.map((w: any) => <PlainItem key={w.headline} w={w} tone="good" />) : <p className="text-sm muted">No clear pattern yet.</p>}</div>
+        </Panel>
+        <Panel title={<span className="text-rose-700 dark:text-rose-400">What's not working</span>}>
+          <div className="space-y-2">{d.not_working.length ? d.not_working.map((w: any) => <PlainItem key={w.headline} w={w} tone="bad" />) : <p className="text-sm muted">No clear pattern yet.</p>}</div>
+        </Panel>
+      </div>
+      <Panel title="Why reach isn't coming">
+        <ol className="space-y-3">{d.why.map((w: any, i: number) => (
+          <li key={w.title} className="rounded-lg border border-slate-200 p-3 text-sm dark:border-slate-800">
+            <div className="flex flex-wrap items-center gap-2 font-semibold"><span className="muted tabular-nums">{i + 1}.</span>{w.title}<span className="chip border-slate-400 font-normal">{w.sure}</span></div>
+            <dl className="mt-2 grid gap-x-4 gap-y-1.5 sm:grid-cols-[170px_1fr]">
+              <dt className="text-xs muted">What we see</dt><dd>{w.we_see} <span className="text-xs muted">({w.we_see_label})</span></dd>
+              <dt className="text-xs muted">What X's algorithm does</dt>
+              <dd>{w.x_code} <span className="text-xs muted">({w.x_code_label}{w.x_code_refs.length ? ": " : ""}{w.x_code_refs.map((f: any, j: number) => (
+                <span key={f.id}>{j ? ", " : ""}<a className="text-blue-600 hover:underline dark:text-blue-400" href={f.url} target="_blank" rel="noreferrer" title={f.title}>{f.id}</a></span>
+              ))})</span></dd>
+              <dt className="text-xs muted">What to do</dt><dd className="font-medium">{w.do}</dd>
+              <dt className="text-xs muted">How we'll know it worked</dt><dd>{w.check}</dd>
+            </dl>
+          </li>
+        ))}</ol>
+      </Panel>
+      <Panel title="What to do next, in order">
+        <ol className="list-decimal space-y-2 pl-5 text-sm">{d.todo.map((t: any) => (
+          <li key={t.action}><b>{t.action}</b><div className="text-xs muted">Why: {t.why} · Check: {t.check}</div></li>
+        ))}</ol>
+        {d.test_note && <p className="mt-3 rounded-md border border-amber-300 p-2 text-xs">{d.test_note}</p>}
+      </Panel>
+      <Panel title="Words used here">
+        <dl className="grid gap-x-4 gap-y-1.5 text-sm sm:grid-cols-[220px_1fr]">{d.glossary.map((g: any) => (
+          <Fragment key={g.term}><dt className="font-medium">{g.term}</dt><dd className="muted">{g.meaning}</dd></Fragment>
+        ))}</dl>
+      </Panel>
+    </div>
   );
 }

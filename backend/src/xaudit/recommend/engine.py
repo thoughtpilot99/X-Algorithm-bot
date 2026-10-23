@@ -262,6 +262,9 @@ def run(handle: str) -> dict:
         "plan": experiment_plan(handle, df, diags),
     }
     save_artifact("recommendations", out, handle)
+    from xaudit.recommend.plain import build_brief
+
+    build_brief(handle)
     return out
 
 

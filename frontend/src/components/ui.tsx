@@ -18,8 +18,17 @@ const CLASS_STYLE: Record<string, string> = {
   insufficient: "border-rose-500 text-rose-700 dark:text-rose-300",
 };
 
+export const CLASS_PLAIN: Record<string, string> = {
+  repo_verified: "Proven in X's published code",
+  account_observed: "Seen in your data",
+  statistical_association: "Pattern in your data (not proof of cause)",
+  hypothesis: "Idea to test",
+  unsupported: "Not supported",
+  insufficient: "Not enough data",
+};
+
 export function ClassBadge({ c }: { c: EvidenceClass | string }) {
-  return <span className={`chip ${CLASS_STYLE[c] ?? "border-slate-400"}`}>{fmt.label(c)}</span>;
+  return <span title={`Evidence class: ${fmt.label(c)}`} className={`chip ${CLASS_STYLE[c] ?? "border-slate-400"}`}>{CLASS_PLAIN[c] ?? fmt.label(c)}</span>;
 }
 
 const CONF_STYLE: Record<string, string> = {
@@ -30,7 +39,8 @@ const CONF_STYLE: Record<string, string> = {
 };
 
 export function Confidence({ level }: { level: string }) {
-  return <span className={`chip border-transparent ${CONF_STYLE[level] ?? ""}`}>confidence: {level}</span>;
+  const words: Record<string, string> = { high: "fairly sure", medium: "somewhat sure", low: "not sure" };
+  return <span title={`confidence: ${level}`} className={`chip border-transparent ${CONF_STYLE[level] ?? ""}`}>{words[level] ?? level}</span>;
 }
 
 export function Panel({ title, right, children, className = "" }: {

@@ -114,6 +114,10 @@ def run(*, dry_run: bool = False, peers: bool | None = None, threads_cap: int = 
         ws = {h: weekly_summary(h, frames[h], today) for h in frames}
         save_artifact("weekly_latest", {"date": today.isoformat(), "accounts": ws})
         summary["weekly_report"] = str(periodic.write_weekly(today, ws))
+        # Keep the full account reports (A/B/C, with their plain-English short version) current each week.
+        from xaudit.reports.render import render_all
+
+        summary["account_reports"] = render_all(pdf=pdf)
     if monthly:
         summary["monthly_report"] = periodic.write_monthly(monthly_delta(), pdf=pdf)
     save_artifact("monitor_last_run", summary)

@@ -7,7 +7,6 @@ exactly what the running dashboard would.
 from __future__ import annotations
 
 import json
-import shutil
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -23,7 +22,8 @@ ACCOUNT_ROUTES = {
     "experiments.json": "/api/accounts/{h}/experiments",
     "followers.json": "/api/accounts/{h}/timeseries/followers",
 }
-ARTIFACTS = ["reach", "segments", "segments_ex_articles", "multivariable", "comments", "benchmark", "engagement", "diagnostics",
+REPORTS_URL = "https://github.com/thoughtpilot99/X-Algorithm-bot/blob/claude/charming-hawking-pqaz1d/reports"
+ARTIFACTS = ["reach", "segments", "segments_ex_articles", "brief", "multivariable", "comments", "benchmark", "engagement", "diagnostics",
              "recommendations"]
 
 
@@ -65,12 +65,13 @@ def export(out: Path) -> dict:
         for kind in ARTIFACTS:
             put(f"{h}/artifacts/{kind}.json", get(f"/api/accounts/{h}/artifacts/{kind}"))
 
+    # The snapshot page runs in a sandboxed frame that cannot open files it serves itself, so reports
+    # link to their copies in the repository (committed by the monitor run), which GitHub displays.
     reports = []
-    (out / "reports").mkdir(parents=True, exist_ok=True)
     for pdf in sorted(REPORTS_DIR.glob("report-*.pdf")):
-        shutil.copy2(pdf, out / "reports" / pdf.name)
-        files.append(f"reports/{pdf.name}")
-        reports.append({"name": pdf.name, "url": f"reports/{pdf.name}", "bytes": pdf.stat().st_size})
+        reports.append({"name": pdf.name, "url": f"{REPORTS_URL}/{pdf.name}", "bytes": pdf.stat().st_size})
+    for csv in sorted((REPORTS_DIR / "csv").glob("*.csv")):
+        reports.append({"name": csv.name, "url": f"{REPORTS_URL}/csv/{csv.name}", "bytes": csv.stat().st_size})
     put("reports.json", reports)
     windows = [a["window"] for a in accounts if a.get("window")]
     put("meta.json", {

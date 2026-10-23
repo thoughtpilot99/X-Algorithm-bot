@@ -14,14 +14,14 @@
 {% for h, s in accounts.items() %}
 <h2>{{ names[h] }} (@{{ h }})</h2>
 <div class="cards">
-  <div class="card"><div class="k">Authored posts</div><div class="v">{{ s.authored_n }}</div><div class="n">{{ s.immature_share|pct }} still &lt;72h old</div></div>
-  <div class="card"><div class="k">Median views</div><div class="v">{{ s.authored_median_views|num }}</div><div class="n">prior 4 weeks: {{ s.prior_4wk_weekly_median_views|num }}</div></div>
-  <div class="card"><div class="k">Median vs baseline</div><div class="v">{{ s.median_vs_baseline|r2 }}x</div><div class="n">mature posts only</div></div>
-  <div class="card"><div class="k">Conversational comments</div><div class="v">{{ s.conversational_comments }}</div><div class="n">median {{ s.comment_median_views|num }} views · {{ s.fulfilment_replies }} fulfilment</div></div>
+  <div class="card"><div class="k">Posts this week</div><div class="v">{{ s.authored_n }}</div><div class="n">{{ s.immature_share|pct }} still under 3 days old (views still growing)</div></div>
+  <div class="card"><div class="k">Typical views per post</div><div class="v">{{ s.authored_median_views|num }}</div><div class="n">previous 4 weeks: {{ s.prior_4wk_weekly_median_views|num }}</div></div>
+  <div class="card"><div class="k">Compared with usual</div><div class="v">{{ s.median_vs_baseline|r2 }}x</div><div class="n">1.00x = the account's usual; posts 3+ days old</div></div>
+  <div class="card"><div class="k">Comments on others' posts</div><div class="v">{{ s.conversational_comments }}</div><div class="n">typically seen by {{ s.comment_median_views|num }} · plus {{ s.fulfilment_replies }} lead-magnet replies</div></div>
 </div>
 <div class="cols"><div><h3>Top posts</h3><table><tr><th>Date</th><th>Post</th><th class="num">Views</th></tr>
 {% for p in s.top %}<tr><td>{{ p.created_at }}</td><td><a href="{{ p.url }}">{{ p.text }}</a></td><td class="num">{{ p.views|num }}</td></tr>{% endfor %}</table></div>
-<div><h3>Weakest mature posts</h3><table><tr><th>Date</th><th>Post</th><th class="num">vs baseline</th></tr>
+<div><h3>Weakest posts (3+ days old)</h3><table><tr><th>Date</th><th>Post</th><th class="num">vs usual</th></tr>
 {% for p in s.bottom %}<tr><td>{{ p.created_at }}</td><td><a href="{{ p.url }}">{{ p.text }}</a></td><td class="num">{{ p.vs_baseline|r2 }}x</td></tr>{% endfor %}</table></div></div>
 <h3>Experiments</h3>
 <table><tr><th>Experiment</th><th>Status</th><th class="num">n (T / C)</th><th class="num">Ratio</th><th class="num">90% CI</th></tr>

@@ -98,6 +98,7 @@ def account_context(handle: str, letter: str) -> dict:
         "mv": load_artifact("multivariable", handle), "cadence": load_artifact("cadence", handle),
         "comments": load_artifact("comments", handle), "bench": load_artifact("benchmark", handle),
         "completeness": load_artifact("completeness", handle), "rec": load_artifact("recommendations", handle),
+        "brief": load_artifact("brief", handle),
         "diagnostics": diags, "used_findings": [registry.by_id(f) for f in used if registry.by_id(f)],
         "answers": final_answers(handle), "claims": registry.claims(),
         "monthly_svg": monthly_svg(load_artifact("reach", handle)["monthly"]), "engagers": _engagers(handle),

@@ -9,7 +9,7 @@ from xaudit.diagnostics import guard
 from xaudit.diagnostics.hypotheses import CHECKERS
 from xaudit.settings import analysis_cfg
 
-ARTIFACTS = ["reach", "engagement", "segments", "multivariable", "cadence", "comments", "benchmark"]
+ARTIFACTS = ["reach", "engagement", "segments", "segments_ex_articles", "multivariable", "cadence", "comments", "benchmark"]
 
 # Thresholds that appear in recommendations/success criteria by design (not data
 # claims). Kept explicit so the guard can tell a policy constant from an invented figure.

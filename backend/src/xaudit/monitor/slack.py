@@ -52,13 +52,14 @@ def account_section(handle: str, df: pd.DataFrame, now: datetime) -> list[dict]:
     lines = [
         f"*Followers:* {fol_txt}",
         f"*Last 24h:* {len(a1)} posts · {len(conv1)} comments on others' posts · {ful1} lead-magnet replies",
-        f"*Last 7 days:* {len(a7)} posts, median {_n(a7['views'].median() if len(a7) else None)} views "
+        f"*Last 7 days:* {len(a7)} posts; a typical post got {_n(a7['views'].median() if len(a7) else None)} views "
         f"(previous 4 weeks: {_n(ap['views'].median() if len(ap) else None)})"
-        + (f"; {int((~a7['mature']).sum())} still under 72h old" if len(a7) and (~a7["mature"]).any() else ""),
+        + (f"; {int((~a7['mature']).sum())} are under 3 days old and still growing" if len(a7) and (~a7["mature"]).any() else ""),
     ]
     mature7 = a7[a7["mature"] & a7["vs_baseline"].notna()]
     if len(mature7):
-        lines.append(f"*vs own baseline (mature posts, 7d):* median {_x(mature7['vs_baseline'].median())}")
+        lines.append(f"*Compared with the account's usual (posts 3+ days old):* {_x(mature7['vs_baseline'].median())} "
+                     "(1.00x = usual)")
     top = a7.sort_values("views", ascending=False).head(2)
     for _, r in top.iterrows():
         lines.append(f"• <{r['url']}|{_n(r['views'])} views> ({str(r['format']).replace('_', ' ')}): "
@@ -66,7 +67,7 @@ def account_section(handle: str, df: pd.DataFrame, now: datetime) -> list[dict]:
     weak = a7[a7["mature"]].sort_values("vs_baseline").head(1)
     for _, r in weak.iterrows():
         if pd.notna(r["vs_baseline"]):
-            lines.append(f"• Weakest mature post: <{r['url']}|{_x(r['vs_baseline'])} baseline>: {_trim(r['text'], 80)}")
+            lines.append(f"• Weakest post: <{r['url']}|{_x(r['vs_baseline'])} of usual>: {_trim(r['text'], 80)}")
 
     blocks: list[dict] = [
         {"type": "header", "text": {"type": "plain_text", "text": f"{name} (@{handle})"}},
@@ -79,11 +80,12 @@ def account_section(handle: str, df: pd.DataFrame, now: datetime) -> list[dict]:
             f"{e['title']} — {e['status'].replace('_', ' ')}"
             + (f" ({_x(e.get('ratio'))}, n={e.get('n_treatment')}/{e.get('n_control')})" if e.get("ratio") else "")
             for e in running)}]})
-    rec = load_artifact("recommendations", handle) or {}
-    roots = rec.get("root_causes", [])[:3]
-    if roots:
-        blocks.append({"type": "context", "elements": [{"type": "mrkdwn", "text": "Top barriers: " + "; ".join(
-            f"{r['rank']}. {r['issue']} ({r['confidence']})" for r in roots)}]})
+    brief = load_artifact("brief", handle) or {}
+    why = brief.get("why", [])[:3]
+    if why:
+        blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": "*Why reach isn't higher:*\n" + "\n".join(
+            f"{i}. *{w['title']}* — {_trim(w['we_see'], 220)}\n    _Do:_ {_trim(w['do'], 160)}"
+            for i, w in enumerate(why, 1))}})
     return blocks
 
 
@@ -106,7 +108,7 @@ def build_digest(now: datetime | None = None) -> dict:
         blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": f":rotating_light: *Alerts*\n{txt}"}})
     else:
         blocks.append({"type": "section", "text": {"type": "mrkdwn", "text":
-                       "No active alerts: weekly reach is inside its normal range (or history is still too short)."}})
+                       "No alerts: weekly reach is inside its normal range (alerts start once 6 weeks of history exist)."}})
     for h in clients():
         df = prepare(h, window_days=analysis_cfg()["extended_window_days"])
         if df.empty:
@@ -116,7 +118,7 @@ def build_digest(now: datetime | None = None) -> dict:
     blocks.append({"type": "divider"})
     links = f"<{REPO_URL}/tree/claude/charming-hawking-pqaz1d/reports|Reports> · <{REPO_URL}/actions|Runs>"
     blocks.append({"type": "context", "elements": [{"type": "mrkdwn", "text":
-                   f"{links} · public data only · associations are not causes"}]})
+                   f"{links} · public data only · patterns in the data are not proof of cause"}]})
     return {"text": f"X audit daily digest {now:%Y-%m-%d}", "blocks": blocks[:50]}
 
 
